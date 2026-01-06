@@ -147,8 +147,9 @@ class Map:
             """,
             (entity.name, entity.type, entity.confidence_score, metadata_json)
         )
+        entity_id = cursor.fetchone()[0]
         self.conn.commit()
-        return cursor.fetchone()[0]
+        return entity_id
     
     def get_entity_documents(self, entity_name: str, doc_type: Optional[str] = None) -> List[Document]:
         """Get all documents linked to an entity, optionally filtered by type."""
@@ -209,8 +210,9 @@ class Map:
             (doc.title, doc.doc_type, doc.hash, doc.url, doc.domain,
              doc.file_size, doc.publication_date, metadata_json)
         )
+        doc_id = cursor.fetchone()[0]
         self.conn.commit()
-        return cursor.fetchone()[0]
+        return doc_id
     
     def get_document_by_hash(self, hash: str) -> Optional[Document]:
         """Retrieve a document by content hash."""
@@ -248,8 +250,9 @@ class Map:
              page.relevance_score, metadata_json, 
              page.last_crawled_at or datetime.now().isoformat())
         )
+        page_id = cursor.fetchone()[0]
         self.conn.commit()
-        return cursor.fetchone()[0]
+        return page_id
     
     # ============================================================
     # DOMAINS
@@ -318,15 +321,13 @@ class Map:
             (from_type, from_id, to_type, to_id, relation, confidence, 
              metadata, source_page_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            RETURNING id
             """,
             (edge.from_type, edge.from_id, edge.to_type, edge.to_id,
              edge.relation, edge.confidence, metadata_json, edge.source_page_id)
         )
+        edge_id = cursor.lastrowid
         self.conn.commit()
-        
-        result = cursor.fetchone()
-        return result[0] if result else None
+        return edge_id if edge_id != 0 else None
     
     def get_edges_from(self, from_type: str, from_id: int, 
                        relation: Optional[str] = None) -> List[Edge]:

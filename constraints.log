@@ -31,3 +31,14 @@ Action: Created spec-kit (README, ARCHITECTURE, SCOPE, DECISIONS, FRAMEWORK, COR
 Status: Complete
 Notes: Foundation documents established. Ready to begin implementation.
 ---
+
+[2025-01-06 18:30] BUG_DISCOVERED
+Phase: v0.1
+Component: probe/core/map.py
+Issue: SQLite transaction error in add_entity() and other insert methods
+Root Cause: Calling commit() before fetchone() with RETURNING clause
+Fix: Fetch result before committing transaction
+Impact: Blocked all entity/document/page/edge insertion
+Resolution: Updated all add_* methods to fetch before commit
+Lesson: SQLite with row_factory requires careful transaction ordering
+---
