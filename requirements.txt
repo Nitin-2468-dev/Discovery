@@ -1,0 +1,24 @@
+# Probe: Deep Research Engine
+# Requirements for v0.1 Foundation
+
+# CLI framework
+click>=8.1.0
+
+# HTTP client (for v0.2+)
+httpx>=0.27.0
+
+# HTML parsing (for v0.2+)
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+
+# PDF processing (for v0.2+)
+PyPDF2>=3.0.0
+pdfplumber>=0.11.0
+
+# Embeddings (for v0.6+)
+# sentence-transformers>=2.2.0
+
+# Development dependencies
+pytest>=8.0.0
+pytest-cov>=4.1.0
+black>=24.0.0

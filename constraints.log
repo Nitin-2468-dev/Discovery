@@ -1,0 +1,33 @@
+# Constraint & Violation Log
+
+**Purpose:**
+This file records real moments where scope, architecture, or discipline was tested during development. It is used later to extract hard constraints for phase-specific AI agent prompts.
+
+**Rules:**
+- This file is append-only
+- Log every temptation to skip ahead
+- Log every undocumented decision
+- Log every moment where discipline mattered
+- Log every architectural ambiguity that forced a choice
+
+**Format:**
+```
+[YYYY-MM-DD HH:MM] VIOLATION_TYPE
+Phase: v0.X
+Wanted: <what you tried to do>
+Blocked: Yes/No
+Rationale: <why it violated scope or why decision was needed>
+Outcome: <what happened>
+---
+```
+
+---
+
+## Log Entries
+
+[2025-01-06 16:00] PROJECT_INITIALIZATION
+Phase: v0.1
+Action: Created spec-kit (README, ARCHITECTURE, SCOPE, DECISIONS, FRAMEWORK, CORE)
+Status: Complete
+Notes: Foundation documents established. Ready to begin implementation.
+---
