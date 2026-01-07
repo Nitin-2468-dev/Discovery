@@ -45,9 +45,34 @@ Every query makes the system smarter. The map compounds over time.
 - [x] Schema design
 - [x] Map interface
 - [x] CLI basics
-- [ ] Fetcher
+- [x] Fetcher (v0.2 - basic)
 - [ ] Relevance scorer
 - [ ] Investigation loop
+
+### Fetcher (v0.2) — implemented ✅
+The fetcher is a synchronous, test-first implementation that:
+
+- Uses `httpx` for HTTP requests with configurable timeouts and retries
+- Cleans HTML with `BeautifulSoup` and extracts normalized absolute links
+- Detects and extracts text from PDFs using `pdfplumber` (best-effort)
+- Returns structured results: `status_code`, `content_type`, `text`, `title`, `links`, `raw_bytes`, `metadata`, and `error` hints
+- Includes an ingestion helper `probe.crawl.ingest.ingest_fetch_result(map, result)` that persists pages and documents into the Map
+
+Usage example (Python):
+
+```python
+from probe.crawl.fetcher import fetch
+from probe.crawl.ingest import ingest_fetch_result
+from probe.core.map import Map
+
+res = fetch("https://example.com")
+print(res["title"], len(res.get("text", "")))
+
+m = Map()
+ingest_fetch_result(m, res)
+```
+
+Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 
 ## Quick Start
 ```bash

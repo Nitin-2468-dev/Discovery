@@ -6,7 +6,7 @@
 - [x] Schema design
 - [x] Map interface (CRUD operations)
 - [x] CLI (init, show, add-entity, domains)
-- [ ] Basic test coverage
+- [x] Basic test coverage
 
 **Success Criteria:** Can manually add entities and documents, query relationships
 
@@ -15,13 +15,15 @@
 ## v0.2 — Fetching
 **Goal:** Retrieve and clean web content
 
-- [ ] HTTP fetcher (httpx-based)
-- [ ] HTML cleaning (BeautifulSoup)
-- [ ] PDF download + text extraction
-- [ ] Link extraction
-- [ ] Error handling (timeouts, 404s, rate limits)
+- [x] HTTP fetcher (httpx-based)
+- [x] HTML cleaning (BeautifulSoup)
+- [x] PDF download + text extraction
+- [x] Link extraction
+- [x] Error handling (timeouts, 404s, rate limits, retries)
 
-**Success Criteria:** `fetcher.fetch(url)` returns cleaned content and links
+**Success Criteria:** `fetcher.fetch(url)` returns cleaned content, links, `title`, `raw_bytes`, and structured `metadata`. Tests cover HTML cleaning, PDF extraction, max-size aborts, and retry/429 behavior. An integration helper `probe.crawl.ingest.ingest_fetch_result` persists pages/documents into the Map.
+
+> Notes: Implemented a sync `fetch` with configurable `max_retries` and `backoff_factor`. PDF extraction uses `pdfplumber` (fallbacks/edge-case hints are recorded in `error` field). Further work: scorer (v0.3) and politeness (robots.txt) enforcement in v0.3.
 
 ---
 

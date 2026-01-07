@@ -97,7 +97,9 @@ class Map:
     
     def __init__(self, db_path: str = "probe.db"):
         self.db_path = db_path
-        self.conn = sqlite3.connect(db_path)
+        # Ensure schema exists and return a ready-to-use connection
+        from probe.core.schema import initialize_schema
+        self.conn = initialize_schema(db_path)
         self.conn.row_factory = sqlite3.Row  # Access columns by name
     
     def close(self):
