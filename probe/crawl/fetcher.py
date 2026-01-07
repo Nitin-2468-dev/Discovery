@@ -60,85 +60,115 @@ def fetch(
     backoff_factor = 0.5
     sleep_func = _sleep
 
-    with httpx.Client(timeout=timeout, headers={"User-Agent": "probe/0.1"}) as client:
-        for attempt in range(0, max_retries + 1):
-            try:
-                resp = client.get(url, follow_redirects=True)
-                result["status_code"] = resp.status_code
-                result["headers"] = dict(resp.headers)
-                content_type = resp.headers.get("content-type", "").lower()
-                result["content_type"] = content_type
+    # Use a single client for the run to avoid reopen issues
+    try:
+        with httpx.Client(timeout=timeout, headers={"User-Agent": "probe/0.1"}) as client:
+            for attempt in range(0, max_retries + 1):
+                try:
+                    start = time.monotonic()
+                    resp = client.get(url, follow_redirects=True)
+                    elapsed = int((time.monotonic() - start) * 1000)
 
-                # 429 / 5xx handling: retryable
-                if resp.status_code == 429 and attempt < max_retries:
-                    ra = resp.headers.get("retry-after")
+                    result["status_code"] = resp.status_code
+                    result["headers"] = dict(resp.headers)
+                    content_type = resp.headers.get("content-type", "").lower()
+                    result["content_type"] = content_type
+                    result["final_url"] = str(resp.url)
+                    # redirect history length if available
                     try:
-                        delay = int(ra) if ra is not None else backoff_factor * (2 ** attempt)
+                        result["redirect_count"] = len(resp.history) if getattr(resp, "history", None) is not None else 0
                     except Exception:
+                        result["redirect_count"] = 0
+
+                    # 429 / 5xx handling: retryable
+                    if resp.status_code == 429 and attempt < max_retries:
+                        ra = resp.headers.get("retry-after")
+                        try:
+                            delay = int(ra) if ra is not None else backoff_factor * (2 ** attempt)
+                        except Exception:
+                            delay = backoff_factor * (2 ** attempt)
+                        sleep_func(delay)
+                        continue
+                    if 500 <= resp.status_code < 600 and attempt < max_retries:
                         delay = backoff_factor * (2 ** attempt)
-                    sleep_func(delay)
-                    continue
-                if 500 <= resp.status_code < 600 and attempt < max_retries:
-                    delay = backoff_factor * (2 ** attempt)
-                    sleep_func(delay)
-                    continue
+                        sleep_func(delay)
+                        continue
 
-                if resp.status_code >= 400:
-                    result["error"] = f"http_{resp.status_code}"
-                    return result
-
-                            # Stream content while enforcing max_size
-                content = bytearray()
-                for chunk in resp.iter_bytes():
-                    content.extend(chunk)
-                    if len(content) > max_size:
-                        result["error"] = "max_size_exceeded"
-                        result["metadata"]["downloaded"] = len(content)
+                    if resp.status_code >= 400:
+                        result["error"] = f"http_{resp.status_code}"
+                        result["fetch_duration_ms"] = elapsed
+                        result["retry_count"] = attempt
                         return result
 
-                # Save raw bytes for hashing/storage
-                result["raw_bytes"] = bytes(content)
+                    # Stream content while enforcing max_size
+                    content = bytearray()
+                    for chunk in resp.iter_bytes():
+                        content.extend(chunk)
+                        if len(content) > max_size:
+                            result["error"] = "max_size_exceeded"
+                            result["metadata"]["downloaded"] = len(content)
+                            result["fetch_duration_ms"] = elapsed
+                            result["retry_count"] = attempt
+                            return result
 
-                # PDF handling (real pdfplumber extraction)
-                if "application/pdf" in content_type or url.lower().endswith(".pdf"):
-                    result["is_pdf"] = True
-                    try:
-                        import pdfplumber
-                        from io import BytesIO
+                    # Save raw bytes for hashing/storage
+                    result["raw_bytes"] = bytes(content)
+                    result["content_length"] = len(result["raw_bytes"]) if result.get("raw_bytes") else 0
+                    result["fetch_duration_ms"] = elapsed
+                    result["retry_count"] = attempt
 
-                        with pdfplumber.open(BytesIO(content)) as pdf:
-                            pages = [p.extract_text() or "" for p in pdf.pages]
-                            result["text"] = "\n".join(pages)
-                            result["metadata"]["pages"] = len(pages)
-                    except Exception:
-                        # Best-effort: leave text empty and surface a hint
-                        result["error"] = "pdf_extraction_failed"
+                    # PDF handling (real pdfplumber extraction)
+                    if "application/pdf" in content_type or url.lower().endswith(".pdf"):
+                        result["is_pdf"] = True
+                        try:
+                            import pdfplumber
+                            from io import BytesIO
+
+                            with pdfplumber.open(BytesIO(content)) as pdf:
+                                pages = [p.extract_text() or "" for p in pdf.pages]
+                                result["text"] = "\n".join(pages)
+                                result["metadata"]["pages"] = len(pages)
+                                result["link_count"] = 0
+                                result["has_pdf_links"] = False
+                        except Exception:
+                            # Best-effort: leave text empty and surface a hint
+                            result["error"] = "pdf_extraction_failed"
+                        return result
+
+                    # Otherwise treat as HTML/text
+                    encoding = resp.encoding or "utf-8"
+                    html = bytes(content).decode(encoding, errors="replace")
+                    cleaned_text, links, title = _clean_html_and_extract_links(html, base_url=url)
+                    result["text"] = cleaned_text
+                    result["links"] = links
+                    result["title"] = title
+                    result["link_count"] = len(links)
+                    result["has_pdf_links"] = any(l["url"].lower().endswith(".pdf") for l in links)
                     return result
 
-                # Otherwise treat as HTML/text
-                encoding = resp.encoding or "utf-8"
-                html = bytes(content).decode(encoding, errors="replace")
-                cleaned_text, links, title = _clean_html_and_extract_links(html, base_url=url)
-                result["text"] = cleaned_text
-                result["links"] = links
-                result["title"] = title
-                return result
-
-            except httpx.TimeoutException:
-                # retry on timeout if attempts remain
-                if attempt < max_retries:
-                    delay = backoff_factor * (2 ** attempt)
-                    sleep_func(delay)
-                    continue
-                result["error"] = "timeout"
-                return result
-            except httpx.HTTPError as exc:  # covers many transport errors
-                if attempt < max_retries:
-                    delay = backoff_factor * (2 ** attempt)
-                    sleep_func(delay)
-                    continue
-                result["error"] = f"http_error: {exc}"
-                return result
+                except httpx.TimeoutException:
+                    # retry on timeout if attempts remain
+                    if attempt < max_retries:
+                        delay = backoff_factor * (2 ** attempt)
+                        sleep_func(delay)
+                        continue
+                    result["error"] = "timeout"
+                    result["fetch_duration_ms"] = 0
+                    result["retry_count"] = attempt
+                    return result
+                except httpx.HTTPError as exc:  # covers many transport errors
+                    if attempt < max_retries:
+                        delay = backoff_factor * (2 ** attempt)
+                        sleep_func(delay)
+                        continue
+                    result["error"] = f"http_error: {exc}"
+                    result["fetch_duration_ms"] = 0
+                    result["retry_count"] = attempt
+                    return result
+    except Exception as exc:
+        # Unexpected error during setup or client creation
+        result["error"] = f"client_error: {exc}"
+        return result
 
 
 def _clean_html_and_extract_links(html: str, base_url: str) -> Tuple[str, List[Dict[str, str]], str]:

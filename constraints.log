@@ -41,4 +41,108 @@ Fix: Fetch result before committing transaction
 Impact: Blocked all entity/document/page/edge insertion
 Resolution: Updated all add_* methods to fetch before commit
 Lesson: SQLite with row_factory requires careful transaction ordering
+---[2026-01-07 16:54] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-15\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:54] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-15\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:55] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-16\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:55] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-16\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:55] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-17\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:55] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-17\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:55] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-18\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:55] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-18\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-19\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-19\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-20\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-20\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/success
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-21\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: expected an indented block after 'with' statement on line 63 (fetcher.py, line 64)
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-21\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-07 16:57] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-22\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
 ---

@@ -1,0 +1,37 @@
+# Simple Test Seeds - For Initial Fetcher Development
+# These are reliable, well-structured sites for testing basic functionality
+
+# Wikipedia (Clean HTML, Good Structure)
+https://en.wikipedia.org/wiki/Aircraft_engine
+https://en.wikipedia.org/wiki/Maintenance_manual
+https://en.wikipedia.org/wiki/PDF
+
+# Government Sites (Authoritative, Stable)
+https://www.faa.gov/
+https://www.nasa.gov/
+https://www.nist.gov/
+
+# Technical Documentation (Common Format)
+https://www.python.org/doc/
+https://docs.github.com/
+https://developer.mozilla.org/
+
+# Simple Direct PDFs (For PDF Extraction Testing)
+https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf
+https://www.adobe.com/support/products/enterprise/knowledgecenter/media/c4611_sample_explain.pdf
+
+# Archives (For Testing Link Following)
+https://archive.org/details/texts
+https://arxiv.org/list/cs.AI/recent
+
+# Forums (For Testing Pagination)
+https://stackoverflow.com/questions/tagged/python
+https://news.ycombinator.com/
+
+# News Sites (For Testing Boilerplate Detection)
+https://www.bbc.com/news/technology
+https://arstechnica.com/
+
+# Academic (For Testing Reference Following)
+https://scholar.google.com/
+https://www.semanticscholar.org/

@@ -1,0 +1,4 @@
+# small test set
+https://example.com/
+https://example.org/
+https://example.com/about

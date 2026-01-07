@@ -35,6 +35,22 @@ Integration
 -----------
 Use `ingest_fetch_result(map, result)` to write results to the Map. Document objects and pages are created with content hashes and metadata.
 
+CLI: `probe fetch`
+------------------
+A convenience CLI command is available to fetch a URL and optionally ingest the result into the Map:
+
+```bash
+# Fetch a URL and print summary
+python cli.py fetch https://example.com
+
+# Fetch and ingest into a specific DB
+python cli.py fetch https://example.com --ingest --db /path/to/probe.db
+```
+
+Testing & Fixtures
+------------------
+For a full end-to-end PDF extraction test, an example test uses `reportlab` to generate a small PDF and verifies `pdfplumber` extracts the expected text. The test is skipped when `reportlab` is not available; to generate a permanent fixture, run `tests/helpers/create_pdf_fixture.py` (requires `reportlab`).
+
 Future work
 -----------
 - Politeness: robots.txt and crawl-delay handling

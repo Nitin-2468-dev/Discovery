@@ -1,0 +1,40 @@
+# Example Query-Based Seeds
+# These simulate what a real investigation might look like
+
+# Query: "PT6A-52 maintenance manual"
+# Generated seeds:
+https://www.google.com/search?q=PT6A-52+maintenance+manual+filetype:pdf
+https://www.pwc.ca/en/support/maintenance-overhaul
+https://www.aviall.com/search?query=PT6A-52+manual
+https://www.controller.com/listings/aircraft/for-sale/pt6a-52
+https://en.wikipedia.org/wiki/Pratt_%26_Whitney_Canada_PT6
+https://www.faa.gov/search/?query=PT6A-52
+
+# Query: "Cessna 208 Caravan service bulletin"
+# Generated seeds:
+https://www.google.com/search?q=Cessna+208+Caravan+service+bulletin+filetype:pdf
+https://cessna.txtav.com/en/piston/caravan
+https://www.faa.gov/search/?query=Cessna+208+service+bulletin
+https://www.pilotmall.com/search?q=cessna+208+service
+https://en.wikipedia.org/wiki/Cessna_208_Caravan
+
+# Query: "Boeing 737 MAX airworthiness directive"
+# Generated seeds:
+https://www.faa.gov/regulations_policies/airworthiness_directives/
+https://www.google.com/search?q=Boeing+737+MAX+airworthiness+directive+filetype:pdf
+https://www.easa.europa.eu/en/search-results?search_api_views_fulltext=737+MAX+AD
+https://en.wikipedia.org/wiki/Boeing_737_MAX
+
+# Query: "Lycoming IO-540 overhaul manual"
+# Generated seeds:
+https://www.lycoming.com/support
+https://www.google.com/search?q=Lycoming+IO-540+overhaul+manual+filetype:pdf
+https://www.aviall.com/search?query=Lycoming+IO-540
+https://www.aircraftspruce.com/catalog/pnsearch.php?search=IO-540
+
+# Query: "King Air 350 pilot operating handbook"
+# Generated seeds:
+https://beechcraft.txtav.com/en/king-air-350
+https://www.google.com/search?q=King+Air+350+POH+filetype:pdf
+https://www.faa.gov/search/?query=King+Air+350+handbook
+https://www.controller.com/listings/aircraft/for-sale/king-air-350

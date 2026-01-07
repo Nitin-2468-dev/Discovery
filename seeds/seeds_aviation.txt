@@ -1,0 +1,37 @@
+# Aviation Engine Seeds - PT6A Family
+# Use case: Finding maintenance manuals, service bulletins, specs
+
+# Official Manufacturer Sites (High Quality)
+https://www.pwc.ca/en/products-and-services/products/pt6a-engine
+https://www.pwc.ca/en/support/maintenance-overhaul
+https://flybusiness.com/aircraft-maintenance/pratt-whitney-canada-pt6a-turboprop-engine-manual/
+
+# Aviation Forums (Deep Discussion, Good Links)
+https://www.pprune.org/archive/index.php/f-16.html
+https://www.backcountrypilot.org/forum/
+https://www.pilotsofamerica.com/community/forums/hangar-talk.4/
+
+# Technical Documentation Sites
+https://www.faa.gov/regulations_policies/airworthiness_directives/
+https://www.easa.europa.eu/en/document-library/airworthiness-directives
+
+# Parts & Service Providers (Often Have PDFs)
+https://www.aviall.com/
+https://www.aerobase.com/
+https://www.wencor.com/
+
+# Aviation Safety (Service Bulletins, ADs)
+https://www.ntsb.gov/Pages/AviationQuery.aspx
+https://av-info.faa.gov/
+
+# Wikipedia (Good for Entity Discovery & Links)
+https://en.wikipedia.org/wiki/Pratt_%26_Whitney_Canada_PT6
+https://en.wikipedia.org/wiki/Turboprop
+
+# Aircraft Listings (May Link to Manuals)
+https://www.controller.com/
+https://www.trade-a-plane.com/
+
+# Broker Sites (Sometimes Have Spec Sheets)
+https://www.globalair.com/aircraft-for-sale/
+https://www.avbuyer.com/aircraft/turboprop-aircraft

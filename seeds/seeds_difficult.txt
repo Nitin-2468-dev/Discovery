@@ -1,0 +1,47 @@
+# Challenging Test Seeds - For Edge Cases
+# Use these to test error handling, JavaScript requirements, etc.
+
+# JavaScript-Heavy (May Need Playwright)
+https://www.reddit.com/r/aviation/
+https://twitter.com/search?q=aviation
+https://www.linkedin.com/search/results/content/
+
+# Rate-Limited (Good for Testing Politeness)
+https://api.github.com/
+https://www.google.com/search?q=aircraft+manual
+
+# Paywalled / Login Required (Should Handle Gracefully)
+https://www.wsj.com/
+https://www.nytimes.com/
+https://ieeexplore.ieee.org/
+
+# PDF Behind Forms (Common in Aviation)
+https://www.faa.gov/aircraft/air_cert/airworthiness_certification/
+https://fsims.faa.gov/PICDetail.aspx
+
+# Dynamic Pagination (Infinite Scroll)
+https://www.pinterest.com/search/pins/?q=aircraft
+https://www.instagram.com/explore/tags/aviation/
+
+# Heavy Boilerplate (Testing Content Extraction)
+https://www.forbes.com/
+https://www.businessinsider.com/
+
+# Redirects & Complex Routing
+https://bit.ly/
+https://tinyurl.com/
+
+# CDN-Hosted Content
+https://cdnjs.cloudflare.com/
+https://unpkg.com/
+
+# 404s / Dead Links (Error Handling)
+https://example.com/this-does-not-exist
+https://httpstat.us/404
+https://httpstat.us/500
+
+# Slow Responses (Timeout Testing)
+https://httpstat.us/200?sleep=5000
+
+# Large Files (Memory Management)
+https://speed.hetzner.de/100MB.bin

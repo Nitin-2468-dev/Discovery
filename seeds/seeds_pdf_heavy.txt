@@ -1,0 +1,48 @@
+# PDF-Focused Seeds - For Document Extraction Testing
+# Sites that commonly host technical PDFs
+
+# Aviation Technical Publications
+https://www.faa.gov/regulations_policies/advisory_circulars/
+https://www.tc.gc.ca/en/services/aviation/publications.html
+https://www.easa.europa.eu/en/document-library
+
+# Technical Manuals (Various Industries)
+https://www.manualslib.com/
+https://www.ifixit.com/Device
+https://www.nhtsa.gov/recalls
+
+# Academic Papers
+https://arxiv.org/
+https://www.biorxiv.org/
+https://papers.ssrn.com/
+
+# Government Reports
+https://www.gao.gov/reports-testimonies
+https://www.cbo.gov/publications
+https://www.govinfo.gov/
+
+# Standards & Specifications
+https://www.iso.org/standards.html
+https://www.nist.gov/publications
+https://standards.ieee.org/
+
+# Military Technical Manuals
+https://www.marines.mil/News/Publications/
+https://armypubs.army.mil/
+
+# Patent Documents
+https://patents.google.com/
+https://www.uspto.gov/patents
+
+# Medical/Scientific Protocols
+https://www.nih.gov/health-information
+https://www.who.int/publications
+
+# Engineering Handbooks
+https://www.engineeringtoolbox.com/
+https://www.efunda.com/
+
+# Product Datasheets
+https://www.ti.com/lit/
+https://www.analog.com/en/technical-articles.html
+https://datasheets.maximintegrated.com/

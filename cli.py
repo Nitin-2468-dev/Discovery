@@ -178,6 +178,35 @@ def summary(db):
 
 
 @cli.command()
+@click.argument('url')
+@click.option('--ingest/--no-ingest', default=False, help='Persist fetched content into the Map')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-retries', default=3, type=int, help='Maximum retry attempts for transient errors')
+@click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor in seconds')
+def fetch_cmd(url, ingest, db, timeout, max_retries, backoff_factor):
+    """Fetch a URL and optionally ingest into the Map."""
+    click.echo(f"Fetching: {url}")
+    res = None
+    try:
+        res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
+            url, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
+        )
+    except Exception as exc:
+        click.echo(f"✗ Fetch failed: {exc}")
+        raise
+
+    click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}")
+    click.echo(f"Title: {res.get('title')}")
+    click.echo(f"Links: {len(res.get('links', []))}")
+
+    if ingest:
+        m = Map(db)
+        out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
+        click.echo(f"Ingested: {out}")
+        m.close()
+
+@cli.command()
 @click.argument('entity_name')
 @click.argument('document_title')
 @click.argument('document_url')
@@ -229,6 +258,136 @@ def link(entity_name, document_title, document_url, doc_type, doc_hash, relation
     click.echo(f"  Edge ID: {edge_id}")
     
     m.close()
+
+
+@cli.group()
+def seeds():
+    """Seed related utilities (loader, runners)."""
+    pass
+
+
+@seeds.command(name="run")
+@click.argument('file')
+@click.option('--limit', default=10, type=int, help='Limit number of seeds to run')
+@click.option('--ingest/--no-ingest', default=False, help='Persist fetched content into the Map')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-retries', default=3, type=int, help='Maximum retry attempts')
+@click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor seconds')
+@click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
+@click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
+def seeds_run(file, limit, ingest, db, timeout, max_retries, backoff_factor, summary_dir, no_log_failures):
+    """Run seeds from a file using the fetcher and optionally ingest into the Map."""
+    from probe.crawl.seed_loader import load_file, summarize
+    from probe.crawl.reporting import write_csv_report, append_failure_log
+    click.echo(f"Loading seeds from: {file}")
+    urls = load_file(file)[:limit]
+    click.echo(f"Loaded {len(urls)} seeds")
+    click.echo("Summary:")
+    s = summarize(urls)
+    for d, c in s.items():
+        click.echo(f"  {d}: {c}")
+
+    successes = 0
+    failures = 0
+    rows = []
+
+    m = None
+    if ingest:
+        m = Map(db)
+
+    for u in urls:
+        click.echo(f"Fetching: {u}")
+        try:
+            res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
+                u, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
+            )
+
+            domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc
+            # compute success robustly
+            try:
+                sc = int(res.get('status_code') or 0)
+                success_flag = (sc >= 200 and sc < 400) and not bool(res.get('error'))
+            except Exception:
+                success_flag = False
+
+            row = {
+                'timestamp': __import__('datetime').datetime.now().isoformat(),
+                'url': u,
+                'domain': domain,
+                'status_code': res.get('status_code') or 0,
+                'success': 'True' if success_flag else 'False',
+                'error_message': res.get('error') or '',
+                'content_type': res.get('content_type') or '',
+                'content_length': res.get('content_length') or 0,
+                'fetch_duration_ms': res.get('fetch_duration_ms') or 0,
+                'redirect_count': res.get('redirect_count') or 0,
+                'final_url': res.get('final_url') or '',
+                'link_count': res.get('link_count') or 0,
+                'has_pdf_links': res.get('has_pdf_links') or False,
+            }
+
+            rows.append(row)
+
+            if res.get('error'):
+                click.echo(f"  ✗ {res.get('error')}")
+                failures += 1
+                if not no_log_failures:
+                    append_failure_log(u, res.get('error'), file, f"cli seeds run {file} --limit {limit}")
+            else:
+                click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
+                successes += 1
+                if ingest and m:
+                    out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
+                    click.echo(f"    Ingested: {out}")
+        except Exception as exc:
+            click.echo(f"  ✗ Exception: {exc}")
+            failures += 1
+            if not no_log_failures:
+                append_failure_log(u, str(exc), file, f"cli seeds run {file} --limit {limit}")
+            rows.append({
+                'timestamp': __import__('datetime').datetime.now().isoformat(),
+                'url': u,
+                'domain': __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc,
+                'status_code': 0,
+                'success': False,
+                'error_message': str(exc),
+                'content_type': '',
+                'content_length': 0,
+                'fetch_duration_ms': 0,
+                'redirect_count': 0,
+                'final_url': '',
+                'link_count': 0,
+                'has_pdf_links': False,
+            })
+
+    if m:
+        m.close()
+
+    # Write CSV summary
+    try:
+        p = write_csv_report(file, rows, dir_path=Path(summary_dir))
+        click.echo(f"Wrote summary CSV: {p}")
+    except Exception as exc:
+        click.echo(f"Warning: failed to write CSV summary: {exc}")
+
+    click.echo(f"Done. Successes: {successes}. Failures: {failures}.")
+
+
+@cli.command()
+@click.argument('url')
+@click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-retries', default=1, type=int, help='Maximum retry attempts')
+@click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor seconds')
+def health_check(url, timeout, max_retries, backoff_factor):
+    """Lightweight health-check: fetch url and report basic status and extraction success."""
+    click.echo(f"Health-check: {url}")
+    res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
+        url, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
+    )
+    click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}, Error: {res.get('error')}")
+    if res.get('is_pdf'):
+        click.echo(f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}")
 
 
 if __name__ == "__main__":
