@@ -5,7 +5,7 @@ import pytest
 from probe.crawl.fetcher import fetch
 
 
-def test_real_pdf_extraction(tmp_path):
+def test_real_pdf_extraction(tmp_path, monkeypatch):
     # Skip if reportlab not available
     pytest.importorskip("reportlab")
     from reportlab.pdfgen import canvas
@@ -25,16 +25,8 @@ def test_real_pdf_extraction(tmp_path):
     client = httpx.Client(transport=transport)
 
     # Patch httpx.Client used inside fetch to our client
-    import monkeypatch as _mp  # type: ignore
-    # Use pytest monkeypatch fixture, but create a local patch when fixture not available
-    # We'll re-use httpx.Client patching pattern used in other tests
-    from _pytest.monkeypatch import MonkeyPatch
-    mp = MonkeyPatch()
-    mp.setattr(httpx, "Client", lambda *args, **kwargs: client)
+    monkeypatch.setattr(httpx, "Client", lambda *args, **kwargs: client)
 
-    try:
-        res = fetch("https://example.org/doc.pdf")
-        assert res["is_pdf"] is True
-        assert "Real PDF Text for testing" in res["text"]
-    finally:
-        mp.undo()
+    res = fetch("https://example.org/doc.pdf")
+    assert res["is_pdf"] is True
+    assert "Real PDF Text for testing" in res["text"]

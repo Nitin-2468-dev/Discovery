@@ -29,8 +29,13 @@ Return keys (not exhaustive):
 Testing notes
 -------------
 - Tests use `httpx.MockTransport` to simulate network responses; PDF extraction is mocked in tests where a full binary fixture isn't required.
-- Consider adding a real PDF fixture under `tests/fixtures/` for an integration test with real `pdfplumber` behavior.
+- Consider adding a real PDF fixture under `tests/fixtures/` for an integration test with real `pdfplumber` behavior (we committed `tests/fixtures/sample.pdf`).
 
+Fetch options
+-------------
+- `max_size` (default 10_000_000): maximum response size in bytes; responses larger than this will be aborted and marked `max_size_exceeded` in the result and in run CSVs.
+- `sleep_func`: test hook passed to `fetch` to override sleeping behavior during retries (useful for unit tests to avoid actual delays).
+- `retry_count` is returned in the fetch result and recorded in run CSVs; `user_agent` is also exposed in fetch results.
 Integration
 -----------
 Use `ingest_fetch_result(map, result)` to write results to the Map. Document objects and pages are created with content hashes and metadata.

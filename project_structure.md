@@ -22,7 +22,14 @@ probe/
 │   ├── crawl/           # v0.2+
 │   │   ├── __init__.py
 │   │   ├── fetcher.py   # HTTP/PDF fetching
+│   │   ├── reporting.py # CSV run summaries and failure logs
+│   │   ├── robots.py    # robots.txt helper with caching and crawl_delay
 │   │   └── scorer.py    # Relevance scoring
+
+# Notes on Seed Runner & Politeness
+- `seeds run` writes CSV summaries and optional constraints logs.
+- `--summary-dir` writes timestamped CSV files into a directory; `--summary-csv <path>` writes to an explicit filename.
+- `--persistent-politeness` stores `.probe_state.json` (domain -> ISO timestamp) to enforce per-domain delays across separate runs.
 │   └── analysis/        # v0.4+
 │       ├── __init__.py
 │       └── gaps.py      # Gap detection logic

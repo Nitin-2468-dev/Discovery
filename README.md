@@ -58,6 +58,17 @@ The fetcher is a synchronous, test-first implementation that:
 - Returns structured results: `status_code`, `content_type`, `text`, `title`, `links`, `raw_bytes`, `metadata`, and `error` hints
 - Includes an ingestion helper `probe.crawl.ingest.ingest_fetch_result(map, result)` that persists pages and documents into the Map
 
+### Seed runner & politeness
+The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV summary and optional failure log. Important flags:
+
+- `--summary-dir <dir>`: directory where timestamped CSV run summaries are written (default: `run_reports`).
+- `--summary-csv <path>`: write the summary CSV to an explicit path (overrides `--summary-dir`). Useful in CI or automation where a specific filename is required.
+- `--persistent-politeness`: enable persistent per-domain politeness — stores the last-crawl timestamp per domain in `.probe_state.json` and uses it to delay subsequent runs according to `--per-domain-delay`.
+
+Persistent politeness stores timestamps in a small JSON file `.probe_state.json` in the current working directory as `{ "domain": "YYYY-MM-DDTHH:MM:SS.ssssss" }`. When enabled, the seed-runner consults this file to avoid hitting domains too quickly across separate runs.
+
+(Other useful flags: `--concurrency`, `--per-domain-delay`, `--ignore-robots`, and `--no-log-failures`.)
+
 Usage example (Python):
 
 ```python
@@ -81,6 +92,9 @@ python cli.py init
 
 # Add an entity
 python cli.py add-entity "PT6A-52" --type engine
+
+# Run seeds and write an explicit summary CSV (example)
+python cli.py seeds run seeds.txt --limit 10 --summary-csv out/report.csv
 
 # Investigate (coming soon)
 python cli.py investigate "PT6A-52 maintenance manual"

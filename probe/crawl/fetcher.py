@@ -55,10 +55,8 @@ def fetch(
     def _sleep(s):
         time.sleep(s)
 
-    # Parameters for retries/backoff
-    max_retries = 3
-    backoff_factor = 0.5
-    sleep_func = _sleep
+    if sleep_func is None:
+        sleep_func = _sleep
 
     # Use a single client for the run to avoid reopen issues
     try:
@@ -116,6 +114,11 @@ def fetch(
                     result["content_length"] = len(result["raw_bytes"]) if result.get("raw_bytes") else 0
                     result["fetch_duration_ms"] = elapsed
                     result["retry_count"] = attempt
+                    # Expose user-agent used
+                    try:
+                        result["user_agent"] = client.headers.get("User-Agent")
+                    except Exception:
+                        result["user_agent"] = "probe/0.1"
 
                     # PDF handling (real pdfplumber extraction)
                     if "application/pdf" in content_type or url.lower().endswith(".pdf"):

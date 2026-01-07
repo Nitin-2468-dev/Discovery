@@ -19,7 +19,10 @@ CLI
   - `--limit`: limit number of seeds to run (default 10)
   - `--ingest`: persist results into DB
   - `--db`: database path
+  - `--concurrency`: number of concurrent worker threads (default 1)
+  - `--per-domain-delay`: minimum delay in seconds between requests to the same domain (default 0.25)
 
+Notes: `--concurrency` and `--per-domain-delay` let you safely parallelize seed runs while respecting per-domain politeness; consider small concurrency and non-zero per-domain delays for public sites.
 - `python cli.py health-check <url>`: lightweight check to verify fetch + extraction
 
 Phases (recommended)

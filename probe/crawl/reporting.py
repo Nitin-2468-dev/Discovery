@@ -20,6 +20,8 @@ CSV_FIELDS = [
     "final_url",
     "link_count",
     "has_pdf_links",
+    "retry_count",
+    "user_agent",
 ]
 
 
@@ -28,11 +30,16 @@ def ensure_dir(path: Path):
     return path
 
 
-def write_csv_report(seed_name: str, rows: list, dir_path: Path = RUN_REPORTS_DIR) -> Path:
-    ensure_dir(dir_path)
-    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    fname = f"{ts}_{Path(seed_name).stem}.csv"
-    out = dir_path / fname
+def write_csv_report(seed_name: str, rows: list, dir_path: Path = RUN_REPORTS_DIR, file_path: Path | None = None) -> Path:
+    # If an explicit file_path is provided, write there; otherwise create a timestamped file in dir_path
+    if file_path:
+        ensure_dir(file_path.parent)
+        out = file_path
+    else:
+        ensure_dir(dir_path)
+        ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        fname = f"{ts}_{Path(seed_name).stem}.csv"
+        out = dir_path / fname
 
     with open(out, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)

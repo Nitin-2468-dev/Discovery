@@ -182,19 +182,24 @@ def summary(db):
 @click.option('--ingest/--no-ingest', default=False, help='Persist fetched content into the Map')
 @click.option('--db', default='probe.db', help='Database file path')
 @click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-size', default=10000000, type=int, help='Max response size in bytes')
 @click.option('--max-retries', default=3, type=int, help='Maximum retry attempts for transient errors')
 @click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor in seconds')
-def fetch_cmd(url, ingest, db, timeout, max_retries, backoff_factor):
+def fetch_cmd(url, ingest, db, timeout, max_size, max_retries, backoff_factor):
     """Fetch a URL and optionally ingest into the Map."""
     click.echo(f"Fetching: {url}")
     res = None
     try:
         res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
-            url, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
+            url, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor
         )
     except Exception as exc:
         click.echo(f"✗ Fetch failed: {exc}")
         raise
+
+    if res.get('error'):
+        click.echo(f"✗ {res.get('error')}")
+        return
 
     click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}")
     click.echo(f"Title: {res.get('title')}")
@@ -272,11 +277,24 @@ def seeds():
 @click.option('--ingest/--no-ingest', default=False, help='Persist fetched content into the Map')
 @click.option('--db', default='probe.db', help='Database file path')
 @click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-size', default=10000000, type=int, help='Max response size in bytes')
 @click.option('--max-retries', default=3, type=int, help='Maximum retry attempts')
 @click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor seconds')
+@click.option('--concurrency', default=1, type=int, help='Number of concurrent workers for seed runner')
+@click.option('--per-domain-delay', default=0.25, type=float, help='Minimum delay (seconds) between requests to the same domain')
+@click.option('--persistent-politeness/--no-persistent-politeness', default=False, help='Enable persistent per-domain politeness (store last-crawl timestamps)')
+@click.option('--ignore-robots', is_flag=True, default=False, help='Ignore robots.txt rules (use with caution)')
 @click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
+@click.option('--summary-csv', default=None, help='Write summary CSV to explicit path (overrides --summary-dir)')
 @click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
-def seeds_run(file, limit, ingest, db, timeout, max_retries, backoff_factor, summary_dir, no_log_failures):
+def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, persistent_politeness, ignore_robots, summary_dir, summary_csv, no_log_failures):
+    """
+    Options:
+    - `--concurrency` number of worker threads
+    - `--per-domain-delay` minimum delay between requests to the same domain
+    - `--ignore-robots` skip robots.txt checks
+    - `--persistent-politeness` (enabled via flag) will store last-crawl timestamps across runs
+    """
     """Run seeds from a file using the fetcher and optionally ingest into the Map."""
     from probe.crawl.seed_loader import load_file, summarize
     from probe.crawl.reporting import write_csv_report, append_failure_log
@@ -296,77 +314,279 @@ def seeds_run(file, limit, ingest, db, timeout, max_retries, backoff_factor, sum
     if ingest:
         m = Map(db)
 
-    for u in urls:
-        click.echo(f"Fetching: {u}")
-        try:
-            res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
-                u, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
-            )
+    # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
 
-            domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc
-            # compute success robustly
+    # use CLI-provided concurrency/per-domain-delay
+    try:
+        concurrency = int(concurrency)
+    except Exception:
+        concurrency = 1
+    try:
+        per_domain_delay = float(per_domain_delay)
+    except Exception:
+        per_domain_delay = 0.0
+
+    if concurrency <= 1:
+        # existing sequential flow
+        domain_last_time = {}
+        for u in urls:
+            click.echo(f"Fetching: {u}")
+
+            # robots.txt check (unless ignored)
+            if not ignore_robots:
+                try:
+                    from probe.crawl.robots import can_fetch, crawl_delay
+                    ua = 'probe/0.1'
+                    allowed = can_fetch(ua, u)
+                    if not allowed:
+                        # record as skipped due to robots
+                        rows.append({
+                            'timestamp': __import__('datetime').datetime.now().isoformat(),
+                            'url': u,
+                            'domain': __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc,
+                            'status_code': 0,
+                            'success': 'False',
+                            'error_message': 'blocked_by_robots',
+                            'content_type': '',
+                            'content_length': 0,
+                            'fetch_duration_ms': 0,
+                            'redirect_count': 0,
+                            'final_url': '',
+                            'link_count': 0,
+                            'has_pdf_links': False,
+                            'retry_count': 0,
+                            'user_agent': ua,
+                        })
+                        if not no_log_failures:
+                            append_failure_log(u, 'blocked_by_robots', file, f"cli seeds run {file} --limit {limit}")
+                        failures += 1
+                        click.echo("  ✗ blocked_by_robots")
+                        continue
+                except Exception:
+                    # on errors parsing robots, be permissive
+                    pass
+
+            # per-domain / persistent politeness for sequential runs
             try:
-                sc = int(res.get('status_code') or 0)
-                success_flag = (sc >= 200 and sc < 400) and not bool(res.get('error'))
+                domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc
+                last = domain_last_time.get(domain, 0)
+                if persistent_politeness and last == 0:
+                    try:
+                        from probe.crawl.state import get_last_crawled
+                        last_dt = get_last_crawled(domain)
+                        if last_dt:
+                            now_mon = __import__('time').monotonic()
+                            now_epoch = __import__('time').time()
+                            last_epoch = last_dt.timestamp()
+                            last_mon = now_mon - (now_epoch - last_epoch)
+                            last = last_mon
+                            domain_last_time[domain] = last
+                    except Exception:
+                        pass
+
+                now = __import__('time').monotonic()
+                wait = max(0, per_domain_delay - (now - last))
+                if wait > 0:
+                    __import__('time').sleep(wait)
+                domain_last_time[domain] = __import__('time').monotonic()
             except Exception:
-                success_flag = False
+                pass
 
-            row = {
-                'timestamp': __import__('datetime').datetime.now().isoformat(),
-                'url': u,
-                'domain': domain,
-                'status_code': res.get('status_code') or 0,
-                'success': 'True' if success_flag else 'False',
-                'error_message': res.get('error') or '',
-                'content_type': res.get('content_type') or '',
-                'content_length': res.get('content_length') or 0,
-                'fetch_duration_ms': res.get('fetch_duration_ms') or 0,
-                'redirect_count': res.get('redirect_count') or 0,
-                'final_url': res.get('final_url') or '',
-                'link_count': res.get('link_count') or 0,
-                'has_pdf_links': res.get('has_pdf_links') or False,
-            }
+            try:
+                res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
+                    u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor
+                )
 
-            rows.append(row)
+                domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc
+                # compute success robustly
+                try:
+                    sc = int(res.get('status_code') or 0)
+                    success_flag = (sc >= 200 and sc < 400) and not bool(res.get('error'))
+                except Exception:
+                    success_flag = False
 
-            if res.get('error'):
-                click.echo(f"  ✗ {res.get('error')}")
+                row = {
+                    'timestamp': __import__('datetime').datetime.now().isoformat(),
+                    'url': u,
+                    'domain': domain,
+                    'status_code': res.get('status_code') or 0,
+                    'success': 'True' if success_flag else 'False',
+                    'error_message': res.get('error') or '',
+                    'content_type': res.get('content_type') or '',
+                    'content_length': res.get('content_length') or 0,
+                    'fetch_duration_ms': res.get('fetch_duration_ms') or 0,
+                    'redirect_count': res.get('redirect_count') or 0,
+                    'final_url': res.get('final_url') or '',
+                    'link_count': res.get('link_count') or 0,
+                    'has_pdf_links': res.get('has_pdf_links') or False,
+                    'retry_count': res.get('retry_count') or 0,
+                    'user_agent': res.get('user_agent') or '',
+                }
+
+                rows.append(row)
+
+                if res.get('error'):
+                    click.echo(f"  ✗ {res.get('error')}")
+                    failures += 1
+                    if not no_log_failures:
+                        append_failure_log(u, res.get('error'), file, f"cli seeds run {file} --limit {limit}")
+                else:
+                    click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
+                    successes += 1
+                    if ingest and m:
+                        out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
+                        click.echo(f"    Ingested: {out}")
+            except Exception as exc:
+                click.echo(f"  ✗ Exception: {exc}")
                 failures += 1
                 if not no_log_failures:
-                    append_failure_log(u, res.get('error'), file, f"cli seeds run {file} --limit {limit}")
-            else:
-                click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
-                successes += 1
-                if ingest and m:
-                    out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
-                    click.echo(f"    Ingested: {out}")
-        except Exception as exc:
-            click.echo(f"  ✗ Exception: {exc}")
-            failures += 1
-            if not no_log_failures:
-                append_failure_log(u, str(exc), file, f"cli seeds run {file} --limit {limit}")
-            rows.append({
-                'timestamp': __import__('datetime').datetime.now().isoformat(),
-                'url': u,
-                'domain': __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc,
-                'status_code': 0,
-                'success': False,
-                'error_message': str(exc),
-                'content_type': '',
-                'content_length': 0,
-                'fetch_duration_ms': 0,
-                'redirect_count': 0,
-                'final_url': '',
-                'link_count': 0,
-                'has_pdf_links': False,
-            })
+                    append_failure_log(u, str(exc), file, f"cli seeds run {file} --limit {limit}")
+                rows.append({
+                    'timestamp': __import__('datetime').datetime.now().isoformat(),
+                    'url': u,
+                    'domain': __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc,
+                    'status_code': 0,
+                    'success': False,
+                    'error_message': str(exc),
+                    'content_type': '',
+                    'content_length': 0,
+                    'fetch_duration_ms': 0,
+                    'redirect_count': 0,
+                    'final_url': '',
+                    'link_count': 0,
+                    'has_pdf_links': False,
+                    'retry_count': 0,
+                    'user_agent': ''
+                })
+    else:
+        # concurrent mode
+        click.echo(f"Running with concurrency={concurrency}, per_domain_delay={per_domain_delay}")
+        domain_locks = {}
+        domain_last_time = {}
+        domain_lock = threading.Lock()
+
+        def worker(u):
+                # enforce per-domain delay (including persistent politeness if enabled)
+                parsed = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u)
+                d = parsed.netloc
+                with domain_lock:
+                    if d not in domain_locks:
+                        domain_locks[d] = threading.Lock()
+                with domain_locks[d]:
+                    # compute wait based on in-memory last time
+                    now = __import__('time').monotonic()
+                    last = domain_last_time.get(d, 0)
+
+                    # if persistent politeness enabled, consult persistent state for initial baseline
+                    if persistent_politeness and last == 0:
+                        try:
+                            from probe.crawl.state import get_last_crawled
+                            last_dt = get_last_crawled(d)
+                            if last_dt:
+                                # convert stored epoch-based timestamp into monotonic timescale
+                                now_mon = __import__('time').monotonic()
+                                now_epoch = __import__('time').time()
+                                last_epoch = last_dt.timestamp()
+                                # compute last in monotonic reference: last_mon = now_mon - (now_epoch - last_epoch)
+                                last_mon = now_mon - (now_epoch - last_epoch)
+                                last = last_mon
+                                domain_last_time[d] = last
+                        except Exception:
+                            pass
+
+                    wait = max(0, per_domain_delay - (now - last))
+                    if wait > 0:
+                        __import__('time').sleep(wait)
+                    # update last time
+                    domain_last_time[d] = __import__('time').monotonic()
+                # perform fetch
+                u_ret, res = u, __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor)
+                # persist domain last-crawled if enabled
+                if persistent_politeness:
+                    try:
+                        from probe.crawl.state import set_last_crawled
+                        set_last_crawled(d, __import__('datetime').datetime.now())
+                    except Exception:
+                        pass
+                return u_ret, res
+        with ThreadPoolExecutor(max_workers=concurrency) as ex:
+            futures = {ex.submit(worker, u): u for u in urls}
+            for fut in as_completed(futures):
+                u = futures[fut]
+                try:
+                    u_ret, res = fut.result()
+                    domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u_ret).netloc
+                    try:
+                        sc = int(res.get('status_code') or 0)
+                        success_flag = (sc >= 200 and sc < 400) and not bool(res.get('error'))
+                    except Exception:
+                        success_flag = False
+
+                    row = {
+                        'timestamp': __import__('datetime').datetime.now().isoformat(),
+                        'url': u_ret,
+                        'domain': domain,
+                        'status_code': res.get('status_code') or 0,
+                        'success': 'True' if success_flag else 'False',
+                        'error_message': res.get('error') or '',
+                        'content_type': res.get('content_type') or '',
+                        'content_length': res.get('content_length') or 0,
+                        'fetch_duration_ms': res.get('fetch_duration_ms') or 0,
+                        'redirect_count': res.get('redirect_count') or 0,
+                        'final_url': res.get('final_url') or '',
+                        'link_count': res.get('link_count') or 0,
+                        'has_pdf_links': res.get('has_pdf_links') or False,
+                        'retry_count': res.get('retry_count') or 0,
+                        'user_agent': res.get('user_agent') or '',
+                    }
+
+                    rows.append(row)
+
+                    if res.get('error'):
+                        click.echo(f"  ✗ {res.get('error')}")
+                        failures += 1
+                        if not no_log_failures:
+                            append_failure_log(u_ret, res.get('error'), file, f"cli seeds run {file} --limit {limit}")
+                    else:
+                        click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
+                        successes += 1
+                        if ingest and m:
+                            out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
+                            click.echo(f"    Ingested: {out}")
+                except Exception as exc:
+                    click.echo(f"  ✗ Exception: {exc}")
+                    failures += 1
+                    if not no_log_failures:
+                        append_failure_log(u, str(exc), file, f"cli seeds run {file} --limit {limit}")
+                    rows.append({
+                        'timestamp': __import__('datetime').datetime.now().isoformat(),
+                        'url': u,
+                        'domain': __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc,
+                        'status_code': 0,
+                        'success': False,
+                        'error_message': str(exc),
+                        'content_type': '',
+                        'content_length': 0,
+                        'fetch_duration_ms': 0,
+                        'redirect_count': 0,
+                        'final_url': '',
+                        'link_count': 0,
+                        'has_pdf_links': False,
+                        'retry_count': 0,
+                        'user_agent': ''
+                    })
 
     if m:
         m.close()
 
     # Write CSV summary
     try:
-        p = write_csv_report(file, rows, dir_path=Path(summary_dir))
+        if summary_csv:
+            p = write_csv_report(file, rows, file_path=Path(summary_csv))
+        else:
+            p = write_csv_report(file, rows, dir_path=Path(summary_dir))
         click.echo(f"Wrote summary CSV: {p}")
     except Exception as exc:
         click.echo(f"Warning: failed to write CSV summary: {exc}")
