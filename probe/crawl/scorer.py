@@ -123,6 +123,53 @@ class RelevanceScorer:
         return float(max(0.0, min(1.0, total)))
 
 
+class EntityRegexScorer(Scorer):
+    """Boosts pages that match configured regex patterns for entities.
+
+    Accepts either a list of regex strings or a dict mapping names->regex strings.
+    The score is the fraction of patterns that match the page text (0.0-1.0), scaled by weight.
+    """
+
+    def __init__(self, patterns: Any = None, weight: float = 1.0):
+        import re
+        self.weight = weight
+        self.patterns = []
+        if patterns is None:
+            self.patterns = []
+        elif isinstance(patterns, dict):
+            for name, pat in patterns.items():
+                try:
+                    self.patterns.append(re.compile(pat, re.IGNORECASE))
+                except Exception:
+                    continue
+        elif isinstance(patterns, list):
+            for pat in patterns:
+                try:
+                    self.patterns.append(re.compile(pat, re.IGNORECASE))
+                except Exception:
+                    continue
+        else:
+            try:
+                import re as _re
+                self.patterns.append(_re.compile(str(patterns), _re.IGNORECASE))
+            except Exception:
+                self.patterns = []
+
+    def score(self, page: Dict[str, Any]) -> float:
+        text = (page.get("text") or "")
+        if not text or not self.patterns:
+            return 0.0
+        matches = 0
+        for p in self.patterns:
+            try:
+                if p.search(text):
+                    matches += 1
+            except Exception:
+                continue
+        ratio = matches / len(self.patterns) if self.patterns else 0.0
+        return float(max(0.0, min(1.0, ratio * self.weight)))
+
+
 # Backwards-compatible placeholder
 def score_placeholder():
     return 0.5
