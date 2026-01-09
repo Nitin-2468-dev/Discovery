@@ -415,17 +415,27 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
     if ingest or persist_scores:
         m = Map(db)
 
-    # Optional tqdm progress bar (import if available)
+    # Load config and optional tqdm progress bar
+    from probe.config import load_config
+    config = load_config()
+
+    # Optional tqdm progress bar (import if available and enabled in config)
     try:
         from tqdm import tqdm
+        if not config.get("tqdm", True):
+            tqdm = None
     except Exception:
         tqdm = None
 
     # Load blocked domains file if provided (skip if empty string or missing)
     blocked_set = set()
     try:
-        if blocked_domains:
-            p = Path(blocked_domains)
+        # precedence: CLI flag (blocked_domains) overrides config if non-empty; if CLI flag is empty string, disable
+        bd_path = blocked_domains if blocked_domains != '' else None
+        if bd_path is None:
+            bd_path = config.get("blocked_domains")
+        if bd_path:
+            p = Path(bd_path)
             if p.exists():
                 for line in p.read_text(encoding='utf-8').splitlines():
                     d = line.strip()
@@ -440,13 +450,30 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
 
     # use CLI-provided concurrency/per-domain-delay
     try:
-        concurrency = int(concurrency)
+        # If concurrency equals CLI default (1) and config provides a value, prefer config
+        if concurrency == 1 and config.get("concurrency") and config.get("concurrency") != 1:
+            concurrency = int(config.get("concurrency"))
+        else:
+            concurrency = int(concurrency)
     except Exception:
         concurrency = 1
     try:
-        per_domain_delay = float(per_domain_delay)
+        # per-domain delay precedence: CLI unless default
+        if per_domain_delay == 0.25 and config.get("per_domain_delay") is not None and config.get("per_domain_delay") != 0.25:
+            per_domain_delay = float(config.get("per_domain_delay"))
+        else:
+            per_domain_delay = float(per_domain_delay)
     except Exception:
         per_domain_delay = 0.0
+
+    # min_delay precedence
+    try:
+        if min_delay == 0.0 and config.get("min_delay") is not None and config.get("min_delay") != 0.0:
+            min_delay = float(config.get("min_delay"))
+        else:
+            min_delay = float(min_delay)
+    except Exception:
+        min_delay = 0.0
 
     if concurrency <= 1:
         # existing sequential flow
