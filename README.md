@@ -57,9 +57,12 @@ The fetcher is a synchronous, test-first implementation that:
 
 - Uses `httpx` for HTTP requests with configurable timeouts and retries
 - Cleans HTML with `BeautifulSoup` and extracts normalized absolute links
-- Detects and extracts text from PDFs using `pdfplumber` (best-effort)
+- Detects and extracts text from PDFs using `pdfplumber` (best-effort) with an optional OCR fallback when `pdfplumber` extracts no text
 - Returns structured results: `status_code`, `content_type`, `text`, `title`, `links`, `raw_bytes`, `metadata`, and `error` hints
-- Includes an ingestion helper `probe.crawl.ingest.ingest_fetch_result(map, result)` that persists pages and documents into the Map
+- The HTML cleaner now returns richer metadata (including `description`, `link_count`, `pdf_link_count`, and `boilerplate_ratio`) and marks PDF links with `is_pdf` for easier downstream decisions
+- The ingest helper `probe.crawl.ingest.ingest_fetch_result(map, result)` now computes page `content_hash` from cleaned text (falling back to raw bytes), differentiates internal vs external links, creates edges only for internal links, and stores `outgoing_links`/`external_links` in page metadata for follow-up
+
+Tests: full test suite currently passes locally (52 tests).
 
 ### Seed runner & politeness
 The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV summary and optional failure log. Important flags:
@@ -68,10 +71,28 @@ The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV sum
 - `--summary-csv <path>`: write the summary CSV to an explicit path (overrides `--summary-dir`). Useful in CI or automation where a specific filename is required.
 - `--ignore-retry-after`: ignore server `Retry-After` headers and use exponential backoff instead (useful for controlled environments where servers return overly long waits).
 - `--persistent-politeness`: enable persistent per-domain politeness — stores the last-crawl timestamp per domain in `.probe_state.json` and uses it to delay subsequent runs according to `--per-domain-delay`.
+- `--score`: compute a relevance score for each fetched page during seed runs (requires `--score`)
+- `--score-keywords`: comma-separated keywords to pass to the KeywordDensity and EntityRegex scorers.
+- `--persist-scores`: write per-page scoring reports to the DB (`scoring_reports` table) when scoring is enabled.
 
 Persistent politeness stores timestamps in a small JSON file `.probe_state.json` in the current working directory as `{ "domain": "YYYY-MM-DDTHH:MM:SS.ssssss" }`. When enabled, the seed-runner consults this file to avoid hitting domains too quickly across separate runs.
 
 (Other useful flags: `--concurrency`, `--per-domain-delay`, `--ignore-robots`, and `--no-log-failures`.)
+
+### Analyze & export scoring reports
+Use `probe analyze-crawl` to export scoring reports for inspection and sharing.
+
+Examples:
+
+```bash
+# Export reports for a specific URL to CSV
+probe analyze-crawl --url https://example.com/page --format csv --out report.csv
+
+# Export reports in Markdown for a date range (ISO datetime)
+probe analyze-crawl --since 2026-01-01T00:00:00 --until 2026-01-09T23:59:59 --format md --out report.md
+```
+
+For automation or reporting, the CSV contains fields: `created_at, url, page_id, score, top_component, component_scores, metadata`.
 
 Usage example (Python):
 
@@ -120,14 +141,46 @@ pip install -r requirements-ocr.txt
 pip install -e .[ocr]
 ```
 
-CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and optionally installs OCR dependencies when matrix `ocr` is set to `true`.
+CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and includes an `ocr` matrix (installs OCR extras when `ocr=true`). The CI now installs the package in editable mode (`pip install -e .`) so optional extras are available while running tests.
 
 Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 
+## Running tests
+
+- Basic test run:
+
+```bash
+python -m pip install -U pip
+pip install -r requirements.txt
+pytest -q
+```
+
+- Run tests with OCR extras (optional):
+
+```bash
+# Install OCR extras via requirements
+pip install -r requirements-ocr.txt
+pytest -q
+
+# Or install optional extra when installing the package
+pip install -e .[ocr]
+pytest -q
+```
+
+- Reproduce packaging & editable install checks:
+
+```bash
+python -m pip install -U pip
+pip install build
+python -m build --sdist --wheel
+pip install -e .
+pip install -e .[ocr]
+```
+
 ## Quick Start
 ```bash
-# Initialize
-python cli.py init
+# Initialize or upgrade the database schema (creates missing tables safely)
+python cli.py init --db probe.db
 
 # Add an entity
 python cli.py add-entity "PT6A-52" --type engine
@@ -135,9 +188,17 @@ python cli.py add-entity "PT6A-52" --type engine
 # Run seeds and write an explicit summary CSV (example)
 python cli.py seeds run seeds.txt --limit 10 --summary-csv out/report.csv
 
-# Investigate (coming soon)
-python cli.py investigate "PT6A-52 maintenance manual"
-```
+# Score a URL manually
+python cli.py score https://example.com --keywords manual,maintenance
+
+# Export scoring reports for a URL
+python cli.py analyze-crawl --url https://example.com/page --format csv --out report.csv
+
+# Export documents for an entity
+python cli.py export "PT6A-52" --format md --out pt6a52.md
+``` 
+
+See the full changelog in `CHANGELOG.md` for details on the v0.3 release and migration instructions.
 
 ## Tech Stack
 

@@ -212,6 +212,98 @@ def fetch_cmd(url, ingest, db, timeout, max_size, max_retries, backoff_factor, i
         click.echo(f"Ingested: {out}")
         m.close()
 
+
+@cli.command()
+@click.argument('url', required=False)
+@click.option('--from-db', 'from_db', default=None, type=int, help='Score an existing page by page_id from the DB')
+@click.option('--persist/--no-persist', default=False, help='Persist scoring report to the DB')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-size', default=10000000, type=int, help='Max response size in bytes')
+@click.option('--max-retries', default=3, type=int, help='Maximum retry attempts for transient errors')
+@click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor in seconds')
+@click.option('--keywords', default=None, help='Comma-separated keywords to use for keyword density scoring')
+def score(url, from_db, persist, db, timeout, max_size, max_retries, backoff_factor, keywords):
+    """Fetch a URL or score an existing page in DB and run the RelevanceScorer.
+
+    If `--from-db PAGE_ID` is provided, the page is loaded from the DB and scored using stored text/metadata.
+    Otherwise `url` must be provided and will be fetched live.
+    """
+    if from_db is None and not url:
+        click.echo("✗ Provide a URL or use --from-db PAGE_ID")
+        return
+
+    click.echo(f"Scoring: {url or f'page_id={from_db}'}")
+
+    m = Map(db)
+    page = None
+    fetched_url = url
+
+    if from_db is not None:
+        row = m.get_page_by_id(from_db)
+        if not row:
+            click.echo(f"✗ No page with id {from_db}")
+            m.close()
+            return
+        fetched_url = row['url']
+        # Extract text and boilerplate from metadata if available
+        import json
+        metadata = json.loads(row['metadata']) if row['metadata'] else {}
+        page = {
+            'text': metadata.get('text') or '',
+            'boilerplate_ratio': metadata.get('boilerplate_ratio', 0.0),
+        }
+    else:
+        try:
+            res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
+                url, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor
+            )
+        except Exception as exc:
+            click.echo(f"✗ Fetch failed: {exc}")
+            m.close()
+            raise
+
+        if res.get('error'):
+            click.echo(f"✗ {res.get('error')}")
+            m.close()
+            return
+
+        # Build page dict suitable for scorer
+        try:
+            cleaned = __import__('probe.crawl.cleaner', fromlist=['clean_html']).clean_html(res.get('raw_bytes').decode('utf-8', errors='ignore'), url)
+        except Exception:
+            cleaned = { 'text': '', 'boilerplate_ratio': 0.0 }
+
+        page = dict(res)
+        page.update(cleaned)
+
+    # Instantiate a simple scorer: KeywordDensity + Boilerplate
+    kws = []
+    if keywords:
+        kws = [k.strip() for k in keywords.split(',') if k.strip()]
+
+    from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector
+
+    components = [KeywordDensityScorer(keywords=kws, weight=1.0), BoilerplateDetector(weight=1.0)]
+    scorer = RelevanceScorer(components=components)
+
+    comps = scorer.score_components(page)
+    total = scorer.score(page)
+
+    click.echo("Component scores:")
+    for k, v in comps.items():
+        click.echo(f"  {k}: {v:.3f}")
+    click.echo(f"=> Total score: {total:.3f}")
+
+    if persist:
+        # Persist the scoring report into DB
+        meta = {'keywords': kws}
+        report_id = m.add_scoring_report(from_db if from_db is not None else None, fetched_url, float(total), comps, meta)
+        click.echo(f"Persisted scoring report id: {report_id}")
+
+    m.close()
+    return total
+
 @cli.command()
 @click.argument('entity_name')
 @click.argument('document_title')
@@ -287,10 +379,15 @@ def seeds():
 @click.option('--ignore-retry-after', is_flag=True, default=False, help='Ignore Retry-After headers returned by servers')
 @click.option('--persistent-politeness/--no-persistent-politeness', default=False, help='Enable persistent per-domain politeness (store last-crawl timestamps)')
 @click.option('--ignore-robots', is_flag=True, default=False, help='Ignore robots.txt rules (use with caution)')
+@click.option('--score/--no-score', default=False, help='Compute relevance score for each fetched page')
+@click.option('--persist-scores', is_flag=True, default=False, help='Persist scoring reports to the Map DB')
+@click.option('--score-keywords', default=None, help='Comma-separated keywords to supply to the KeywordDensityScorer/EntityRegexScorer')
+@click.option('--blocked-domains', default='blocked_domains.txt', help='Path to blocked domains file (one domain per line). Use "" to disable')
+@click.option('--no-progress', is_flag=True, default=False, help='Disable tqdm progress bars (useful for CI)')
 @click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
-@click.option('--summary-csv', default=None, help='Write summary CSV to explicit path (overrides --summary-dir)')
+@click.option('--summary-csv', default=None, help='Write summary CSV to an explicit path (overrides --summary-dir)')
 @click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
-def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, summary_dir, summary_csv, no_log_failures):
+def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, score, persist_scores, score_keywords, blocked_domains, no_progress, summary_dir, summary_csv, no_log_failures):
     """
     Options:
     - `--concurrency` number of worker threads
@@ -314,8 +411,38 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
     rows = []
 
     m = None
-    if ingest:
+    # If either ingest or score persistence is requested, open the DB
+    if ingest or persist_scores:
         m = Map(db)
+
+    # Load config and optional tqdm progress bar
+    from probe.config import load_config
+    config = load_config()
+
+    # Optional tqdm progress bar (import if available and enabled in config)
+    try:
+        from tqdm import tqdm
+        if not config.get("tqdm", True):
+            tqdm = None
+    except Exception:
+        tqdm = None
+
+    # Load blocked domains file if provided (skip if empty string or missing)
+    blocked_set = set()
+    try:
+        # precedence: CLI flag (blocked_domains) overrides config if non-empty; if CLI flag is empty string, disable
+        bd_path = blocked_domains if blocked_domains != '' else None
+        if bd_path is None:
+            bd_path = config.get("blocked_domains")
+        if bd_path:
+            p = Path(bd_path)
+            if p.exists():
+                for line in p.read_text(encoding='utf-8').splitlines():
+                    d = line.strip()
+                    if d:
+                        blocked_set.add(d)
+    except Exception:
+        blocked_set = set()
 
     # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -323,19 +450,74 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
 
     # use CLI-provided concurrency/per-domain-delay
     try:
-        concurrency = int(concurrency)
+        # If concurrency equals CLI default (1) and config provides a value, prefer config
+        if concurrency == 1 and config.get("concurrency") and config.get("concurrency") != 1:
+            concurrency = int(config.get("concurrency"))
+        else:
+            concurrency = int(concurrency)
     except Exception:
         concurrency = 1
     try:
-        per_domain_delay = float(per_domain_delay)
+        # per-domain delay precedence: CLI unless default
+        if per_domain_delay == 0.25 and config.get("per_domain_delay") is not None and config.get("per_domain_delay") != 0.25:
+            per_domain_delay = float(config.get("per_domain_delay"))
+        else:
+            per_domain_delay = float(per_domain_delay)
     except Exception:
         per_domain_delay = 0.0
+
+    # min_delay precedence
+    try:
+        if min_delay == 0.0 and config.get("min_delay") is not None and config.get("min_delay") != 0.0:
+            min_delay = float(config.get("min_delay"))
+        else:
+            min_delay = float(min_delay)
+    except Exception:
+        min_delay = 0.0
 
     if concurrency <= 1:
         # existing sequential flow
         domain_last_time = {}
-        for u in urls:
+        # wrap the iterator with tqdm if available and not disabled
+        seq_iter = urls
+        if not no_progress and tqdm is not None:
+            try:
+                seq_iter = tqdm(urls, desc="Seeds", unit="seed")
+            except Exception:
+                seq_iter = urls
+
+        for u in seq_iter:
             click.echo(f"Fetching: {u}")
+
+            # domain blocklist check
+            try:
+                from urllib.parse import urlparse
+                domain = urlparse(u).netloc
+                if domain in blocked_set:
+                    rows.append({
+                        'timestamp': __import__('datetime').datetime.now().isoformat(),
+                        'url': u,
+                        'domain': domain,
+                        'status_code': 0,
+                        'success': 'False',
+                        'error_message': 'blocked_by_blocklist',
+                        'content_type': '',
+                        'content_length': 0,
+                        'fetch_duration_ms': 0,
+                        'redirect_count': 0,
+                        'final_url': '',
+                        'link_count': 0,
+                        'has_pdf_links': False,
+                        'retry_count': 0,
+                        'user_agent': '',
+                    })
+                    if not no_log_failures:
+                        append_failure_log(u, 'blocked_by_blocklist', file, f"cli seeds run {file} --limit {limit}")
+                    failures += 1
+                    click.echo("  ✗ blocked_by_blocklist")
+                    continue
+            except Exception:
+                pass
 
             # robots.txt check (unless ignored)
             if not ignore_robots:
@@ -431,6 +613,9 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                     'has_pdf_links': res.get('has_pdf_links') or False,
                     'retry_count': res.get('retry_count') or 0,
                     'user_agent': res.get('user_agent') or '',
+                    'score': '',
+                    'top_component': '',
+                    'component_scores': '',
                 }
 
                 rows.append(row)
@@ -443,6 +628,44 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                 else:
                     click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
                     successes += 1
+                    # compute scoring if requested
+                    if score:
+                        try:
+                            cleaned = __import__('probe.crawl.cleaner', fromlist=['clean_html']).clean_html(res.get('raw_bytes').decode('utf-8', errors='ignore'), u)
+                        except Exception:
+                            cleaned = {'text': '', 'boilerplate_ratio': 0.0}
+
+                        page = dict(res)
+                        page.update(cleaned)
+
+                        kws = []
+                        if score_keywords:
+                            kws = [k.strip() for k in score_keywords.split(',') if k.strip()]
+
+                        from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector, LinkDensityScorer, EntityRegexScorer
+
+                        components = [KeywordDensityScorer(keywords=kws, weight=1.0), BoilerplateDetector(weight=1.0), LinkDensityScorer(weight=1.0)]
+                        if kws:
+                            components.append(EntityRegexScorer(patterns=kws, weight=1.0))
+
+                        scorer = RelevanceScorer(components=components)
+                        comps = scorer.score_components(page)
+                        total = scorer.score(page)
+
+                        # attach to row
+                        row['score'] = float(total)
+                        # top component is the highest-scoring component
+                        top = max(comps.items(), key=lambda kv: kv[1])[0] if comps else ''
+                        row['top_component'] = top
+                        import json
+                        row['component_scores'] = json.dumps(comps)
+
+                        # persist if requested
+                        if persist_scores and m:
+                            meta = {'keywords': kws}
+                            rpt_id = m.add_scoring_report(None, u, float(total), comps, meta)
+                            click.echo(f"    Persisted scoring report id: {rpt_id}")
+
                     if ingest and m:
                         out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
                         click.echo(f"    Ingested: {out}")
@@ -509,6 +732,11 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                         __import__('time').sleep(wait)
                     # update last time
                     domain_last_time[d] = __import__('time').monotonic()
+                # domain blocklist check inside worker
+                if d in blocked_set:
+                    # short-circuit with an error-like result; main loop will record the failure and append to log
+                    return u, {"status_code": 0, "error": "blocked_by_blocklist", "content_type": "", "content_length": 0}
+
                 # perform fetch
                 u_ret, res = u, __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor, min_delay=min_delay)
                 # persist domain last-crawled if enabled
@@ -548,6 +776,9 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                         'has_pdf_links': res.get('has_pdf_links') or False,
                         'retry_count': res.get('retry_count') or 0,
                         'user_agent': res.get('user_agent') or '',
+                        'score': '',
+                        'top_component': '',
+                        'component_scores': '',
                     }
 
                     rows.append(row)
@@ -560,6 +791,44 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                     else:
                         click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
                         successes += 1
+                        # compute scoring if requested
+                        if score:
+                            try:
+                                cleaned = __import__('probe.crawl.cleaner', fromlist=['clean_html']).clean_html(res.get('raw_bytes').decode('utf-8', errors='ignore'), u_ret)
+                            except Exception:
+                                cleaned = {'text': '', 'boilerplate_ratio': 0.0}
+
+                            page = dict(res)
+                            page.update(cleaned)
+
+                            kws = []
+                            if score_keywords:
+                                kws = [k.strip() for k in score_keywords.split(',') if k.strip()]
+
+                            from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector, LinkDensityScorer, EntityRegexScorer
+
+                            components = [KeywordDensityScorer(keywords=kws, weight=1.0), BoilerplateDetector(weight=1.0), LinkDensityScorer(weight=1.0)]
+                            if kws:
+                                components.append(EntityRegexScorer(patterns=kws, weight=1.0))
+
+                            scorer = RelevanceScorer(components=components)
+                            comps = scorer.score_components(page)
+                            total = scorer.score(page)
+
+                            # attach to row
+                            row['score'] = float(total)
+                            # top component is the highest-scoring component
+                            top = max(comps.items(), key=lambda kv: kv[1])[0] if comps else ''
+                            row['top_component'] = top
+                            import json
+                            row['component_scores'] = json.dumps(comps)
+
+                            # persist if requested
+                            if persist_scores and m:
+                                meta = {'keywords': kws}
+                                rpt_id = m.add_scoring_report(None, u_ret, float(total), comps, meta)
+                                click.echo(f"    Persisted scoring report id: {rpt_id}")
+
                         if ingest and m:
                             out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
                             click.echo(f"    Ingested: {out}")
@@ -616,6 +885,88 @@ def health_check(url, timeout, max_retries, backoff_factor):
     click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}, Error: {res.get('error')}")
     if res.get('is_pdf'):
         click.echo(f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}")
+
+
+@cli.command(name='analyze-crawl')
+@click.option('--url', default=None, help='Filter reports for a specific URL')
+@click.option('--page-id', default=None, type=int, help='Filter reports for a specific page id')
+@click.option('--since', default=None, help='ISO datetime (inclusive) to filter from')
+@click.option('--until', default=None, help='ISO datetime (inclusive) to filter until')
+@click.option('--format', 'fmt', default='csv', type=click.Choice(['csv','md']), help='Output format')
+@click.option('--out', default=None, help='Output path (file)')
+@click.option('--db', default='probe.db', help='Database file path')
+def analyze_crawl(url, page_id, since, until, fmt, out, db):
+    """Export scoring reports to CSV or markdown with optional filters."""
+    click.echo("Analyzing scoring reports...")
+    m = Map(db)
+    rows = m.get_scoring_reports(url=url, page_id=page_id, since=since, until=until)
+    # Convert sqlite3.Row objects to plain dicts and enrich with top_component
+    import json
+    out_rows = []
+    for r in rows:
+        comps = r['components']
+        if isinstance(comps, str):
+            try:
+                comps_obj = json.loads(comps)
+            except Exception:
+                comps_obj = {}
+        else:
+            comps_obj = comps or {}
+        top = max(comps_obj.items(), key=lambda kv: kv[1])[0] if comps_obj else ''
+        out_rows.append({
+            'id': r['id'],
+            'page_id': r['page_id'],
+            'url': r['url'],
+            'score': r['score'],
+            'components': comps_obj,
+            'metadata': r['metadata'],
+            'created_at': r['created_at'],
+            'top_component': top,
+        })
+
+    from probe.crawl.reporting import write_scoring_export
+    ap = Path(out) if out else None
+    p = write_scoring_export(out_rows, file_path=ap, fmt=fmt)
+    click.echo(f"Wrote scoring export: {p}")
+
+    m.close()
+
+
+@cli.command(name='export')
+@click.argument('entity_name')
+@click.option('--format', 'fmt', default='md', type=click.Choice(['csv', 'md']), help='Output format')
+@click.option('--out', default=None, help='Output path (file)')
+@click.option('--top-n', default=None, type=int, help='Limit to top N documents (by existence order)')
+@click.option('--db', default='probe.db', help='Database file path')
+def export(entity_name, fmt, out, top_n, db):
+    """Export an entity's documents and scores to CSV or Markdown."""
+    click.echo(f"Exporting entity: {entity_name}")
+    m = Map(db)
+
+    docs = m.get_entity_documents(entity_name)
+    rows = []
+    for d in docs:
+        # find any known score for the document URL
+        rpt = m.get_latest_scoring_report_for_url(d.url)
+        score = rpt['score'] if rpt else None
+        rows.append({
+            'title': d.title,
+            'url': d.url,
+            'doc_type': d.doc_type,
+            'hash': d.hash,
+            'score': score,
+            'metadata': d.metadata,
+        })
+
+    if top_n:
+        rows = rows[:top_n]
+
+    from probe.crawl.entity_export import write_entity_export
+    ap = Path(out) if out else None
+    p = write_entity_export(entity_name, rows, file_path=ap, fmt=fmt)
+    click.echo(f"Wrote entity export: {p}")
+
+    m.close()
 
 
 if __name__ == "__main__":

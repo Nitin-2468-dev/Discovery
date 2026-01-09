@@ -22,16 +22,20 @@ def test_ingestor_creates_link_pages_and_edges(tmp_path):
 
     assert isinstance(out.get("page_id"), int)
     assert out.get("link_count") == 2
-    assert out.get("edges_created") == 2
+    # we expect only internal links to create edges; the other is external
+    assert out.get("edges_created") == 1
 
     summary = m.get_map_summary()
-    # main page + 2 linked pages
-    assert summary["pages"] >= 3
-    assert summary["edges"] >= 2
+    # main page + linked pages (external link won't create a page entry)
+    assert summary["pages"] >= 2
+    assert summary["edges"] >= 1
 
     # verify edges from the main page
     page_id = out.get("page_id")
     edges = m.get_edges_from("page", page_id, relation="links_to")
-    assert len(edges) == 2
+    assert len(edges) == 1
+
+    # external link should be present in returned metadata
+    assert "https://other.com/who" in out.get("external_links", [])
 
     m.close()
