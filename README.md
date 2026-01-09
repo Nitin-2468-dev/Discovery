@@ -145,6 +145,38 @@ CI note: the repository includes a GitHub Actions workflow (`.github/workflows/c
 
 Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 
+## Running tests
+
+- Basic test run:
+
+```bash
+python -m pip install -U pip
+pip install -r requirements.txt
+pytest -q
+```
+
+- Run tests with OCR extras (optional):
+
+```bash
+# Install OCR extras via requirements
+pip install -r requirements-ocr.txt
+pytest -q
+
+# Or install optional extra when installing the package
+pip install -e .[ocr]
+pytest -q
+```
+
+- Reproduce packaging & editable install checks:
+
+```bash
+python -m pip install -U pip
+pip install build
+python -m build --sdist --wheel
+pip install -e .
+pip install -e .[ocr]
+```
+
 ## Quick Start
 ```bash
 # Initialize or upgrade the database schema (creates missing tables safely)
