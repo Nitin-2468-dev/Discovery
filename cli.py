@@ -382,11 +382,12 @@ def seeds():
 @click.option('--score/--no-score', default=False, help='Compute relevance score for each fetched page')
 @click.option('--persist-scores', is_flag=True, default=False, help='Persist scoring reports to the Map DB')
 @click.option('--score-keywords', default=None, help='Comma-separated keywords to supply to the KeywordDensityScorer/EntityRegexScorer')
+@click.option('--blocked-domains', default='blocked_domains.txt', help='Path to blocked domains file (one domain per line). Use "" to disable')
 @click.option('--no-progress', is_flag=True, default=False, help='Disable tqdm progress bars (useful for CI)')
 @click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
 @click.option('--summary-csv', default=None, help='Write summary CSV to an explicit path (overrides --summary-dir)')
 @click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
-def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, score, persist_scores, score_keywords, no_progress, summary_dir, summary_csv, no_log_failures):
+def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, score, persist_scores, score_keywords, blocked_domains, no_progress, summary_dir, summary_csv, no_log_failures):
     """
     Options:
     - `--concurrency` number of worker threads
@@ -420,6 +421,19 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
     except Exception:
         tqdm = None
 
+    # Load blocked domains file if provided (skip if empty string or missing)
+    blocked_set = set()
+    try:
+        if blocked_domains:
+            p = Path(blocked_domains)
+            if p.exists():
+                for line in p.read_text(encoding='utf-8').splitlines():
+                    d = line.strip()
+                    if d:
+                        blocked_set.add(d)
+    except Exception:
+        blocked_set = set()
+
     # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
     from concurrent.futures import ThreadPoolExecutor, as_completed
     import threading
@@ -447,6 +461,36 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
 
         for u in seq_iter:
             click.echo(f"Fetching: {u}")
+
+            # domain blocklist check
+            try:
+                from urllib.parse import urlparse
+                domain = urlparse(u).netloc
+                if domain in blocked_set:
+                    rows.append({
+                        'timestamp': __import__('datetime').datetime.now().isoformat(),
+                        'url': u,
+                        'domain': domain,
+                        'status_code': 0,
+                        'success': 'False',
+                        'error_message': 'blocked_by_blocklist',
+                        'content_type': '',
+                        'content_length': 0,
+                        'fetch_duration_ms': 0,
+                        'redirect_count': 0,
+                        'final_url': '',
+                        'link_count': 0,
+                        'has_pdf_links': False,
+                        'retry_count': 0,
+                        'user_agent': '',
+                    })
+                    if not no_log_failures:
+                        append_failure_log(u, 'blocked_by_blocklist', file, f"cli seeds run {file} --limit {limit}")
+                    failures += 1
+                    click.echo("  ✗ blocked_by_blocklist")
+                    continue
+            except Exception:
+                pass
 
             # robots.txt check (unless ignored)
             if not ignore_robots:
@@ -661,6 +705,11 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                         __import__('time').sleep(wait)
                     # update last time
                     domain_last_time[d] = __import__('time').monotonic()
+                # domain blocklist check inside worker
+                if d in blocked_set:
+                    # short-circuit with an error-like result; main loop will record the failure and append to log
+                    return u, {"status_code": 0, "error": "blocked_by_blocklist", "content_type": "", "content_length": 0}
+
                 # perform fetch
                 u_ret, res = u, __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor, min_delay=min_delay)
                 # persist domain last-crawled if enabled
