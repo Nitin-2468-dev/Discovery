@@ -56,6 +56,40 @@ class BoilerplateDetector(Scorer):
         return float(s * self.weight)
 
 
+class LinkDensityScorer(Scorer):
+    """Scores pages based on the fraction of internal links vs total links.
+
+    Expects `page['links']` as list of dicts with `url` keys and `page['domain']` present.
+    Returns a score in 0.0-1.0 where values closer to 1.0 indicate a high proportion of internal links.
+    """
+
+    def __init__(self, weight: float = 1.0):
+        self.weight = weight
+
+    def _get_domain(self, url: str) -> str:
+        from urllib.parse import urlparse
+        try:
+            return urlparse(url).netloc
+        except Exception:
+            return ""
+
+    def score(self, page: Dict[str, Any]) -> float:
+        links = page.get("links") or []
+        if not links:
+            return 0.0
+        domain = page.get("domain") or ""
+        total = len(links)
+        internal = 0
+        for l in links:
+            u = l.get("url")
+            if not u:
+                continue
+            if self._get_domain(u) == domain:
+                internal += 1
+        ratio = internal / total if total > 0 else 0.0
+        # Return ratio scaled by weight
+        return float(max(0.0, min(1.0, ratio * self.weight)))
+
 class RelevanceScorer:
     """Composite scorer that combines multiple components with weights.
 
