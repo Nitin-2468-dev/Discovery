@@ -23,8 +23,8 @@ class GapDetector:
                 "suggested_domains": [],
             }
 
-        existing_docs = self.map.get_entity_documents(entity_name)
-        existing_types = {d.doc_type for d in existing_docs}
+        # Use a lightweight query to fetch only document types for efficiency
+        existing_types = set(self.map.get_entity_document_types(entity_name))
 
         missing = [t for t in desired_doc_types if t not in existing_types]
 
@@ -35,7 +35,7 @@ class GapDetector:
             "exists": True,
             "confidence": getattr(entity, "confidence_score", 0.0),
             "missing_types": missing,
-            "has_documents": len(existing_docs),
+            "has_documents": self.map.get_entity_document_count(entity_name),
             "weak_confidence": getattr(entity, "confidence_score", 0.0) < 0.7,
             "suggested_domains": [d.domain_name for d in suggested_domains],
         }

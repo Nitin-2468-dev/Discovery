@@ -182,8 +182,10 @@ def summary(db):
 @click.option('--types', default='manual,bulletin,spec',
               help='Comma-separated desired document types')
 @click.option('--db', default='probe.db')
-def gaps(entity_name, types, db):
+@click.option('--json', 'as_json', is_flag=True, default=False, help='Output JSON')
+def gaps(entity_name, types, db, as_json):
     """Analyze knowledge gaps for an entity."""
+    import json as _json
     from probe.analysis.gaps import GapDetector
 
     m = Map(db)
@@ -191,6 +193,12 @@ def gaps(entity_name, types, db):
 
     desired_types = [t.strip() for t in types.split(',') if t.strip()]
     analysis = detector.analyze_entity_gaps(entity_name, desired_types)
+
+    # Support JSON output for automation
+    if as_json:
+        click.echo(_json.dumps(analysis, indent=2))
+        m.close()
+        return
 
     if not analysis.get('exists'):
         click.echo(f"❌ Entity '{entity_name}' not found in map")
