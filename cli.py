@@ -796,5 +796,50 @@ def health_check(url, timeout, max_retries, backoff_factor):
         click.echo(f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}")
 
 
+@cli.command(name='analyze-crawl')
+@click.option('--url', default=None, help='Filter reports for a specific URL')
+@click.option('--page-id', default=None, type=int, help='Filter reports for a specific page id')
+@click.option('--since', default=None, help='ISO datetime (inclusive) to filter from')
+@click.option('--until', default=None, help='ISO datetime (inclusive) to filter until')
+@click.option('--format', 'fmt', default='csv', type=click.Choice(['csv','md']), help='Output format')
+@click.option('--out', default=None, help='Output path (file)')
+@click.option('--db', default='probe.db', help='Database file path')
+def analyze_crawl(url, page_id, since, until, fmt, out, db):
+    """Export scoring reports to CSV or markdown with optional filters."""
+    click.echo("Analyzing scoring reports...")
+    m = Map(db)
+    rows = m.get_scoring_reports(url=url, page_id=page_id, since=since, until=until)
+    # Convert sqlite3.Row objects to plain dicts and enrich with top_component
+    import json
+    out_rows = []
+    for r in rows:
+        comps = r['components']
+        if isinstance(comps, str):
+            try:
+                comps_obj = json.loads(comps)
+            except Exception:
+                comps_obj = {}
+        else:
+            comps_obj = comps or {}
+        top = max(comps_obj.items(), key=lambda kv: kv[1])[0] if comps_obj else ''
+        out_rows.append({
+            'id': r['id'],
+            'page_id': r['page_id'],
+            'url': r['url'],
+            'score': r['score'],
+            'components': comps_obj,
+            'metadata': r['metadata'],
+            'created_at': r['created_at'],
+            'top_component': top,
+        })
+
+    from probe.crawl.reporting import write_scoring_export
+    ap = Path(out) if out else None
+    p = write_scoring_export(out_rows, file_path=ap, fmt=fmt)
+    click.echo(f"Wrote scoring export: {p}")
+
+    m.close()
+
+
 if __name__ == "__main__":
     cli()

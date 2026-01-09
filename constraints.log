@@ -882,7 +882,15 @@ Notes: Reviewer praised architecture, test discipline, and scope discipline. Agr
 - Updated README to document cleaner metadata and ingest behavior (content hashing from cleaned text, internal/external link handling, `outgoing_links`/`external_links` metadata).
 - Augmented SCOPE v0.3 guidance to recommend a pluggable composite scorer (with debug logging and `probe score <url>` CLI) and to prioritize keyword density as an initial scorer.
 - Recorded quick wins and next steps (progress indicators, domain blocklist, config file, export command) for immediate follow-up.
-Outcome: README and SCOPE.md updated; full test suite executed locally (52 passed).[2026-01-09 15:56] FETCHER_FAILURE
+Outcome: README and SCOPE.md updated; full test suite executed locally (52 passed).
+---
+
+[2026-01-09 16:20] FEATURE
+Phase: v0.3
+Action: Scoring export & analysis CLI (`probe analyze-crawl`)
+Status: Complete
+Notes: Implemented `probe analyze-crawl` to export scoring reports to CSV or Markdown with filters (`--url`, `--page-id`, `--since`, `--until`). Added `write_scoring_export` helper, `Map.get_scoring_reports` query, tests for CSV/Markdown export, and README documentation. All tests pass locally after change (64 tests previously, now 64/ updated to 64 and more — run full suite).
+Outcome: CLI and export helpers added; tests validate export and integration with `scoring_reports` table.[2026-01-09 15:56] FETCHER_FAILURE
 Phase: v0.2
 URL: https://example.com/large
 Error: max_size_exceeded
@@ -943,5 +951,47 @@ Phase: v0.2
 URL: https://example.com/page
 Error: blocked_by_robots
 Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-87\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-09 17:10] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-88\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-09 17:10] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-88\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-09 17:10] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-88\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-09 17:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-90\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-09 17:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-90\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-09 17:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-90\test_robots_blocks_seed0\s.txt --limit 1
 Outcome: logged by seed-runner
 ---

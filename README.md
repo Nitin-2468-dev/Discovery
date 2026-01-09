@@ -71,10 +71,28 @@ The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV sum
 - `--summary-csv <path>`: write the summary CSV to an explicit path (overrides `--summary-dir`). Useful in CI or automation where a specific filename is required.
 - `--ignore-retry-after`: ignore server `Retry-After` headers and use exponential backoff instead (useful for controlled environments where servers return overly long waits).
 - `--persistent-politeness`: enable persistent per-domain politeness — stores the last-crawl timestamp per domain in `.probe_state.json` and uses it to delay subsequent runs according to `--per-domain-delay`.
+- `--score`: compute a relevance score for each fetched page during seed runs (requires `--score`)
+- `--score-keywords`: comma-separated keywords to pass to the KeywordDensity and EntityRegex scorers.
+- `--persist-scores`: write per-page scoring reports to the DB (`scoring_reports` table) when scoring is enabled.
 
 Persistent politeness stores timestamps in a small JSON file `.probe_state.json` in the current working directory as `{ "domain": "YYYY-MM-DDTHH:MM:SS.ssssss" }`. When enabled, the seed-runner consults this file to avoid hitting domains too quickly across separate runs.
 
 (Other useful flags: `--concurrency`, `--per-domain-delay`, `--ignore-robots`, and `--no-log-failures`.)
+
+### Analyze & export scoring reports
+Use `probe analyze-crawl` to export scoring reports for inspection and sharing.
+
+Examples:
+
+```bash
+# Export reports for a specific URL to CSV
+probe analyze-crawl --url https://example.com/page --format csv --out report.csv
+
+# Export reports in Markdown for a date range (ISO datetime)
+probe analyze-crawl --since 2026-01-01T00:00:00 --until 2026-01-09T23:59:59 --format md --out report.md
+```
+
+For automation or reporting, the CSV contains fields: `created_at, url, page_id, score, top_component, component_scores, metadata`.
 
 Usage example (Python):
 

@@ -418,6 +418,39 @@ class Map:
         row = cursor.fetchone()
         return row
 
+    def get_scoring_reports(self, url: str = None, page_id: int = None, since: str = None, until: str = None):
+        """Query scoring reports with optional filters.
+
+        Args:
+            url: exact URL to filter
+            page_id: integer page id
+            since: ISO datetime string inclusive (e.g., '2026-01-01T00:00:00')
+            until: ISO datetime string inclusive
+
+        Returns:
+            List[sqlite3.Row]
+        """
+        query = "SELECT * FROM scoring_reports"
+        conditions = []
+        params = []
+        if url:
+            conditions.append("url = ?")
+            params.append(url)
+        if page_id is not None:
+            conditions.append("page_id = ?")
+            params.append(page_id)
+        if since:
+            conditions.append("created_at >= ?")
+            params.append(since)
+        if until:
+            conditions.append("created_at <= ?")
+            params.append(until)
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        query += " ORDER BY created_at DESC"
+        cursor = self.conn.execute(query, tuple(params))
+        return cursor.fetchall()
+
     def get_page_by_id(self, page_id: int):
         """Retrieve a page row by id."""
         cursor = self.conn.execute("SELECT * FROM pages WHERE id = ?", (page_id,))
