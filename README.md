@@ -141,7 +141,7 @@ pip install -r requirements-ocr.txt
 pip install -e .[ocr]
 ```
 
-CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and optionally installs OCR dependencies when matrix `ocr` is set to `true`.
+CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and includes an `ocr` matrix (installs OCR extras when `ocr=true`). The CI now installs the package in editable mode (`pip install -e .`) so optional extras are available while running tests.
 
 Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 
