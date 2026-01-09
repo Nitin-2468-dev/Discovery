@@ -932,5 +932,42 @@ def analyze_crawl(url, page_id, since, until, fmt, out, db):
     m.close()
 
 
+@cli.command(name='export')
+@click.argument('entity_name')
+@click.option('--format', 'fmt', default='md', type=click.Choice(['csv', 'md']), help='Output format')
+@click.option('--out', default=None, help='Output path (file)')
+@click.option('--top-n', default=None, type=int, help='Limit to top N documents (by existence order)')
+@click.option('--db', default='probe.db', help='Database file path')
+def export(entity_name, fmt, out, top_n, db):
+    """Export an entity's documents and scores to CSV or Markdown."""
+    click.echo(f"Exporting entity: {entity_name}")
+    m = Map(db)
+
+    docs = m.get_entity_documents(entity_name)
+    rows = []
+    for d in docs:
+        # find any known score for the document URL
+        rpt = m.get_latest_scoring_report_for_url(d.url)
+        score = rpt['score'] if rpt else None
+        rows.append({
+            'title': d.title,
+            'url': d.url,
+            'doc_type': d.doc_type,
+            'hash': d.hash,
+            'score': score,
+            'metadata': d.metadata,
+        })
+
+    if top_n:
+        rows = rows[:top_n]
+
+    from probe.crawl.entity_export import write_entity_export
+    ap = Path(out) if out else None
+    p = write_entity_export(entity_name, rows, file_path=ap, fmt=fmt)
+    click.echo(f"Wrote entity export: {p}")
+
+    m.close()
+
+
 if __name__ == "__main__":
     cli()
