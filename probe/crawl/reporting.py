@@ -22,6 +22,10 @@ CSV_FIELDS = [
     "has_pdf_links",
     "retry_count",
     "user_agent",
+    # scoring fields
+    "score",
+    "top_component",
+    "component_scores",
 ]
 
 

@@ -379,10 +379,13 @@ def seeds():
 @click.option('--ignore-retry-after', is_flag=True, default=False, help='Ignore Retry-After headers returned by servers')
 @click.option('--persistent-politeness/--no-persistent-politeness', default=False, help='Enable persistent per-domain politeness (store last-crawl timestamps)')
 @click.option('--ignore-robots', is_flag=True, default=False, help='Ignore robots.txt rules (use with caution)')
+@click.option('--score/--no-score', default=False, help='Compute relevance score for each fetched page')
+@click.option('--persist-scores', is_flag=True, default=False, help='Persist scoring reports to the Map DB')
+@click.option('--score-keywords', default=None, help='Comma-separated keywords to supply to the KeywordDensityScorer/EntityRegexScorer')
 @click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
 @click.option('--summary-csv', default=None, help='Write summary CSV to explicit path (overrides --summary-dir)')
 @click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
-def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, summary_dir, summary_csv, no_log_failures):
+def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, score, persist_scores, score_keywords, summary_dir, summary_csv, no_log_failures):
     """
     Options:
     - `--concurrency` number of worker threads
@@ -406,7 +409,8 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
     rows = []
 
     m = None
-    if ingest:
+    # If either ingest or score persistence is requested, open the DB
+    if ingest or persist_scores:
         m = Map(db)
 
     # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
@@ -523,6 +527,9 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                     'has_pdf_links': res.get('has_pdf_links') or False,
                     'retry_count': res.get('retry_count') or 0,
                     'user_agent': res.get('user_agent') or '',
+                    'score': '',
+                    'top_component': '',
+                    'component_scores': '',
                 }
 
                 rows.append(row)
@@ -535,6 +542,44 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                 else:
                     click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
                     successes += 1
+                    # compute scoring if requested
+                    if score:
+                        try:
+                            cleaned = __import__('probe.crawl.cleaner', fromlist=['clean_html']).clean_html(res.get('raw_bytes').decode('utf-8', errors='ignore'), u)
+                        except Exception:
+                            cleaned = {'text': '', 'boilerplate_ratio': 0.0}
+
+                        page = dict(res)
+                        page.update(cleaned)
+
+                        kws = []
+                        if score_keywords:
+                            kws = [k.strip() for k in score_keywords.split(',') if k.strip()]
+
+                        from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector, LinkDensityScorer, EntityRegexScorer
+
+                        components = [KeywordDensityScorer(keywords=kws, weight=1.0), BoilerplateDetector(weight=1.0), LinkDensityScorer(weight=1.0)]
+                        if kws:
+                            components.append(EntityRegexScorer(patterns=kws, weight=1.0))
+
+                        scorer = RelevanceScorer(components=components)
+                        comps = scorer.score_components(page)
+                        total = scorer.score(page)
+
+                        # attach to row
+                        row['score'] = float(total)
+                        # top component is the highest-scoring component
+                        top = max(comps.items(), key=lambda kv: kv[1])[0] if comps else ''
+                        row['top_component'] = top
+                        import json
+                        row['component_scores'] = json.dumps(comps)
+
+                        # persist if requested
+                        if persist_scores and m:
+                            meta = {'keywords': kws}
+                            rpt_id = m.add_scoring_report(None, u, float(total), comps, meta)
+                            click.echo(f"    Persisted scoring report id: {rpt_id}")
+
                     if ingest and m:
                         out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
                         click.echo(f"    Ingested: {out}")
@@ -640,6 +685,9 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                         'has_pdf_links': res.get('has_pdf_links') or False,
                         'retry_count': res.get('retry_count') or 0,
                         'user_agent': res.get('user_agent') or '',
+                        'score': '',
+                        'top_component': '',
+                        'component_scores': '',
                     }
 
                     rows.append(row)
@@ -652,6 +700,44 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                     else:
                         click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
                         successes += 1
+                        # compute scoring if requested
+                        if score:
+                            try:
+                                cleaned = __import__('probe.crawl.cleaner', fromlist=['clean_html']).clean_html(res.get('raw_bytes').decode('utf-8', errors='ignore'), u_ret)
+                            except Exception:
+                                cleaned = {'text': '', 'boilerplate_ratio': 0.0}
+
+                            page = dict(res)
+                            page.update(cleaned)
+
+                            kws = []
+                            if score_keywords:
+                                kws = [k.strip() for k in score_keywords.split(',') if k.strip()]
+
+                            from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector, LinkDensityScorer, EntityRegexScorer
+
+                            components = [KeywordDensityScorer(keywords=kws, weight=1.0), BoilerplateDetector(weight=1.0), LinkDensityScorer(weight=1.0)]
+                            if kws:
+                                components.append(EntityRegexScorer(patterns=kws, weight=1.0))
+
+                            scorer = RelevanceScorer(components=components)
+                            comps = scorer.score_components(page)
+                            total = scorer.score(page)
+
+                            # attach to row
+                            row['score'] = float(total)
+                            # top component is the highest-scoring component
+                            top = max(comps.items(), key=lambda kv: kv[1])[0] if comps else ''
+                            row['top_component'] = top
+                            import json
+                            row['component_scores'] = json.dumps(comps)
+
+                            # persist if requested
+                            if persist_scores and m:
+                                meta = {'keywords': kws}
+                                rpt_id = m.add_scoring_report(None, u_ret, float(total), comps, meta)
+                                click.echo(f"    Persisted scoring report id: {rpt_id}")
+
                         if ingest and m:
                             out = __import__('probe.crawl.ingest', fromlist=['ingest_fetch_result']).ingest_fetch_result(m, res)
                             click.echo(f"    Ingested: {out}")
