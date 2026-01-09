@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.4] - 2026-01-09
+### Added
+- Gap detection: `probe.analysis.gaps.GapDetector` with `probe gaps` CLI for analyzing missing document types, weak confidence, and suggested sources.
+- Lightweight Map helpers: `Map.get_entity_document_types()` and `Map.get_entity_document_count()` for efficient gap detection.
+- CLI `gaps` supports JSON output (`--json`) for automation.
+
+### Changed
+- Performance: gap detection uses lightweight queries to avoid loading full document objects when only types are required.
+
+### Tests
+- Added unit tests for gap detection, entity-not-found handling, weak-confidence, suggested domains, and CLI JSON output.
+
+### Migration
+- No DB migration required for v0.4; schema changes were introduced in prior releases.
+
 ## [v0.3] - 2026-01-09
 ### Added
 - Pluggable scoring framework (`probe.crawl.scorer`) with components:

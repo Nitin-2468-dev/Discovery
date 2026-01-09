@@ -45,7 +45,7 @@
 
 ---
 
-## v0.4 — Gap Detection
+## v0.4 — Gap Detection (in progress)
 **Goal:** Identify what's missing
 
 - [ ] Query map for entity knowledge
