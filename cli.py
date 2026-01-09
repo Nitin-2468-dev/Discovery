@@ -185,13 +185,14 @@ def summary(db):
 @click.option('--max-size', default=10000000, type=int, help='Max response size in bytes')
 @click.option('--max-retries', default=3, type=int, help='Maximum retry attempts for transient errors')
 @click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor in seconds')
-def fetch_cmd(url, ingest, db, timeout, max_size, max_retries, backoff_factor):
+@click.option('--ignore-retry-after', is_flag=True, default=False, help='Ignore Retry-After headers and use backoff instead')
+def fetch_cmd(url, ingest, db, timeout, max_size, max_retries, backoff_factor, ignore_retry_after):
     """Fetch a URL and optionally ingest into the Map."""
     click.echo(f"Fetching: {url}")
     res = None
     try:
         res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
-            url, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor
+            url, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor, honor_retry_after=(not ignore_retry_after)
         )
     except Exception as exc:
         click.echo(f"✗ Fetch failed: {exc}")
@@ -282,12 +283,14 @@ def seeds():
 @click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor seconds')
 @click.option('--concurrency', default=1, type=int, help='Number of concurrent workers for seed runner')
 @click.option('--per-domain-delay', default=0.25, type=float, help='Minimum delay (seconds) between requests to the same domain')
+@click.option('--min-delay', default=0.0, type=float, help='Minimum delay (seconds) enforced by fetcher between requests to the same domain (in-memory)')
+@click.option('--ignore-retry-after', is_flag=True, default=False, help='Ignore Retry-After headers returned by servers')
 @click.option('--persistent-politeness/--no-persistent-politeness', default=False, help='Enable persistent per-domain politeness (store last-crawl timestamps)')
 @click.option('--ignore-robots', is_flag=True, default=False, help='Ignore robots.txt rules (use with caution)')
 @click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
 @click.option('--summary-csv', default=None, help='Write summary CSV to explicit path (overrides --summary-dir)')
 @click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
-def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, persistent_politeness, ignore_robots, summary_dir, summary_csv, no_log_failures):
+def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, summary_dir, summary_csv, no_log_failures):
     """
     Options:
     - `--concurrency` number of worker threads
@@ -396,7 +399,12 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
 
             try:
                 res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
-                    u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor
+                    u,
+                    timeout=timeout,
+                    max_size=max_size,
+                    max_retries=max_retries,
+                    backoff_factor=backoff_factor,
+                    min_delay=min_delay,
                 )
 
                 domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(u).netloc
@@ -502,7 +510,7 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
                     # update last time
                     domain_last_time[d] = __import__('time').monotonic()
                 # perform fetch
-                u_ret, res = u, __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor)
+                u_ret, res = u, __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(u, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor, min_delay=min_delay)
                 # persist domain last-crawled if enabled
                 if persistent_politeness:
                     try:

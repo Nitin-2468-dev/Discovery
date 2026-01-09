@@ -1,5 +1,8 @@
 # Probe: A Deep Research Engine
 
+[![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions)
+[![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions)
+
 ## What This Is
 
 Probe is a personal discovery engine for finding information that search engines surface poorly:
@@ -63,6 +66,7 @@ The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV sum
 
 - `--summary-dir <dir>`: directory where timestamped CSV run summaries are written (default: `run_reports`).
 - `--summary-csv <path>`: write the summary CSV to an explicit path (overrides `--summary-dir`). Useful in CI or automation where a specific filename is required.
+- `--ignore-retry-after`: ignore server `Retry-After` headers and use exponential backoff instead (useful for controlled environments where servers return overly long waits).
 - `--persistent-politeness`: enable persistent per-domain politeness — stores the last-crawl timestamp per domain in `.probe_state.json` and uses it to delay subsequent runs according to `--per-domain-delay`.
 
 Persistent politeness stores timestamps in a small JSON file `.probe_state.json` in the current working directory as `{ "domain": "YYYY-MM-DDTHH:MM:SS.ssssss" }`. When enabled, the seed-runner consults this file to avoid hitting domains too quickly across separate runs.
@@ -82,6 +86,41 @@ print(res["title"], len(res.get("text", "")))
 m = Map()
 ingest_fetch_result(m, res)
 ```
+
+Fetcher class example (advanced):
+
+```python
+from probe.crawl.fetcher import Fetcher
+from probe.observability import Metrics
+
+# Create a Fetcher with UA rotation and custom metrics
+metrics = Metrics()
+fetcher = Fetcher(user_agents=["MyBot/1.0", "MyBot/1.1"], metrics_obj=metrics)
+
+# Fetch and inspect result
+res = fetcher.fetch("https://example.com")
+print(res["status_code"], res.get("title"))
+
+# Metrics recorded in `metrics` (dummy or Prometheus-backed)
+print("fetch_total:", metrics.fetch_total.get() if hasattr(metrics.fetch_total, 'get') else 'prom')
+```
+
+Optional OCR dependencies (install if you want PDF OCR fallback):
+
+- `pdf2image` and `pytesseract` are optional and required only for OCR fallback when `pdfplumber` returns no text.
+- Install via pip using the requirements file:
+
+```bash
+pip install -r requirements-ocr.txt
+```
+
+- Or install as an optional extra (if you install the package):
+
+```bash
+pip install -e .[ocr]
+```
+
+CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and optionally installs OCR dependencies when matrix `ocr` is set to `true`.
 
 Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 

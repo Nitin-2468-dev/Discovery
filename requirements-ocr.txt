@@ -1,0 +1,4 @@
+# Optional OCR dependencies for Probes' OCR fallback
+pdf2image>=1.16.0
+pytesseract>=0.3.10
+# Note: Installing pytesseract also requires the Tesseract binary to be installed on your system.

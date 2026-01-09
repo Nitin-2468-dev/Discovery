@@ -1,0 +1,2 @@
+timestamp,url,domain,status_code,success,error_message,content_type,content_length,fetch_duration_ms,redirect_count,final_url,link_count,has_pdf_links,retry_count,user_agent
+2026-01-09T14:54:07.025826,https://example.org/,example.org,200,True,,text/html; charset=utf-8,60,0,0,https://example.org/,0,False,0,python-httpx/0.28.1
