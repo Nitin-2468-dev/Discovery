@@ -21,6 +21,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt','**/requirements-ocr.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -34,7 +41,13 @@ jobs:
         env:
           CI: true
         run: |
-          pytest -q --maxfail=1 --disable-warnings
+          mkdir -p reports
+          pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
+      - name: Upload JUnit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.python-version }}-${{ matrix.ocr }}
+          path: reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
 
   packaging:
     name: Packaging & editable install verification
@@ -50,6 +63,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Cache pip (packaging)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-packaging-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml','**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-packaging-
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
@@ -64,6 +84,12 @@ jobs:
       - name: Build sdist & wheels
         run: |
           python -m build --sdist --wheel --outdir dist
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.python-version }}-${{ matrix.ocr }}
+          path: dist/
+
 
   test-ocr-scheduled:
     name: OCR test (scheduled / ocr branch)
