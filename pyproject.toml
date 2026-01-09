@@ -26,3 +26,7 @@ ocr = [
     "pdf2image>=1.16.0",
     "pytesseract>=0.3.10",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["probe*"]
