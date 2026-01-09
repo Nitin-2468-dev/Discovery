@@ -382,10 +382,11 @@ def seeds():
 @click.option('--score/--no-score', default=False, help='Compute relevance score for each fetched page')
 @click.option('--persist-scores', is_flag=True, default=False, help='Persist scoring reports to the Map DB')
 @click.option('--score-keywords', default=None, help='Comma-separated keywords to supply to the KeywordDensityScorer/EntityRegexScorer')
+@click.option('--no-progress', is_flag=True, default=False, help='Disable tqdm progress bars (useful for CI)')
 @click.option('--summary-dir', default='run_reports', help='Directory to write CSV and logs')
-@click.option('--summary-csv', default=None, help='Write summary CSV to explicit path (overrides --summary-dir)')
+@click.option('--summary-csv', default=None, help='Write summary CSV to an explicit path (overrides --summary-dir)')
 @click.option('--no-log-failures', is_flag=True, default=False, help='Disable appending failed seeds to constraints.log')
-def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, score, persist_scores, score_keywords, summary_dir, summary_csv, no_log_failures):
+def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_factor, concurrency, per_domain_delay, min_delay, ignore_retry_after, persistent_politeness, ignore_robots, score, persist_scores, score_keywords, no_progress, summary_dir, summary_csv, no_log_failures):
     """
     Options:
     - `--concurrency` number of worker threads
@@ -413,6 +414,12 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
     if ingest or persist_scores:
         m = Map(db)
 
+    # Optional tqdm progress bar (import if available)
+    try:
+        from tqdm import tqdm
+    except Exception:
+        tqdm = None
+
     # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
     from concurrent.futures import ThreadPoolExecutor, as_completed
     import threading
@@ -430,7 +437,15 @@ def seeds_run(file, limit, ingest, db, timeout, max_size, max_retries, backoff_f
     if concurrency <= 1:
         # existing sequential flow
         domain_last_time = {}
-        for u in urls:
+        # wrap the iterator with tqdm if available and not disabled
+        seq_iter = urls
+        if not no_progress and tqdm is not None:
+            try:
+                seq_iter = tqdm(urls, desc="Seeds", unit="seed")
+            except Exception:
+                seq_iter = urls
+
+        for u in seq_iter:
             click.echo(f"Fetching: {u}")
 
             # robots.txt check (unless ignored)
