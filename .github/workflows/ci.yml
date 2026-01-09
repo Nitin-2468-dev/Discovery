@@ -3,6 +3,8 @@ name: CI
 on:
   push:
   pull_request:
+  schedule:
+    - cron: '0 3 * * 1' # weekly on Monday at 03:00 UTC
 
 jobs:
   test:
@@ -39,8 +41,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.11]
-    schedule:
-      - cron: '0 3 * * 1' # weekly on Monday at 03:00 UTC
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
