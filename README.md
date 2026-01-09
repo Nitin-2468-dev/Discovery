@@ -147,8 +147,8 @@ Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-siz
 
 ## Quick Start
 ```bash
-# Initialize
-python cli.py init
+# Initialize or upgrade the database schema (creates missing tables safely)
+python cli.py init --db probe.db
 
 # Add an entity
 python cli.py add-entity "PT6A-52" --type engine
@@ -156,9 +156,17 @@ python cli.py add-entity "PT6A-52" --type engine
 # Run seeds and write an explicit summary CSV (example)
 python cli.py seeds run seeds.txt --limit 10 --summary-csv out/report.csv
 
-# Investigate (coming soon)
-python cli.py investigate "PT6A-52 maintenance manual"
-```
+# Score a URL manually
+python cli.py score https://example.com --keywords manual,maintenance
+
+# Export scoring reports for a URL
+python cli.py analyze-crawl --url https://example.com/page --format csv --out report.csv
+
+# Export documents for an entity
+python cli.py export "PT6A-52" --format md --out pt6a52.md
+``` 
+
+See the full changelog in `CHANGELOG.md` for details on the v0.3 release and migration instructions.
 
 ## Tech Stack
 

@@ -27,19 +27,21 @@
 
 ---
 
-## v0.3 — Scoring
+## v0.3 — Scoring (IMPLEMENTED)
 **Goal:** Determine page relevance
 
-- [ ] Keyword density scorer
-- [ ] Entity regex matcher
-- [ ] Link density calculator
-- [ ] Boilerplate detector
-- [ ] Combined scoring formula
-- [ ] Branch stop logic
+- [x] Keyword density scorer
+- [x] Entity regex matcher
+- [x] Link density calculator
+- [x] Boilerplate detector
+- [x] Combined scoring formula
+- [x] Branch stop logic
 
 **Guidance:** Implement a pluggable composite scorer (e.g., `RelevanceScorer`) that composes multiple small scorers (keyword density, entity regex, link density, boilerplate detector) with tunable weights. Add debug logging explaining component scores, and a CLI command `probe score <url>` for local scoring inspection.
 
 **Success Criteria:** `scorer.score(page, context)` returns 0.0-1.0, suggests stop/continue
+
+**Notes:** v0.3 is implemented (see `CHANGELOG.md`). Schema bump: `v0.1.1` (adds `scoring_reports`) — run `python cli.py init --db <your_db>` to ensure schema is up-to-date before using scoring export features.
 
 ---
 
