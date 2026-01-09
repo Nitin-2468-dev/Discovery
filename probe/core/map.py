@@ -374,8 +374,55 @@ class Map:
         for table in ['entities', 'documents', 'pages', 'domains', 'edges']:
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             summary[table] = cursor.fetchone()[0]
+        # scoring_reports may not exist on older DBs; check safely
+        try:
+            cursor.execute("SELECT COUNT(*) FROM scoring_reports")
+            summary['scoring_reports'] = cursor.fetchone()[0]
+        except Exception:
+            summary['scoring_reports'] = 0
         
         return summary
+
+    def add_scoring_report(self, page_id: int, url: str, score: float, components: dict, metadata: dict = None) -> int:
+        """Persist a scoring report and return its ID."""
+        import json
+        comps_json = json.dumps(components) if components is not None else None
+        meta_json = json.dumps(metadata) if metadata is not None else None
+        cursor = self.conn.execute(
+            """
+            INSERT INTO scoring_reports (page_id, url, score, components, metadata)
+            VALUES (?, ?, ?, ?, ?)
+            RETURNING id
+            """,
+            (page_id, url, score, comps_json, meta_json)
+        )
+        row = cursor.fetchone()
+        self.conn.commit()
+        return row[0]
+
+    def get_scoring_reports_for_page(self, page_id: int):
+        """Return all scoring reports for a given page id, newest first."""
+        cursor = self.conn.execute(
+            "SELECT * FROM scoring_reports WHERE page_id = ? ORDER BY created_at DESC",
+            (page_id,)
+        )
+        rows = cursor.fetchall()
+        return rows
+
+    def get_latest_scoring_report_for_url(self, url: str):
+        """Return the latest scoring report for a url, or None."""
+        cursor = self.conn.execute(
+            "SELECT * FROM scoring_reports WHERE url = ? ORDER BY created_at DESC LIMIT 1",
+            (url,)
+        )
+        row = cursor.fetchone()
+        return row
+
+    def get_page_by_id(self, page_id: int):
+        """Retrieve a page row by id."""
+        cursor = self.conn.execute("SELECT * FROM pages WHERE id = ?", (page_id,))
+        row = cursor.fetchone()
+        return row
     
     # ============================================================
     # HELPERS (Internal)

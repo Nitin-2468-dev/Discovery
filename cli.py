@@ -212,6 +212,98 @@ def fetch_cmd(url, ingest, db, timeout, max_size, max_retries, backoff_factor, i
         click.echo(f"Ingested: {out}")
         m.close()
 
+
+@cli.command()
+@click.argument('url', required=False)
+@click.option('--from-db', 'from_db', default=None, type=int, help='Score an existing page by page_id from the DB')
+@click.option('--persist/--no-persist', default=False, help='Persist scoring report to the DB')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--timeout', default=10, type=float, help='Request timeout in seconds')
+@click.option('--max-size', default=10000000, type=int, help='Max response size in bytes')
+@click.option('--max-retries', default=3, type=int, help='Maximum retry attempts for transient errors')
+@click.option('--backoff-factor', default=0.5, type=float, help='Backoff factor in seconds')
+@click.option('--keywords', default=None, help='Comma-separated keywords to use for keyword density scoring')
+def score(url, from_db, persist, db, timeout, max_size, max_retries, backoff_factor, keywords):
+    """Fetch a URL or score an existing page in DB and run the RelevanceScorer.
+
+    If `--from-db PAGE_ID` is provided, the page is loaded from the DB and scored using stored text/metadata.
+    Otherwise `url` must be provided and will be fetched live.
+    """
+    if from_db is None and not url:
+        click.echo("✗ Provide a URL or use --from-db PAGE_ID")
+        return
+
+    click.echo(f"Scoring: {url or f'page_id={from_db}'}")
+
+    m = Map(db)
+    page = None
+    fetched_url = url
+
+    if from_db is not None:
+        row = m.get_page_by_id(from_db)
+        if not row:
+            click.echo(f"✗ No page with id {from_db}")
+            m.close()
+            return
+        fetched_url = row['url']
+        # Extract text and boilerplate from metadata if available
+        import json
+        metadata = json.loads(row['metadata']) if row['metadata'] else {}
+        page = {
+            'text': metadata.get('text') or '',
+            'boilerplate_ratio': metadata.get('boilerplate_ratio', 0.0),
+        }
+    else:
+        try:
+            res = __import__('probe.crawl.fetcher', fromlist=['fetch']).fetch(
+                url, timeout=timeout, max_size=max_size, max_retries=max_retries, backoff_factor=backoff_factor
+            )
+        except Exception as exc:
+            click.echo(f"✗ Fetch failed: {exc}")
+            m.close()
+            raise
+
+        if res.get('error'):
+            click.echo(f"✗ {res.get('error')}")
+            m.close()
+            return
+
+        # Build page dict suitable for scorer
+        try:
+            cleaned = __import__('probe.crawl.cleaner', fromlist=['clean_html']).clean_html(res.get('raw_bytes').decode('utf-8', errors='ignore'), url)
+        except Exception:
+            cleaned = { 'text': '', 'boilerplate_ratio': 0.0 }
+
+        page = dict(res)
+        page.update(cleaned)
+
+    # Instantiate a simple scorer: KeywordDensity + Boilerplate
+    kws = []
+    if keywords:
+        kws = [k.strip() for k in keywords.split(',') if k.strip()]
+
+    from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector
+
+    components = [KeywordDensityScorer(keywords=kws, weight=1.0), BoilerplateDetector(weight=1.0)]
+    scorer = RelevanceScorer(components=components)
+
+    comps = scorer.score_components(page)
+    total = scorer.score(page)
+
+    click.echo("Component scores:")
+    for k, v in comps.items():
+        click.echo(f"  {k}: {v:.3f}")
+    click.echo(f"=> Total score: {total:.3f}")
+
+    if persist:
+        # Persist the scoring report into DB
+        meta = {'keywords': kws}
+        report_id = m.add_scoring_report(from_db if from_db is not None else None, fetched_url, float(total), comps, meta)
+        click.echo(f"Persisted scoring report id: {report_id}")
+
+    m.close()
+    return total
+
 @cli.command()
 @click.argument('entity_name')
 @click.argument('document_title')

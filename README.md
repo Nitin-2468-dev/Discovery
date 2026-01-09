@@ -57,9 +57,12 @@ The fetcher is a synchronous, test-first implementation that:
 
 - Uses `httpx` for HTTP requests with configurable timeouts and retries
 - Cleans HTML with `BeautifulSoup` and extracts normalized absolute links
-- Detects and extracts text from PDFs using `pdfplumber` (best-effort)
+- Detects and extracts text from PDFs using `pdfplumber` (best-effort) with an optional OCR fallback when `pdfplumber` extracts no text
 - Returns structured results: `status_code`, `content_type`, `text`, `title`, `links`, `raw_bytes`, `metadata`, and `error` hints
-- Includes an ingestion helper `probe.crawl.ingest.ingest_fetch_result(map, result)` that persists pages and documents into the Map
+- The HTML cleaner now returns richer metadata (including `description`, `link_count`, `pdf_link_count`, and `boilerplate_ratio`) and marks PDF links with `is_pdf` for easier downstream decisions
+- The ingest helper `probe.crawl.ingest.ingest_fetch_result(map, result)` now computes page `content_hash` from cleaned text (falling back to raw bytes), differentiates internal vs external links, creates edges only for internal links, and stores `outgoing_links`/`external_links` in page metadata for follow-up
+
+Tests: full test suite currently passes locally (52 tests).
 
 ### Seed runner & politeness
 The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV summary and optional failure log. Important flags:

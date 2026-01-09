@@ -179,6 +179,30 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     CREATE INDEX IF NOT EXISTS idx_edges_relation 
     ON edges(relation)
     """)
+
+    # ============================================================
+    # Scoring Reports: store per-page/component scoring snapshots
+    # ============================================================
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS scoring_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        page_id INTEGER,  -- nullable when scoring an external URL
+        url TEXT,
+        score REAL,
+        components TEXT,  -- JSON string with per-component scores
+        metadata TEXT,    -- JSON string for extra info
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_scoring_reports_page
+    ON scoring_reports(page_id)
+    """)
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_scoring_reports_url
+    ON scoring_reports(url)
+    """)
     
     conn.commit()
     
@@ -190,7 +214,7 @@ def get_schema_version(conn: sqlite3.Connection) -> str:
     Get the current schema version.
     Useful for future migrations.
     """
-    return "v0.1.0"
+    return "v0.1.1"
 
 
 def validate_schema(conn: sqlite3.Connection) -> bool:
