@@ -96,7 +96,7 @@ jobs:
           pip install tomli || true
       - name: Run packaging validation tests
         run: |
-          pytest -q tests/test_packaging_validation.py tests/test_wheel_install.py -q --maxfail=1
+          pytest -q tests/test_packaging_validation.py tests/test_wheel_install.py tests/test_package_metadata.py -q --maxfail=1
 
   test-ocr-scheduled:
     name: OCR test (scheduled / ocr branch)
