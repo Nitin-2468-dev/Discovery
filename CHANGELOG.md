@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.4] - 2026-01-09
+### Added
+- Gap detection: `probe.analysis.gaps.GapDetector` with `probe gaps` CLI for analyzing missing document types, weak confidence, and suggested sources.
+- Seed generator: `probe.analysis.seed_generator.SeedGenerator` with CLI `probe seeds gen` for creating smart seed URLs.
+- Investigator skeleton: `probe.analysis.investigator.Investigator` with `probe investigate` CLI for gap→seed investigation (dry-run by default).
+- Lightweight Map helpers: `Map.get_entity_document_types()` and `Map.get_entity_document_count()` for efficient gap detection.
+- CLI `gaps` supports JSON output (`--json`) for automation.
+
 ## [v0.3] - 2026-01-09
 ### Added
 - Pluggable scoring framework (`probe.crawl.scorer`) with components:
