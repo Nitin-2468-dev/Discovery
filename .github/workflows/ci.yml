@@ -66,6 +66,11 @@ jobs:
       - name: Build sdist & wheels
         run: |
           python -m build --sdist --wheel --outdir dist
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
 
   preflight:
     name: 'Preflight: Packaging validation'
