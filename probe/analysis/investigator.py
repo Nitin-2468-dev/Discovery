@@ -1,6 +1,5 @@
 from typing import List, Dict, Any
 from probe.core.map import Map
-from probe.analysis.gaps import GapDetector
 from probe.analysis.seed_generator import SeedGenerator
 
 
@@ -17,6 +16,8 @@ class Investigator:
         self.ingest_on_fetch = bool(ingest_on_fetch)
 
     def investigate(self, entity_name: str, desired_doc_types: List[str], *, max_seeds: int = 10, dry_run: bool = True, fetch_timeout: float = 5.0) -> Dict[str, Any]:
+        # Import GapDetector here to avoid import-time failures in some install environments
+        from probe.analysis.gaps import GapDetector
         detector = GapDetector(self.map)
         gap = detector.analyze_entity_gaps(entity_name, desired_doc_types)
 
