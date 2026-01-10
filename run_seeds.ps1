@@ -54,10 +54,10 @@ if (-not (Test-Path $File)) {
 }
 
 # Build argument list
-$args = @('cli.py', 'seeds', 'run', $File, '--limit', $Limit.ToString(), '--db', $DbPath, '--timeout', $Timeout.ToString(), '--max-retries', $MaxRetries.ToString(), '--backoff-factor', $BackoffFactor.ToString())
-if ($Ingest.IsPresent -and -not $DryRun.IsPresent) { $args += '--ingest' }
+$argsList = @('cli.py', 'seeds', 'run', $File, '--limit', $Limit.ToString(), '--db', $DbPath, '--timeout', $Timeout.ToString(), '--max-retries', $MaxRetries.ToString(), '--backoff-factor', $BackoffFactor.ToString())
+if ($Ingest.IsPresent -and -not $DryRun.IsPresent) { $argsList += '--ingest' }
 
-$cmd = "python " + ($args -join ' ')
+$cmd = "python " + ($argsList -join ' ')
 
 if ($DryRun.IsPresent) {
     Write-Host "DRY-RUN: $cmd"
@@ -67,7 +67,7 @@ if ($DryRun.IsPresent) {
 Write-Host "Running: $cmd"
 
 try {
-    & python @args
+    & python @argsList
     $exit = $LASTEXITCODE
     if ($exit -ne 0) {
         Write-Error "Command exited with code $exit"

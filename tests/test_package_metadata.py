@@ -21,10 +21,10 @@ def _build_wheel(outdir: Path):
 def _read_pyproject():
     try:
         import tomllib as toml
-    except Exception:
+    except ImportError:
         try:
             import tomli as toml
-        except Exception:
+        except ImportError:
             pytest.skip("tomllib/tomli required to parse pyproject.toml")
     p = ROOT / "pyproject.toml"
     assert p.exists(), "pyproject.toml missing"
