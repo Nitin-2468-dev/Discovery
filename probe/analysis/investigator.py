@@ -17,7 +17,16 @@ class Investigator:
 
     def investigate(self, entity_name: str, desired_doc_types: List[str], *, max_seeds: int = 10, dry_run: bool = True, fetch_timeout: float = 5.0) -> Dict[str, Any]:
         # Import GapDetector here to avoid import-time failures in some install environments
-        from probe.analysis.gaps import GapDetector
+        try:
+            import importlib
+            mod = importlib.import_module('probe.analysis.gaps')
+            if not hasattr(mod, 'GapDetector'):
+                raise ImportError(f"'GapDetector' not in module; members: {[n for n in dir(mod) if not n.startswith('_')]}")
+            GapDetector = mod.GapDetector
+        except Exception as e:
+            # Re-raise with extra context so CI logs include module members/diagnostics
+            raise ImportError(f"Could not import GapDetector from probe.analysis.gaps: {e}") from e
+
         detector = GapDetector(self.map)
         gap = detector.analyze_entity_gaps(entity_name, desired_doc_types)
 
