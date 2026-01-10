@@ -2,13 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
-## [v0.4] - 2026-01-09
+## [v0.4] - 2026-01-10
 ### Added
-- Gap detection: `probe.analysis.gaps.GapDetector` with `probe gaps` CLI for analyzing missing document types, weak confidence, and suggested sources.
-- Seed generator: `probe.analysis.seed_generator.SeedGenerator` with CLI `probe seeds gen` for creating smart seed URLs.
-- Investigator skeleton: `probe.analysis.investigator.Investigator` with `probe investigate` CLI for gap→seed investigation (dry-run by default).
-- Lightweight Map helpers: `Map.get_entity_document_types()` and `Map.get_entity_document_count()` for efficient gap detection.
-- CLI `gaps` supports JSON output (`--json`) for automation.
+- Investigator: prioritization, ingest feedback loop, and improved CLI controls to run investigations and dry-runs.
+- Seed generator: `probe.analysis.seed_generator.SeedGenerator` for generating high-quality seeds from domains and entities.
+- Gap detection: `probe.analysis.gaps.GapDetector` enhancements and lightweight Map helpers for efficient queries.
+
+### Fixed
+- Defensive imports: made imports in `probe.analysis.investigator` lazy and added diagnostics to surface missing exports during import-time errors.
+- Tests: added smoke tests to assert `probe.analysis.gaps` exports `GapDetector` and that `probe.analysis.investigator` imports successfully.
+- CI: added a pre-test check that fails on empty Python files (excluding `__init__.py`) and fixed a YAML parsing edge case (quoted step name).
+
+### Notes
+- These changes address import-time failures observed in CI and add defensive checks to catch regressions early.
 
 ## [v0.3] - 2026-01-09
 ### Added
