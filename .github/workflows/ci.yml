@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    needs: preflight
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -21,7 +22,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: "Pre-test: check for empty Python files"
+      - name: 'Pre-test: check for empty Python files'
         run: |
           set -e
           # Find tracked Python files under probe/ and tests/ that are empty
@@ -74,6 +75,27 @@ jobs:
       - name: Build sdist & wheels
         run: |
           python -m build --sdist --wheel --outdir dist
+
+  preflight:
+    name: 'Preflight: Packaging validation'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies for preflight
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install tomli || true
+      - name: Run packaging validation tests
+        run: |
+          pytest -q tests/test_packaging_validation.py -q --maxfail=1
 
   test-ocr-scheduled:
     name: OCR test (scheduled / ocr branch)
