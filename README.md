@@ -1,7 +1,6 @@
 # Probe: A Deep Research Engine
 
-[![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions)
-[![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions)
+[![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions) [![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions) [![Release](https://img.shields.io/github/v/release/Nitin-2468-dev/Discovery?label=release)](https://github.com/Nitin-2468-dev/Discovery/releases) [![License](https://img.shields.io/github/license/Nitin-2468-dev/Discovery?label=license)](https://github.com/Nitin-2468-dev/Discovery/blob/master/LICENSE)
 
 ## What This Is
 
