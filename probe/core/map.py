@@ -297,7 +297,32 @@ class Map:
              1 if found_document else 0)
         )
         self.conn.commit()
-    
+
+    def increment_domain_documents(self, domain_name: str, delta: int = 1):
+        """Increment documents_found for a domain without changing pages_crawled.
+
+        Recalculates yield_score safely (pages_crawled may be zero).
+        """
+        # Ensure domain row exists
+        cursor = self.conn.execute(
+            "INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score)\n            VALUES (?, 0, ?, 0.0)\n            ON CONFLICT(domain_name) DO UPDATE SET documents_found = documents_found + ?\n            RETURNING id, pages_crawled, documents_found",
+            (domain_name, max(0, delta), delta)
+        )
+        row = cursor.fetchone()
+        # Recalculate yield_score if pages_crawled > 0
+        try:
+            cursor = self.conn.execute("SELECT pages_crawled, documents_found FROM domains WHERE domain_name = ?", (domain_name,))
+            pr = cursor.fetchone()
+            pages = pr[0] or 0
+            docs = pr[1] or 0
+            if pages > 0:
+                ys = float(docs) / pages
+            else:
+                ys = float(docs)
+            self.conn.execute("UPDATE domains SET yield_score = ? WHERE domain_name = ?", (ys, domain_name))
+            self.conn.commit()
+        except Exception:
+            self.conn.commit()    
     def get_domain(self, domain_name: str) -> Optional[Domain]:
         """Retrieve a domain by name."""
         cursor = self.conn.execute(

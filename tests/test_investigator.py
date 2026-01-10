@@ -79,4 +79,9 @@ def test_investigator_runs_fetches_when_not_dry(tmp_path, monkeypatch):
     # ingest should have been attempted; each result should include 'ingested' key
     assert all('ingested' in r and r['ingested'] == {'ingested': True} for r in res['results'])
 
+    # After ingesting, domain document counts should reflect discovered docs (incremented)
+    dom = m.get_domain('hi.example')
+    assert dom is not None
+    assert dom.documents_found >= 1
+
     m.close()

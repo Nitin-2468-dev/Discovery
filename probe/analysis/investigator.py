@@ -66,6 +66,20 @@ class Investigator:
                         from probe.crawl.ingest import ingest_fetch_result
                         ing = ingest_fetch_result(self.map, r)
                         entry['ingested'] = ing
+
+                        # Feedback loop: if a document was discovered during ingestion, increment domain documents
+                        try:
+                            domain = __import__('urllib.parse', fromlist=['urlparse']).urlparse(s).netloc
+                            found_doc = bool(ing.get('document_id')) or (ing.get('edges_created', 0) > 0)
+                            # also check outgoing links for pdfs
+                            for out in ing.get('outgoing_links', []):
+                                if out.lower().endswith('.pdf'):
+                                    found_doc = True
+                                    break
+                            if found_doc:
+                                self.map.increment_domain_documents(domain, delta=1)
+                        except Exception:
+                            pass
                 except Exception as ing_exc:
                     entry['ingest_error'] = str(ing_exc)
 
