@@ -20,8 +20,7 @@ def _build_wheel(outdir: Path):
         )
 
 
-@pytest.mark.parametrize("pyver", ["3.11"])
-def test_install_wheel_and_imports(tmp_path: Path, pyver):
+def test_install_wheel_and_imports(tmp_path: Path):
     # Skip if build tool is not present
     pytest.importorskip("build")
 

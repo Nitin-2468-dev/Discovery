@@ -69,12 +69,12 @@ def test_pyproject_license_has_text_or_license_file_present():
         import tomllib as toml
 
         tomllib = toml
-    except Exception:
+    except ImportError:
         try:
             import tomli as toml
 
             tomllib = toml
-        except Exception:
+        except ImportError:
             tomllib = None
 
     if tomllib is None:
