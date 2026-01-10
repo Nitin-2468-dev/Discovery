@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pre-test: check for empty Python files
+      - name: "Pre-test: check for empty Python files"
         run: |
           set -e
           # Find tracked Python files under probe/ and tests/ that are empty
