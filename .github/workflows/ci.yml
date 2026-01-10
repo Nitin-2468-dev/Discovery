@@ -71,6 +71,24 @@ jobs:
         with:
           name: 'dist-${{ matrix.python-version }}-${{ matrix.ocr }}'
           path: dist
+      - name: Announce uploaded artifacts
+        env:
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          echo "Fetching artifacts for run $RUN_ID in $REPO"
+          api_url="https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts"
+          # Query artifacts and emit a visible notice for each artifact with its download url
+          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "$api_url")
+          has_artifacts=$(echo "$resp" | jq -r '.total_count')
+          if [ "$has_artifacts" = "0" ] || [ "$has_artifacts" = "null" ]; then
+            echo "::notice::No artifacts found for run $RUN_ID"
+          else
+            echo "$resp" | jq -r '.artifacts[] | "Artifact: \(.name) -> \(.archive_download_url)"' | while IFS= read -r line; do
+              echo "::notice::$line"
+            done
+          fi
 
   preflight:
     name: 'Preflight: Packaging validation'
