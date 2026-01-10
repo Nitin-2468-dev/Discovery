@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions) [![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions) [![Release](https://img.shields.io/github/v/release/Nitin-2468-dev/Discovery?label=release)](https://github.com/Nitin-2468-dev/Discovery/releases) [![License](https://img.shields.io/github/license/Nitin-2468-dev/Discovery?label=license)](https://github.com/Nitin-2468-dev/Discovery/blob/master/LICENSE)
 
+> CI: Packaging preflight test trigger (non-functional README touch)
+
 ## What This Is
 
 Probe is a personal discovery engine for finding information that search engines surface poorly:
