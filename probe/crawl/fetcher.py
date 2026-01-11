@@ -6,20 +6,20 @@ Public API:
 
 This is an initial, test-driven implementation focusing on HTML cleaning and link extraction.
 """
+
 from typing import Tuple, List, Dict, Any
 from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
 import threading
+from probe.observability import get_logger
+
+logger = get_logger("fetcher")
 
 # In-memory per-domain politeness tracker (monotonic timestamps)
 _last_fetch = {}
 _last_fetch_lock = threading.Lock()
-
-# Observability
-from probe.observability import get_logger, metrics
-logger = get_logger('fetcher')
 
 
 DEFAULT_TIMEOUT = 10
@@ -36,17 +36,21 @@ class Fetcher:
     - sleep_func: optional sleep function for testing/time control
     """
 
-    def __init__(self, user_agents=None, metrics_obj=None, logger_obj=None, sleep_func=None):
+    def __init__(
+        self, user_agents=None, metrics_obj=None, logger_obj=None, sleep_func=None
+    ):
         self.user_agents = list(user_agents) if user_agents else ["probe/0.1"]
         self._ua_index = 0
         self._ua_lock = threading.Lock()
         # dependency injection (defaults to module-level observability)
         from probe import observability as _obs
+
         self.metrics = metrics_obj if metrics_obj is not None else _obs.metrics
-        self.logger = logger_obj if logger_obj is not None else get_logger('fetcher')
+        self.logger = logger_obj if logger_obj is not None else get_logger("fetcher")
         self._sleep_func = sleep_func
         self._last_fetch = {}
         self._last_fetch_lock = threading.Lock()
+
     def fetch(
         self,
         url: str,
@@ -122,7 +126,11 @@ class Fetcher:
                         result["final_url"] = str(resp.url)
                         # redirect history length
                         try:
-                            result["redirect_count"] = len(resp.history) if getattr(resp, "history", None) is not None else 0
+                            result["redirect_count"] = (
+                                len(resp.history)
+                                if getattr(resp, "history", None) is not None
+                                else 0
+                            )
                         except Exception:
                             result["redirect_count"] = 0
 
@@ -135,7 +143,9 @@ class Fetcher:
 
                         # 429 handling: Retry-After header
                         try:
-                            logger.debug("resp_status=%s attempt=%s", resp.status_code, attempt)
+                            logger.debug(
+                                "resp_status=%s attempt=%s", resp.status_code, attempt
+                            )
                         except Exception:
                             pass
                         if resp.status_code == 429 and attempt < max_retries:
@@ -152,6 +162,7 @@ class Fetcher:
                                     try:
                                         from email.utils import parsedate_to_datetime
                                         from datetime import datetime, timezone
+
                                         dt = parsedate_to_datetime(ra)
                                         if dt.tzinfo is None:
                                             dt = dt.replace(tzinfo=timezone.utc)
@@ -163,8 +174,15 @@ class Fetcher:
                                         delay = None
                             else:
                                 # honoring disabled or no header
-                                delay = backoff_factor * (2 ** attempt)
-                                parsed_info = ("ignored" if ra is not None and not honor_retry_after else "backoff", delay)
+                                delay = backoff_factor * (2**attempt)
+                                parsed_info = (
+                                    (
+                                        "ignored"
+                                        if ra is not None and not honor_retry_after
+                                        else "backoff"
+                                    ),
+                                    delay,
+                                )
 
                             # Debug log about Retry-After parsing / policy
                             try:
@@ -181,14 +199,16 @@ class Fetcher:
                             # metrics: record retry/backoff wait
                             try:
                                 self.metrics.increment("fetch_retries")
-                                self.metrics.observe("fetch_backoff_seconds", float(delay))
+                                self.metrics.observe(
+                                    "fetch_backoff_seconds", float(delay)
+                                )
                             except Exception:
                                 pass
 
                             sleep_func(delay)
                             continue
                         if 500 <= resp.status_code < 600 and attempt < max_retries:
-                            delay = backoff_factor * (2 ** attempt)
+                            delay = backoff_factor * (2**attempt)
                             sleep_func(delay)
                             continue
 
@@ -200,7 +220,9 @@ class Fetcher:
                                 self.metrics.increment("fetch_failures")
                             except Exception:
                                 pass
-                            self.logger.info("Fetch failed %s status=%s", url, resp.status_code)
+                            self.logger.info(
+                                "Fetch failed %s status=%s", url, resp.status_code
+                            )
                             return result
 
                         # Stream content while enforcing max_size
@@ -216,7 +238,9 @@ class Fetcher:
 
                         # Save raw bytes for hashing/storage
                         result["raw_bytes"] = bytes(content)
-                        result["content_length"] = len(result["raw_bytes"]) if result.get("raw_bytes") else 0
+                        result["content_length"] = (
+                            len(result["raw_bytes"]) if result.get("raw_bytes") else 0
+                        )
                         result["fetch_duration_ms"] = elapsed
                         result["retry_count"] = attempt
                         # Expose user-agent used
@@ -227,12 +251,16 @@ class Fetcher:
 
                         # metrics: observe duration
                         try:
-                            self.metrics.observe("fetch_duration_seconds", elapsed / 1000.0)
+                            self.metrics.observe(
+                                "fetch_duration_seconds", elapsed / 1000.0
+                            )
                         except Exception:
                             pass
 
                         # PDF handling (real pdfplumber extraction with OCR fallback)
-                        if "application/pdf" in content_type or url.lower().endswith(".pdf"):
+                        if "application/pdf" in content_type or url.lower().endswith(
+                            ".pdf"
+                        ):
                             result["is_pdf"] = True
                             try:
                                 import pdfplumber
@@ -255,21 +283,25 @@ class Fetcher:
                                     result["metadata"]["ocr_used"] = True
                                 except Exception:
                                     result["error"] = "pdf_extraction_failed"
-                            return result                        # Otherwise treat as HTML/text
+                            return result  # Otherwise treat as HTML/text
                         encoding = resp.encoding or "utf-8"
                         html = bytes(content).decode(encoding, errors="replace")
-                        cleaned_text, links, title = _clean_html_and_extract_links(html, base_url=url)
+                        cleaned_text, links, title = _clean_html_and_extract_links(
+                            html, base_url=url
+                        )
                         result["text"] = cleaned_text
                         result["links"] = links
                         result["title"] = title
                         result["link_count"] = len(links)
-                        result["has_pdf_links"] = any(l["url"].lower().endswith(".pdf") for l in links)
+                        result["has_pdf_links"] = any(
+                            link["url"].lower().endswith(".pdf") for link in links
+                        )
                         return result
 
                     except httpx.TimeoutException:
                         # retry on timeout if attempts remain
                         if attempt < max_retries:
-                            delay = backoff_factor * (2 ** attempt)
+                            delay = backoff_factor * (2**attempt)
                             sleep_func(delay)
                             continue
                         result["error"] = "timeout"
@@ -278,7 +310,7 @@ class Fetcher:
                         return result
                     except httpx.HTTPError as exc:  # covers many transport errors
                         if attempt < max_retries:
-                            delay = backoff_factor * (2 ** attempt)
+                            delay = backoff_factor * (2**attempt)
                             sleep_func(delay)
                             continue
                         result["error"] = f"http_error: {exc}"
@@ -310,8 +342,10 @@ def _ocr_pdf(pdf_bytes: bytes) -> str:
         texts.append(text)
     return "\n".join(texts)
 
+
 # Backwards compatibility: module-level default fetcher and helper
 DEFAULT_FETCHER = Fetcher()
+
 
 def fetch(
     url: str,
@@ -335,10 +369,9 @@ def fetch(
     )
 
 
-
-
-
-def _clean_html_and_extract_links(html: str, base_url: str) -> Tuple[str, List[Dict[str, str]], str]:
+def _clean_html_and_extract_links(
+    html: str, base_url: str
+) -> Tuple[str, List[Dict[str, str]], str]:
     """Return (cleaned_text, links, title).
 
     Links are normalized absolute HTTP(s) URLs with anchor text. Title is taken
@@ -352,6 +385,7 @@ def _clean_html_and_extract_links(html: str, base_url: str) -> Tuple[str, List[D
 
     # Remove comments
     from bs4 import Comment
+
     for comment in soup.find_all(string=lambda text: isinstance(text, Comment)):
         try:
             comment.extract()

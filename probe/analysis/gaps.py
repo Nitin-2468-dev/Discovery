@@ -8,7 +8,9 @@ class GapDetector:
     def __init__(self, map_obj: Map):
         self.map = map_obj
 
-    def analyze_entity_gaps(self, entity_name: str, desired_doc_types: List[str]) -> Dict[str, Any]:
+    def analyze_entity_gaps(
+        self, entity_name: str, desired_doc_types: List[str]
+    ) -> Dict[str, Any]:
         """
         Analyze what's missing for an entity.
 

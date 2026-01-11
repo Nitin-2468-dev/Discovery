@@ -1,8 +1,6 @@
-import time
 from click.testing import CliRunner
 import httpx
 from cli import cli
-import os
 
 
 def test_cli_min_delay_flag_respected(monkeypatch, tmp_path):
@@ -16,16 +14,35 @@ def test_cli_min_delay_flag_respected(monkeypatch, tmp_path):
 
     # simple handler
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=b"<html></html>")
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=b"<html></html>",
+        )
 
     transport = httpx.MockTransport(handler)
     original_client = httpx.Client
-    monkeypatch.setattr(httpx, "Client", lambda *args, **kwargs: original_client(transport=transport))
+    monkeypatch.setattr(
+        httpx, "Client", lambda *args, **kwargs: original_client(transport=transport)
+    )
 
-    monkeypatch.setattr('time.sleep', fake_sleep)
+    monkeypatch.setattr("time.sleep", fake_sleep)
 
     runner = CliRunner()
-    res = runner.invoke(cli, ["seeds", "run", str(seeds), "--limit", "2", "--concurrency", "2", "--min-delay", "0.5"]) 
+    res = runner.invoke(
+        cli,
+        [
+            "seeds",
+            "run",
+            str(seeds),
+            "--limit",
+            "2",
+            "--concurrency",
+            "2",
+            "--min-delay",
+            "0.5",
+        ],
+    )
     assert res.exit_code == 0
     assert len(sleeps) >= 1
     # allow a small timing leeway for thread scheduling; expect at least ~min_delay * 0.4
