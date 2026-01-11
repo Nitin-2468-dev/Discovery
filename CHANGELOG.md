@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.4.1] - 2026-01-11
+
+### Added (v0.4.1)
+
+- Research/CI: added and validated an opt-in scheduled/manual real-network integration workflow (`.github/workflows/research-integration.yml`) that safely skips when the test file or token is not present; run with `RUN_REAL_NET_TESTS=true` to exercise the test.
+- Added `probe/crawl/fetcher_adapter.py` and `tests/test_crawler_integration.py` (opt-in) to validate real-network crawling behavior.
+
 ## [v0.4] - 2026-01-09
 
 ### Added (v0.4)
