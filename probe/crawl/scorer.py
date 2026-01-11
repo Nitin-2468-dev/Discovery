@@ -31,7 +31,9 @@ class KeywordDensityScorer(Scorer):
         if not words:
             return 0.0
         total = len(words)
-        hits = sum(sum(1 for _ in range(1) if kw in w) for w in words for kw in self.keywords)
+        hits = sum(
+            sum(1 for _ in range(1) if kw in w) for w in words for kw in self.keywords
+        )
         density = hits / total
         # Normalize: a density of 0.05 -> 1.0, scale log for diminishing returns
         score = min(1.0, math.log1p(density * 100) / math.log1p(5))
@@ -68,6 +70,7 @@ class LinkDensityScorer(Scorer):
 
     def _get_domain(self, url: str) -> str:
         from urllib.parse import urlparse
+
         try:
             return urlparse(url).netloc
         except Exception:
@@ -80,8 +83,8 @@ class LinkDensityScorer(Scorer):
         domain = page.get("domain") or ""
         total = len(links)
         internal = 0
-        for l in links:
-            u = l.get("url")
+        for link in links:
+            u = link.get("url")
             if not u:
                 continue
             if self._get_domain(u) == domain:
@@ -89,6 +92,7 @@ class LinkDensityScorer(Scorer):
         ratio = internal / total if total > 0 else 0.0
         # Return ratio scaled by weight
         return float(max(0.0, min(1.0, ratio * self.weight)))
+
 
 class RelevanceScorer:
     """Composite scorer that combines multiple components with weights.
@@ -132,6 +136,7 @@ class EntityRegexScorer(Scorer):
 
     def __init__(self, patterns: Any = None, weight: float = 1.0):
         import re
+
         self.weight = weight
         self.patterns = []
         if patterns is None:
@@ -151,12 +156,13 @@ class EntityRegexScorer(Scorer):
         else:
             try:
                 import re as _re
+
                 self.patterns.append(_re.compile(str(patterns), _re.IGNORECASE))
             except Exception:
                 self.patterns = []
 
     def score(self, page: Dict[str, Any]) -> float:
-        text = (page.get("text") or "")
+        text = page.get("text") or ""
         if not text or not self.patterns:
             return 0.0
         matches = 0

@@ -24,7 +24,10 @@ class GapDetector:
             return {
                 "entity": entity_name,
                 "exists": False,
+                "confidence": 0.0,
                 "missing_types": desired_doc_types,
+                "has_documents": 0,
+                "weak_confidence": True,
                 "suggested_domains": [],
             }
 

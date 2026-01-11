@@ -1,10 +1,11 @@
-from pathlib import Path
 from probe.config import load_config
 
 
 def test_load_json_config(tmp_path):
     cfgp = tmp_path / "probe.config.json"
-    cfgp.write_text('{"concurrency": 3, "per_domain_delay": 0.5, "scorer_weights": {"keyword_density": 2.0}}')
+    cfgp.write_text(
+        '{"concurrency": 3, "per_domain_delay": 0.5, "scorer_weights": {"keyword_density": 2.0}}'
+    )
 
     cfg = load_config(str(cfgp))
     assert cfg["concurrency"] == 3
@@ -15,10 +16,13 @@ def test_load_json_config(tmp_path):
 def test_load_yaml_config(tmp_path, monkeypatch):
     # If PyYAML present, loader should read YAML. If absent, load_config should return defaults when path given.
     cfgp = tmp_path / "probe.config.yaml"
-    cfgp.write_text('concurrency: 4\nmin_delay: 0.1\nscorer_weights:\n  link_density: 0.5\n')
+    cfgp.write_text(
+        "concurrency: 4\nmin_delay: 0.1\nscorer_weights:\n  link_density: 0.5\n"
+    )
 
     try:
         import yaml  # noqa: F401
+
         cfg = load_config(str(cfgp))
         assert cfg["concurrency"] == 4
         assert cfg["min_delay"] == 0.1

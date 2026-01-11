@@ -8,7 +8,11 @@ def test_ingest_html_adds_page(monkeypatch, tmp_path):
     html = "<html><head><title>Hi</title></head><body><p>Hi</p></body></html>"
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=html.encode("utf-8"))
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=html.encode("utf-8"),
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -17,7 +21,7 @@ def test_ingest_html_adds_page(monkeypatch, tmp_path):
     res = fetch("https://example.org/")
 
     m = Map(db_path=":memory:")
-    out = ingest_fetch_result(m, res)
+    ingest_fetch_result(m, res)
     summary = m.get_map_summary()
     assert summary["pages"] == 1
     assert summary["documents"] == 0
@@ -27,14 +31,17 @@ def test_ingest_pdf_adds_document(monkeypatch):
     pdf_bytes = b"%PDF-1.4 fake pdf content"
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "application/pdf"}, content=pdf_bytes)
+        return httpx.Response(
+            200, headers={"content-type": "application/pdf"}, content=pdf_bytes
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
     monkeypatch.setattr(httpx, "Client", lambda *args, **kwargs: client)
 
     # fake pdfplumber to return a single page text
-    import sys, types
+    import sys
+    import types
 
     class DummyPage:
         def extract_text(self):
@@ -43,8 +50,10 @@ def test_ingest_pdf_adds_document(monkeypatch):
     class DummyPDF:
         def __enter__(self):
             return self
+
         def __exit__(self, *args):
             pass
+
         @property
         def pages(self):
             return [DummyPage()]
@@ -54,7 +63,7 @@ def test_ingest_pdf_adds_document(monkeypatch):
 
     res = fetch("https://example.org/doc.pdf")
     m = Map(db_path=":memory:")
-    out = ingest_fetch_result(m, res)
+    ingest_fetch_result(m, res)
     summary = m.get_map_summary()
     assert summary["documents"] == 1
     assert summary["pages"] == 0

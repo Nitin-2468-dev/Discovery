@@ -1,5 +1,4 @@
 import httpx
-import pytest
 
 from probe.crawl.fetcher import fetch
 
@@ -17,7 +16,11 @@ def test_fetch_html_returns_text_and_links(monkeypatch):
     """
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=html.encode("utf-8"))
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=html.encode("utf-8"),
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -28,13 +31,17 @@ def test_fetch_html_returns_text_and_links(monkeypatch):
     res = fetch("https://example.com/")
     assert res["status_code"] == 200
     assert "Heading" in res["text"]
-    assert any(l["url"] == "https://example.com/about" for l in res["links"])
+    assert any(link["url"] == "https://example.com/about" for link in res["links"])
     assert "var secret" not in res["text"]
 
 
 def test_fetch_handles_404(monkeypatch):
     def handler(request):
-        return httpx.Response(404, headers={"content-type": "text/html; charset=utf-8"}, content=b"Not Found")
+        return httpx.Response(
+            404,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=b"Not Found",
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -63,8 +70,14 @@ def test_fetch_429_retries_until_success(monkeypatch):
     def handler(request):
         calls["n"] += 1
         if calls["n"] == 1:
-            return httpx.Response(429, headers={"retry-after": "0"}, content=b"Too Many Requests")
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=b"<html><body><p>OK</p><a href=\"/next\">Next</a></body></html>")
+            return httpx.Response(
+                429, headers={"retry-after": "0"}, content=b"Too Many Requests"
+            )
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=b'<html><body><p>OK</p><a href="/next">Next</a></body></html>',
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -73,14 +86,16 @@ def test_fetch_429_retries_until_success(monkeypatch):
     # Avoid sleeping in tests
     res = fetch("https://example.com/", timeout=1)
     assert res["status_code"] == 200
-    assert any(l["url"] == "https://example.com/next" for l in res["links"])
+    assert any(link["url"] == "https://example.com/next" for link in res["links"])
 
 
 def test_fetch_max_size_exceeded(monkeypatch):
     big = b"a" * 1025
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=big)
+        return httpx.Response(
+            200, headers={"content-type": "text/html; charset=utf-8"}, content=big
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -94,7 +109,9 @@ def test_fetch_pdf_extraction_success(monkeypatch):
     pdf_bytes = b"%PDF-1.4 fake pdf content"
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "application/pdf"}, content=pdf_bytes)
+        return httpx.Response(
+            200, headers={"content-type": "application/pdf"}, content=pdf_bytes
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -111,8 +128,10 @@ def test_fetch_pdf_extraction_success(monkeypatch):
     class DummyPDF:
         def __enter__(self):
             return self
+
         def __exit__(self, *args):
             return False
+
         @property
         def pages(self):
             return [DummyPage()]

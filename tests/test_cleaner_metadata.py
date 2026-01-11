@@ -2,7 +2,7 @@ from probe.crawl.cleaner import clean_html
 
 
 def test_cleaner_returns_description_and_pdf_counts():
-    html = '''
+    html = """
     <html>
       <head>
         <title> Test </title>
@@ -15,7 +15,7 @@ def test_cleaner_returns_description_and_pdf_counts():
         <nav>Nav text</nav>
       </body>
     </html>
-    '''
+    """
 
     res = clean_html(html, "https://example.com/page.html")
     assert res["description"] == "This is a short desc"

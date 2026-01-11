@@ -14,13 +14,14 @@ Design Principles:
 import sqlite3
 import json
 from datetime import datetime
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass, asdict
+from typing import List, Dict, Optional
+from dataclasses import dataclass
 
 
 # ============================================================
 # DATA MODELS
 # ============================================================
+
 
 @dataclass
 class Entity:
@@ -92,31 +93,31 @@ class Edge:
 # THE MAP
 # ============================================================
 
+
 class Map:
     """The persistent knowledge graph."""
-    
+
     def __init__(self, db_path: str = "probe.db"):
         self.db_path = db_path
         # Ensure schema exists and return a ready-to-use connection
         from probe.core.schema import initialize_schema
+
         self.conn = initialize_schema(db_path)
         self.conn.row_factory = sqlite3.Row  # Access columns by name
-    
+
     def close(self):
         """Close the database connection."""
         self.conn.close()
-    
+
     # ============================================================
     # ENTITIES
     # ============================================================
-    
+
     def get_entity(self, name: str) -> Optional[Entity]:
         """Retrieve an entity by exact name."""
-        cursor = self.conn.execute(
-            "SELECT * FROM entities WHERE name = ?", (name,)
-        )
+        cursor = self.conn.execute("SELECT * FROM entities WHERE name = ?", (name,))
         row = cursor.fetchone()
-        
+
         if row:
             return Entity(
                 id=row["id"],
@@ -125,17 +126,17 @@ class Map:
                 confidence_score=row["confidence_score"],
                 metadata=json.loads(row["metadata"]) if row["metadata"] else None,
                 created_at=row["created_at"],
-                last_seen_at=row["last_seen_at"]
+                last_seen_at=row["last_seen_at"],
             )
         return None
-    
+
     def add_entity(self, entity: Entity) -> int:
         """
         Add or update an entity. Returns entity ID.
         If entity exists, updates last_seen_at and confidence_score (keeps max).
         """
         metadata_json = json.dumps(entity.metadata) if entity.metadata else None
-        
+
         cursor = self.conn.execute(
             """
             INSERT INTO entities (name, type, confidence_score, metadata)
@@ -147,13 +148,15 @@ class Map:
                 metadata = COALESCE(excluded.metadata, metadata)
             RETURNING id
             """,
-            (entity.name, entity.type, entity.confidence_score, metadata_json)
+            (entity.name, entity.type, entity.confidence_score, metadata_json),
         )
         entity_id = cursor.fetchone()[0]
         self.conn.commit()
         return entity_id
-    
-    def get_entity_documents(self, entity_name: str, doc_type: Optional[str] = None) -> List[Document]:
+
+    def get_entity_documents(
+        self, entity_name: str, doc_type: Optional[str] = None
+    ) -> List[Document]:
         """Get all documents linked to an entity, optionally filtered by type."""
         query = """
             SELECT d.* FROM documents d
@@ -162,17 +165,19 @@ class Map:
             WHERE en.name = ?
         """
         params = [entity_name]
-        
+
         if doc_type:
             query += " AND d.doc_type = ?"
             params.append(doc_type)
-        
+
         query += " ORDER BY d.created_at DESC"
-        
+
         cursor = self.conn.execute(query, params)
         return [self._row_to_document(row) for row in cursor.fetchall()]
-    
-    def get_related_entities(self, entity_name: str, relation: Optional[str] = None) -> List[Entity]:
+
+    def get_related_entities(
+        self, entity_name: str, relation: Optional[str] = None
+    ) -> List[Entity]:
         """Get entities related to this entity (e.g., variants, related_to)."""
         query = """
             SELECT e2.* FROM entities e2
@@ -181,25 +186,25 @@ class Map:
             WHERE e1.name = ?
         """
         params = [entity_name]
-        
+
         if relation:
             query += " AND ed.relation = ?"
             params.append(relation)
-        
+
         cursor = self.conn.execute(query, params)
         return [self._row_to_entity(row) for row in cursor.fetchall()]
-    
+
     # ============================================================
     # DOCUMENTS
     # ============================================================
-    
+
     def add_document(self, doc: Document) -> int:
         """
         Add a document if not already present (by hash). Returns doc ID.
         If document exists, updates last_accessed_at.
         """
         metadata_json = json.dumps(doc.metadata) if doc.metadata else None
-        
+
         cursor = self.conn.execute(
             """
             INSERT INTO documents (title, doc_type, hash, url, domain, 
@@ -209,32 +214,38 @@ class Map:
                 last_accessed_at = CURRENT_TIMESTAMP
             RETURNING id
             """,
-            (doc.title, doc.doc_type, doc.hash, doc.url, doc.domain,
-             doc.file_size, doc.publication_date, metadata_json)
+            (
+                doc.title,
+                doc.doc_type,
+                doc.hash,
+                doc.url,
+                doc.domain,
+                doc.file_size,
+                doc.publication_date,
+                metadata_json,
+            ),
         )
         doc_id = cursor.fetchone()[0]
         self.conn.commit()
         return doc_id
-    
+
     def get_document_by_hash(self, hash: str) -> Optional[Document]:
         """Retrieve a document by content hash."""
-        cursor = self.conn.execute(
-            "SELECT * FROM documents WHERE hash = ?", (hash,)
-        )
+        cursor = self.conn.execute("SELECT * FROM documents WHERE hash = ?", (hash,))
         row = cursor.fetchone()
         return self._row_to_document(row) if row else None
-    
+
     # ============================================================
     # PAGES
     # ============================================================
-    
+
     def add_page(self, page: Page) -> int:
         """
         Add or update a page. Returns page ID.
         If page exists, updates last_crawled_at and relevance_score.
         """
         metadata_json = json.dumps(page.metadata) if page.metadata else None
-        
+
         cursor = self.conn.execute(
             """
             INSERT INTO pages (url, domain, title, content_hash, 
@@ -248,19 +259,27 @@ class Map:
                 metadata = COALESCE(excluded.metadata, metadata)
             RETURNING id
             """,
-            (page.url, page.domain, page.title, page.content_hash,
-             page.relevance_score, metadata_json, 
-             page.last_crawled_at or datetime.now().isoformat())
+            (
+                page.url,
+                page.domain,
+                page.title,
+                page.content_hash,
+                page.relevance_score,
+                metadata_json,
+                page.last_crawled_at or datetime.now().isoformat(),
+            ),
         )
         page_id = cursor.fetchone()[0]
         self.conn.commit()
         return page_id
-    
+
     # ============================================================
     # DOMAINS
     # ============================================================
-    
-    def get_high_yield_domains(self, limit: int = 10, min_pages: int = 3) -> List[Domain]:
+
+    def get_high_yield_domains(
+        self, limit: int = 10, min_pages: int = 3
+    ) -> List[Domain]:
         """
         Get domains with highest yield scores.
         Only includes domains that have crawled at least min_pages.
@@ -272,10 +291,10 @@ class Map:
             ORDER BY yield_score DESC 
             LIMIT ?
             """,
-            (min_pages, limit)
+            (min_pages, limit),
         )
         return [self._row_to_domain(row) for row in cursor.fetchall()]
-    
+
     def update_domain_stats(self, domain_name: str, found_document: bool):
         """
         Update domain statistics after crawling a page.
@@ -291,10 +310,12 @@ class Map:
                 yield_score = CAST(documents_found AS REAL) / pages_crawled,
                 last_crawled_at = CURRENT_TIMESTAMP
             """,
-            (domain_name, 
-             1 if found_document else 0,
-             1.0 if found_document else 0.0,
-             1 if found_document else 0)
+            (
+                domain_name,
+                1 if found_document else 0,
+                1.0 if found_document else 0.0,
+                1 if found_document else 0,
+            ),
         )
         self.conn.commit()
 
@@ -330,18 +351,18 @@ class Map:
         )
         row = cursor.fetchone()
         return self._row_to_domain(row) if row else None
-    
+
     # ============================================================
     # EDGES (Relationships)
     # ============================================================
-    
+
     def add_edge(self, edge: Edge) -> int:
         """
         Create a relationship between nodes.
         Returns edge ID. Silently ignores duplicates.
         """
         metadata_json = json.dumps(edge.metadata) if edge.metadata else None
-        
+
         cursor = self.conn.execute(
             """
             INSERT OR IGNORE INTO edges 
@@ -349,31 +370,42 @@ class Map:
              metadata, source_page_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (edge.from_type, edge.from_id, edge.to_type, edge.to_id,
-             edge.relation, edge.confidence, metadata_json, edge.source_page_id)
+            (
+                edge.from_type,
+                edge.from_id,
+                edge.to_type,
+                edge.to_id,
+                edge.relation,
+                edge.confidence,
+                metadata_json,
+                edge.source_page_id,
+            ),
         )
         edge_id = cursor.lastrowid
         self.conn.commit()
         return edge_id if edge_id != 0 else None
-    
-    def get_edges_from(self, from_type: str, from_id: int, 
-                       relation: Optional[str] = None) -> List[Edge]:
+
+    def get_edges_from(
+        self, from_type: str, from_id: int, relation: Optional[str] = None
+    ) -> List[Edge]:
         """Get all edges originating from a node."""
         query = "SELECT * FROM edges WHERE from_type = ? AND from_id = ?"
         params = [from_type, from_id]
-        
+
         if relation:
             query += " AND relation = ?"
             params.append(relation)
-        
+
         cursor = self.conn.execute(query, params)
         return [self._row_to_edge(row) for row in cursor.fetchall()]
-    
+
     # ============================================================
     # QUERIES (High-level)
     # ============================================================
-    
-    def has_documents_for_entity(self, entity_name: str, doc_type: Optional[str] = None) -> bool:
+
+    def has_documents_for_entity(
+        self, entity_name: str, doc_type: Optional[str] = None
+    ) -> bool:
         """Check if we already have documents for this entity."""
         query = """
             SELECT COUNT(*) FROM documents d
@@ -382,62 +414,43 @@ class Map:
             WHERE en.name = ?
         """
         params = [entity_name]
-        
+
         if doc_type:
             query += " AND d.doc_type = ?"
             params.append(doc_type)
-        
+
         cursor = self.conn.execute(query, params)
         count = cursor.fetchone()[0]
         return count > 0
 
-    def get_entity_document_types(self, entity_name: str) -> List[str]:
-        """Return a list of distinct document types linked to the given entity.
-
-        This is a lightweight query intended for gap detection and avoids
-        loading complete Document objects when only types are needed.
-        """
-        query = """
-            SELECT DISTINCT d.doc_type FROM documents d
-            JOIN edges e ON e.to_id = d.id AND e.to_type = 'document'
-            JOIN entities en ON en.id = e.from_id AND e.from_type = 'entity'
-            WHERE en.name = ?
-        """
-        cursor = self.conn.execute(query, (entity_name,))
-        return [row[0] for row in cursor.fetchall()]
-
-    def get_entity_document_count(self, entity_name: str) -> int:
-        """Return the count of documents linked to an entity."""
-        query = """
-            SELECT COUNT(*) FROM documents d
-            JOIN edges e ON e.to_id = d.id AND e.to_type = 'document'
-            JOIN entities en ON en.id = e.from_id AND e.from_type = 'entity'
-            WHERE en.name = ?
-        """
-        cursor = self.conn.execute(query, (entity_name,))
-        return int(cursor.fetchone()[0])
-
-    
     def get_map_summary(self) -> Dict[str, int]:
         """Get counts of all node types."""
         cursor = self.conn.cursor()
-        
+
         summary = {}
-        for table in ['entities', 'documents', 'pages', 'domains', 'edges']:
+        for table in ["entities", "documents", "pages", "domains", "edges"]:
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             summary[table] = cursor.fetchone()[0]
         # scoring_reports may not exist on older DBs; check safely
         try:
             cursor.execute("SELECT COUNT(*) FROM scoring_reports")
-            summary['scoring_reports'] = cursor.fetchone()[0]
+            summary["scoring_reports"] = cursor.fetchone()[0]
         except Exception:
-            summary['scoring_reports'] = 0
-        
+            summary["scoring_reports"] = 0
+
         return summary
 
-    def add_scoring_report(self, page_id: int, url: str, score: float, components: dict, metadata: dict = None) -> int:
+    def add_scoring_report(
+        self,
+        page_id: int,
+        url: str,
+        score: float,
+        components: dict,
+        metadata: dict = None,
+    ) -> int:
         """Persist a scoring report and return its ID."""
         import json
+
         comps_json = json.dumps(components) if components is not None else None
         meta_json = json.dumps(metadata) if metadata is not None else None
         cursor = self.conn.execute(
@@ -446,7 +459,7 @@ class Map:
             VALUES (?, ?, ?, ?, ?)
             RETURNING id
             """,
-            (page_id, url, score, comps_json, meta_json)
+            (page_id, url, score, comps_json, meta_json),
         )
         row = cursor.fetchone()
         self.conn.commit()
@@ -456,7 +469,7 @@ class Map:
         """Return all scoring reports for a given page id, newest first."""
         cursor = self.conn.execute(
             "SELECT * FROM scoring_reports WHERE page_id = ? ORDER BY created_at DESC",
-            (page_id,)
+            (page_id,),
         )
         rows = cursor.fetchall()
         return rows
@@ -465,12 +478,14 @@ class Map:
         """Return the latest scoring report for a url, or None."""
         cursor = self.conn.execute(
             "SELECT * FROM scoring_reports WHERE url = ? ORDER BY created_at DESC LIMIT 1",
-            (url,)
+            (url,),
         )
         row = cursor.fetchone()
         return row
 
-    def get_scoring_reports(self, url: str = None, page_id: int = None, since: str = None, until: str = None):
+    def get_scoring_reports(
+        self, url: str = None, page_id: int = None, since: str = None, until: str = None
+    ):
         """Query scoring reports with optional filters.
 
         Args:
@@ -508,11 +523,11 @@ class Map:
         cursor = self.conn.execute("SELECT * FROM pages WHERE id = ?", (page_id,))
         row = cursor.fetchone()
         return row
-    
+
     # ============================================================
     # HELPERS (Internal)
     # ============================================================
-    
+
     def _row_to_entity(self, row: sqlite3.Row) -> Entity:
         """Convert database row to Entity dataclass."""
         return Entity(
@@ -522,9 +537,9 @@ class Map:
             confidence_score=row["confidence_score"],
             metadata=json.loads(row["metadata"]) if row["metadata"] else None,
             created_at=row["created_at"],
-            last_seen_at=row["last_seen_at"]
+            last_seen_at=row["last_seen_at"],
         )
-    
+
     def _row_to_document(self, row: sqlite3.Row) -> Document:
         """Convert database row to Document dataclass."""
         return Document(
@@ -538,9 +553,9 @@ class Map:
             publication_date=row["publication_date"],
             metadata=json.loads(row["metadata"]) if row["metadata"] else None,
             created_at=row["created_at"],
-            last_accessed_at=row["last_accessed_at"]
+            last_accessed_at=row["last_accessed_at"],
         )
-    
+
     def _row_to_domain(self, row: sqlite3.Row) -> Domain:
         """Convert database row to Domain dataclass."""
         return Domain(
@@ -552,9 +567,9 @@ class Map:
             documents_found=row["documents_found"],
             metadata=json.loads(row["metadata"]) if row["metadata"] else None,
             first_seen_at=row["first_seen_at"],
-            last_crawled_at=row["last_crawled_at"]
+            last_crawled_at=row["last_crawled_at"],
         )
-    
+
     def _row_to_edge(self, row: sqlite3.Row) -> Edge:
         """Convert database row to Edge dataclass."""
         return Edge(
@@ -567,5 +582,5 @@ class Map:
             confidence=row["confidence"],
             metadata=json.loads(row["metadata"]) if row["metadata"] else None,
             source_page_id=row["source_page_id"],
-            discovered_at=row["discovered_at"]
+            discovered_at=row["discovered_at"],
         )

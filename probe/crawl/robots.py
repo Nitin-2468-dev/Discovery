@@ -10,7 +10,8 @@ Behavior:
 - Caches parser per domain for TTL (default 24h)
 - On errors fetching/parsing, treats as permissive (returns True) and logs nothing
 """
-from urllib.parse import urlparse, urljoin
+
+from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -41,7 +42,9 @@ def _fetch_and_parse(domain: str) -> Optional[RobotFileParser]:
     # Try HTTPS then HTTP
     for url in (url_https, url_http):
         try:
-            with httpx.Client(timeout=5.0, headers={"User-Agent": "probe/0.1"}) as client:
+            with httpx.Client(
+                timeout=5.0, headers={"User-Agent": "probe/0.1"}
+            ) as client:
                 resp = client.get(url)
                 if resp.status_code == 200:
                     text = resp.text
