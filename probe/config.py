@@ -7,6 +7,7 @@ Behavior:
 - Loads file if present and returns a dict with values.
 - Provides sensible defaults when keys are missing.
 """
+
 from pathlib import Path
 from typing import Any, Dict
 import json

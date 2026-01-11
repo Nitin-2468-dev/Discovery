@@ -9,6 +9,7 @@ Returns dict with keys:
 - text_length: int
 - links: list[dict] with keys 'url' and 'text'
 """
+
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from typing import List, Dict
@@ -24,10 +25,14 @@ def clean_html(html: str, base_url: str) -> Dict:
     Returns:
         dict with title, text, text_length, links
     """
-    soup = BeautifulSoup(html, "lxml") if html is not None else BeautifulSoup("", "lxml")
+    soup = (
+        BeautifulSoup(html, "lxml") if html is not None else BeautifulSoup("", "lxml")
+    )
 
     # Remove noisy, non-content elements
-    for tag in soup(["script", "style", "nav", "footer", "aside", "header", "noscript"]):
+    for tag in soup(
+        ["script", "style", "nav", "footer", "aside", "header", "noscript"]
+    ):
         tag.decompose()
 
     # Title
@@ -54,13 +59,21 @@ def clean_html(html: str, base_url: str) -> Dict:
         p = urlparse(abs_url)
         if p.scheme not in ("http", "https"):
             continue
-        links.append({"url": abs_url, "text": a.get_text(strip=True), "is_pdf": abs_url.lower().endswith('.pdf')})
+        links.append(
+            {
+                "url": abs_url,
+                "text": a.get_text(strip=True),
+                "is_pdf": abs_url.lower().endswith(".pdf"),
+            }
+        )
 
     link_count = len(links)
-    pdf_link_count = sum(1 for l in links if l.get("is_pdf"))
+    pdf_link_count = sum(1 for link in links if link.get("is_pdf"))
 
     # Calculate a simple boilerplate ratio: text in nav/footer/aside vs total text
-    nav_text = " ".join([t.get_text(" ", strip=True) for t in soup.find_all(["nav", "footer", "aside"])])
+    nav_text = " ".join(
+        [t.get_text(" ", strip=True) for t in soup.find_all(["nav", "footer", "aside"])]
+    )
     boilerplate_ratio = (len(nav_text) / max(len(text), 1)) if text else 0.0
 
     return {

@@ -1,4 +1,8 @@
-from probe.crawl.scorer import RelevanceScorer, KeywordDensityScorer, BoilerplateDetector
+from probe.crawl.scorer import (
+    RelevanceScorer,
+    KeywordDensityScorer,
+    BoilerplateDetector,
+)
 
 
 def test_keyword_density_and_boilerplate_combination():
@@ -6,7 +10,7 @@ def test_keyword_density_and_boilerplate_combination():
     page = {
         "text": text,
         "boilerplate_ratio": 0.0,
-        "metadata": {"keywords": ["manual", "maintenance"]}
+        "metadata": {"keywords": ["manual", "maintenance"]},
     }
 
     kws = KeywordDensityScorer(keywords=["manual", "maintenance"], weight=1.0)

@@ -27,7 +27,7 @@ def test_cleaner_removes_noisy_tags_and_extracts_text():
 def test_cleaner_resolves_relative_links():
     html = '<a href="/about">About</a> <a href="../contact">Contact</a>'
     res = clean_html(html, "https://example.com/dir/page.html")
-    urls = [l["url"] for l in res["links"]]
+    urls = [link["url"] for link in res["links"]]
     assert "https://example.com/about" in urls
     assert "https://example.com/contact" in urls
 
@@ -35,6 +35,8 @@ def test_cleaner_resolves_relative_links():
 def test_cleaner_extracts_link_text_and_handles_empty_href():
     html = '<a href="/a">Link A</a><a href="">Empty</a>'
     res = clean_html(html, "https://example.com/")
-    assert any(l["text"] == "Link A" and l["url"].endswith("/a") for l in res["links"])
+    assert any(
+        link["text"] == "Link A" and link["url"].endswith("/a") for link in res["links"]
+    )
     # ensure empty href is ignored
-    assert not any(l["text"] == "Empty" for l in res["links"])
+    assert not any(link["text"] == "Empty" for link in res["links"])
