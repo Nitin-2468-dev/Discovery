@@ -70,6 +70,23 @@ def test_analyze_entity_gaps_detects_missing_types_and_confidence():
     assert out["suggested_domains"] == ["example0.com", "example1.com", "example2.com"]
 
 
+def test_suggested_domains_prefers_missing_types():
+    class MapWithDomains(FakeMap):
+        def get_domains_with_doc_type(self, doc_type, limit=5):
+            if doc_type == "datasheet":
+                return [FakeDomain("datasheet.example.com"), FakeDomain("specs.example.com")]
+            return [FakeDomain("generic.example.com")]
+
+    m = MapWithDomains(entity_present=True, doc_types=["manual"], confidence=0.5, doc_count=2)
+    gd = GapDetector(m)
+
+    out = gd.analyze_entity_gaps("exists", ["manual", "datasheet"])
+
+    # Should prioritize domains that were returned for 'datasheet'
+    assert "datasheet.example.com" in out["suggested_domains"]
+    assert out["suggested_domains"][:2] == ["datasheet.example.com", "specs.example.com"]
+
+
 def test_analyze_entity_gaps_fallback_to_documents():
     # Simulate an older Map implementation that only provides get_entity_documents
     class PartialMapNoTypes(FakeMap):

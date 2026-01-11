@@ -4,6 +4,7 @@ This module must be non-empty so packaging and CI checks include it.
 """
 
 from typing import List, Dict, Any
+import types
 from probe.core.map import Map
 
 
@@ -41,7 +42,28 @@ class GapDetector:
 
         missing = [t for t in desired_doc_types if t not in existing_types]
 
-        suggested_domains = self.map.get_high_yield_domains(limit=5)
+        # Heuristic: if specific types are missing, prefer domains that contain those types
+        suggested_domains_objs = []
+        if missing:
+            # If Map supports domain lookups by doc_type, use it
+            if hasattr(self.map, 'get_domains_with_doc_type'):
+                seen = {}
+                for t in missing:
+                    try:
+                        for d in self.map.get_domains_with_doc_type(t, limit=5):
+                            # score domains by frequency across missing types
+                            seen.setdefault(d.domain_name, 0)
+                            seen[d.domain_name] += 1
+                    except Exception:
+                        continue
+                # Sort by score (descending) then yield_score if available
+                dd = sorted(seen.items(), key=lambda kv: kv[1], reverse=True)
+                suggested_domains_objs = [types.SimpleNamespace(domain_name=k) for k, _ in dd[:5]]
+            else:
+                # Fallback: choose high-yield domains
+                suggested_domains_objs = self.map.get_high_yield_domains(limit=5)
+        else:
+            suggested_domains_objs = self.map.get_high_yield_domains(limit=5)
 
         # support older Map versions without get_entity_document_count
         if hasattr(self.map, 'get_entity_document_count'):
@@ -56,5 +78,5 @@ class GapDetector:
             "missing_types": missing,
             "has_documents": doc_count,
             "weak_confidence": getattr(entity, "confidence_score", 0.0) < 0.7,
-            "suggested_domains": [d.domain_name for d in suggested_domains],
+            "suggested_domains": [d.domain_name for d in suggested_domains_objs],
         }
