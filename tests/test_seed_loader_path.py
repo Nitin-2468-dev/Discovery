@@ -1,5 +1,4 @@
 from probe.crawl.seed_loader import load_file
-from pathlib import Path
 
 
 def test_load_file_with_explicit_path(tmp_path):

@@ -17,7 +17,9 @@ def test_entity_regex_no_match():
 def test_entity_regex_multiple_patterns_ratio():
     text = "The manual mentions PT6A-52 and also maintenance procedures."
     page = {"text": text}
-    s = EntityRegexScorer(patterns=[r"PT6A-52", r"maintenance", r"nonexistent"], weight=1.0)
+    s = EntityRegexScorer(
+        patterns=[r"PT6A-52", r"maintenance", r"nonexistent"], weight=1.0
+    )
     # 2 of 3 patterns -> score ~0.666...
     score = s.score(page)
     assert 0.65 <= score <= 0.68

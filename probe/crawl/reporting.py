@@ -1,4 +1,5 @@
 """Reporting helpers: CSV reports and failure log entries."""
+
 from pathlib import Path
 from datetime import datetime
 import csv
@@ -34,7 +35,12 @@ def ensure_dir(path: Path):
     return path
 
 
-def write_csv_report(seed_name: str, rows: list, dir_path: Path = RUN_REPORTS_DIR, file_path: Path | None = None) -> Path:
+def write_csv_report(
+    seed_name: str,
+    rows: list,
+    dir_path: Path = RUN_REPORTS_DIR,
+    file_path: Path | None = None,
+) -> Path:
     # If an explicit file_path is provided, write there; otherwise create a timestamped file in dir_path
     if file_path:
         ensure_dir(file_path.parent)
@@ -71,7 +77,12 @@ def append_failure_log(url: str, error: str, seed_name: str, cmd: str):
     return CONSTRAINTS_LOG
 
 
-def write_scoring_export(reports: list, dir_path: Path = RUN_REPORTS_DIR, file_path: Path | None = None, fmt: str = "csv") -> Path:
+def write_scoring_export(
+    reports: list,
+    dir_path: Path = RUN_REPORTS_DIR,
+    file_path: Path | None = None,
+    fmt: str = "csv",
+) -> Path:
     """Write scoring reports to CSV or Markdown.
 
     Reports should be a list of dict-like rows with keys:
@@ -86,7 +97,15 @@ def write_scoring_export(reports: list, dir_path: Path = RUN_REPORTS_DIR, file_p
         out = dir_path / f"scoring_{ts}.{fmt}"
 
     if fmt == "csv":
-        fields = ["created_at", "url", "page_id", "score", "top_component", "component_scores", "metadata"]
+        fields = [
+            "created_at",
+            "url",
+            "page_id",
+            "score",
+            "top_component",
+            "component_scores",
+            "metadata",
+        ]
         with open(out, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=fields)
             writer.writeheader()
@@ -95,20 +114,29 @@ def write_scoring_export(reports: list, dir_path: Path = RUN_REPORTS_DIR, file_p
                 comps = r.get("components")
                 if not isinstance(comps, str):
                     import json
+
                     comps = json.dumps(comps) if comps is not None else ""
-                writer.writerow({
-                    "created_at": r.get("created_at"),
-                    "url": r.get("url"),
-                    "page_id": r.get("page_id"),
-                    "score": r.get("score"),
-                    "top_component": r.get("top_component", ""),
-                    "component_scores": comps,
-                    "metadata": r.get("metadata", ""),
-                })
+                writer.writerow(
+                    {
+                        "created_at": r.get("created_at"),
+                        "url": r.get("url"),
+                        "page_id": r.get("page_id"),
+                        "score": r.get("score"),
+                        "top_component": r.get("top_component", ""),
+                        "component_scores": comps,
+                        "metadata": r.get("metadata", ""),
+                    }
+                )
     else:
         # Markdown output
-        lines = ["# Scoring Report", "", "| created_at | url | page_id | score | top_component | components |", "|---|---|---:|---:|---|---|"]
+        lines = [
+            "# Scoring Report",
+            "",
+            "| created_at | url | page_id | score | top_component | components |",
+            "|---|---|---:|---:|---|---|",
+        ]
         import json
+
         total = 0.0
         count = 0
         for r in reports:
@@ -117,7 +145,9 @@ def write_scoring_export(reports: list, dir_path: Path = RUN_REPORTS_DIR, file_p
                 comps_s = json.dumps(comps)
             else:
                 comps_s = comps
-            lines.append(f"| {r.get('created_at')} | {r.get('url')} | {r.get('page_id') or ''} | {r.get('score') or ''} | {r.get('top_component','')} | `{comps_s}` |")
+            lines.append(
+                f"| {r.get('created_at')} | {r.get('url')} | {r.get('page_id') or ''} | {r.get('score') or ''} | {r.get('top_component','')} | `{comps_s}` |"
+            )
             try:
                 total += float(r.get("score") or 0.0)
                 count += 1

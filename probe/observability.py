@@ -6,12 +6,13 @@ Provides:
 
 Metrics attempts to use prometheus_client if available, otherwise falls back to a simple in-memory collector useful for tests.
 """
+
 from typing import Dict, Any, TYPE_CHECKING
 import logging
 
 if TYPE_CHECKING:
     # Help static type checkers and linters (prometheus_client is optional at runtime)
-    from prometheus_client import Counter, Histogram  # type: ignore
+    pass  # type: ignore
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -58,8 +59,12 @@ class Metrics:
             self.fetch_total = Counter("probe_fetch_total", "Total fetch attempts")
             self.fetch_failures = Counter("probe_fetch_failures", "Failed fetches")
             self.fetch_retries = Counter("probe_fetch_retries", "Fetch retries")
-            self.fetch_duration = Histogram("probe_fetch_duration_seconds", "Fetch duration seconds")
-            self.fetch_backoff = Histogram("probe_fetch_backoff_seconds", "Backoff/wait seconds")
+            self.fetch_duration = Histogram(
+                "probe_fetch_duration_seconds", "Fetch duration seconds"
+            )
+            self.fetch_backoff = Histogram(
+                "probe_fetch_backoff_seconds", "Backoff/wait seconds"
+            )
             self._enabled = True
         except Exception:
             # Prometheus not available -> use dummy metrics

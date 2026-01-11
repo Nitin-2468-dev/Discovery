@@ -3,6 +3,7 @@
 Run this script manually if you want to create a committed fixture for CI.
 Requires: `reportlab` package.
 """
+
 import io
 from pathlib import Path
 

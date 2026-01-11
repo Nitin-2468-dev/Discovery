@@ -19,7 +19,9 @@ def test_real_pdf_extraction(tmp_path, monkeypatch):
     pdf_bytes = buf.getvalue()
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "application/pdf"}, content=pdf_bytes)
+        return httpx.Response(
+            200, headers={"content-type": "application/pdf"}, content=pdf_bytes
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)

@@ -20,7 +20,9 @@ def test_ingest_uses_cleaned_text_for_hash(tmp_path):
     page_id = res["page_id"]
 
     # Fetch page row directly from DB to inspect content_hash
-    cur = m.conn.execute("SELECT content_hash, metadata FROM pages WHERE id = ?", (page_id,))
+    cur = m.conn.execute(
+        "SELECT content_hash, metadata FROM pages WHERE id = ?", (page_id,)
+    )
     row = cur.fetchone()
     expected_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
     assert row["content_hash"] == expected_hash
