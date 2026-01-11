@@ -607,6 +607,7 @@ def seeds_run(
     from probe.crawl.seed_loader import load_file, summarize
     from probe.crawl.reporting import write_csv_report, append_failure_log
 
+
     click.echo(f"Loading seeds from: {file}")
     urls = load_file(file)[:limit]
     click.echo(f"Loaded {len(urls)} seeds")
@@ -799,6 +800,9 @@ def seeds_run(
                 except Exception:
                     # on errors parsing robots, be permissive
                     pass
+
+
+
 
             # per-domain / persistent politeness for sequential runs
             try:
@@ -1233,6 +1237,31 @@ def seeds_run(
         click.echo(f"Warning: failed to write CSV summary: {exc}")
 
     click.echo(f"Done. Successes: {successes}. Failures: {failures}.")
+
+
+@seeds.command(name='gen')
+@click.argument('entity_name')
+@click.option('--type', 'doc_type', default='manual', help='Document type to generate seeds for')
+@click.option('--max', 'max_seeds', default=10, type=int, help='Maximum number of seeds to generate')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--json', 'as_json', is_flag=True, default=False, help='Output JSON')
+def seeds_gen(entity_name, doc_type, max_seeds, db, as_json):
+    """Generate seed URLs for an entity and document type."""
+    import json as _json
+    from probe.analysis.seed_generator import SeedGenerator
+
+    m = Map(db)
+    sg = SeedGenerator(m)
+    seeds = sg.generate_seeds(entity_name, doc_type, max_seeds=max_seeds)
+
+    if as_json:
+        click.echo(_json.dumps({'entity': entity_name, 'doc_type': doc_type, 'seeds': seeds}, indent=2))
+    else:
+        click.echo(f"Seeds for {entity_name} ({doc_type}):")
+        for s in seeds:
+            click.echo(f"  • {s}")
+
+    m.close()
 
 
 @cli.command()
