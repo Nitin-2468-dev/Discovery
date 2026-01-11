@@ -32,6 +32,9 @@ class FakeMapForCLI:
     def get_entity_document_count(self, name):
         return self._doc_count
 
+    def close(self):
+        return None
+
 
 def test_gaps_cli_entity_missing(monkeypatch):
     runner = CliRunner()
