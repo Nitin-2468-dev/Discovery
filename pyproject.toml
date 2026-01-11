@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "probe"
-version = "0.4.1"
+version = "0.4.2"
 description = "Probe: A Deep Research Engine"
 readme = "README.md"
 requires-python = ">=3.10"
