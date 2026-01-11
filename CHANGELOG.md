@@ -11,6 +11,8 @@ All notable changes to this project are documented in this file.
 - Investigator skeleton: `probe.analysis.investigator.Investigator` with `probe investigate` CLI for gap→seed investigation (dry-run by default).
 - Lightweight Map helpers: `Map.get_entity_document_types()` and `Map.get_entity_document_count()` for efficient gap detection.
 - CLI `gaps` supports JSON output (`--json`) for automation.
+- Research/CI: added an opt-in scheduled/manual real-network integration workflow (`.github/workflows/research-integration.yml`) that is guarded and skips when the real-network test or token is missing; enable with `RUN_REAL_NET_TESTS=true` to run the test.
+- Added a small `FetcherAdapter` (`probe/crawl/fetcher_adapter.py`) and an opt-in real-network integration test (`tests/test_crawler_integration.py`) to validate real-network crawling behavior (skipped by default).
 
 ## [v0.3] - 2026-01-09
 
