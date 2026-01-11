@@ -71,18 +71,14 @@ def test_analyze_entity_gaps_detects_missing_types_and_confidence():
 
 
 def test_analyze_entity_gaps_fallback_to_documents():
-    # Map without get_entity_document_types but has get_entity_documents
-    class PartialMap(FakeMap):
+    # Simulate an older Map implementation that only provides get_entity_documents
+    class PartialMapNoTypes(FakeMap):
         def __init__(self):
             super().__init__(entity_present=True, doc_types=["report"], confidence=0.5, doc_count=1)
 
-        def get_entity_document_types(self, name):
-            # Simulate absence by raising AttributeError
-            raise AttributeError
+        # intentionally do NOT implement get_entity_document_types
 
-    m = PartialMap()
-    # remove attribute to simulate older Map
-    delattr(m, "get_entity_document_types")
+    m = PartialMapNoTypes()
     gd = GapDetector(m)
 
     out = gd.analyze_entity_gaps("exists", ["report", "datasheet"])
