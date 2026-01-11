@@ -9,10 +9,26 @@ from probe.core.map import Map
 
 
 class GapDetector:
-    """Detect gaps in entity knowledge coverage."""
+    """Detect gaps in entity knowledge coverage.
 
-    def __init__(self, map_obj: Map):
+    Parameters:
+    - map_obj: Map instance
+    - weights: optional dict to tune heuristic scoring. Supported keys:
+      - count: weight for domain frequency across missing types (default 2.0)
+      - yield: weight for domain yield_score (default 1.0)
+      - trust: weight for domain trust_score (default 0.5)
+      - recent: weight for recency boost (default 0.5)
+    """
+
+    def __init__(self, map_obj: Map, *, weights: Dict[str, float] | None = None):
         self.map = map_obj
+        # default weights
+        defaults = {"count": 2.0, "yield": 1.0, "trust": 0.5, "recent": 0.5}
+        w = defaults if weights is None else {**defaults, **weights}
+        self.w_count = float(w.get("count", defaults["count"]))
+        self.w_yield = float(w.get("yield", defaults["yield"]))
+        self.w_trust = float(w.get("trust", defaults["trust"]))
+        self.w_recent = float(w.get("recent", defaults["recent"]))
 
     def analyze_entity_gaps(self, entity_name: str, desired_doc_types: List[str]) -> Dict[str, Any]:
         """
@@ -55,17 +71,26 @@ class GapDetector:
                     except Exception:
                         continue
             else:
-                for d in self.map.get_high_yield_domains(limit=20):
+                # Some Map mocks may not accept min_pages kwarg; fall back if needed
+                try:
+                    domains = self.map.get_high_yield_domains(limit=20, min_pages=1)
+                except TypeError:
+                    domains = self.map.get_high_yield_domains(limit=20)
+                for d in domains:
                     candidates.setdefault(d.domain_name, {'count': 0})
         else:
-            for d in self.map.get_high_yield_domains(limit=20):
+            try:
+                domains = self.map.get_high_yield_domains(limit=20, min_pages=1)
+            except TypeError:
+                domains = self.map.get_high_yield_domains(limit=20)
+            for d in domains:
                 candidates.setdefault(d.domain_name, {'count': 0})
 
-        # Scoring weights (tunable)
-        w_count = 2.0
-        w_yield = 1.0
-        w_trust = 0.5
-        w_recent = 0.5
+        # Scoring weights (tunable) - use instance configuration
+        w_count = self.w_count
+        w_yield = self.w_yield
+        w_trust = self.w_trust
+        w_recent = self.w_recent
 
         now = types.SimpleNamespace()
         from datetime import datetime
@@ -101,11 +126,13 @@ class GapDetector:
         scored.sort(key=lambda kv: kv[1], reverse=True)
         suggested_domains_objs = [types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]]
 
-        # support older Map versions without get_entity_document_count
+        # support older Map versions without get_entity_document_count or get_entity_documents
         if hasattr(self.map, 'get_entity_document_count'):
             doc_count = self.map.get_entity_document_count(entity_name)
-        else:
+        elif hasattr(self.map, 'get_entity_documents'):
             doc_count = len(self.map.get_entity_documents(entity_name))
+        else:
+            doc_count = 0
 
         return {
             "entity": entity_name,
