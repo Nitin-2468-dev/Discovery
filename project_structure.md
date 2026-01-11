@@ -2,7 +2,7 @@
 
 ## 📁 Complete Directory Structure
 
-```
+```text
 probe/
 ├── README.md               # Project vision and philosophy
 ├── ARCHITECTURE.md         # System design and components
@@ -76,6 +76,7 @@ Copy the following files from the artifacts above:
 5. **requirements.txt** → Root directory
 
 Also copy your spec-kit files:
+
 - README.md
 - ARCHITECTURE.md
 - SCOPE.md
@@ -110,7 +111,8 @@ python cli.py init
 ```
 
 **Expected output:**
-```
+
+```text
 Initializing Probe database...
 ✓ Schema initialized successfully
 ✓ Created 5 tables: documents, domains, edges, entities, pages
@@ -121,22 +123,26 @@ Initializing Probe database...
 ## ✅ Verify Installation
 
 ### Test 1: Add an Entity
+
 ```bash
 python cli.py add-entity "PT6A-52" --type engine
 ```
 
 **Expected:**
-```
+
+```text
 ✓ Added entity 'PT6A-52' (ID: 1, Type: engine)
 ```
 
 ### Test 2: Show Entity
+
 ```bash
 python cli.py show "PT6A-52"
 ```
 
 **Expected:**
-```
+
+```text
 📍 Entity: PT6A-52
    Type: engine
    Confidence: 0.50
@@ -147,12 +153,14 @@ python cli.py show "PT6A-52"
 ```
 
 ### Test 3: View Summary
+
 ```bash
 python cli.py summary
 ```
 
 **Expected:**
-```
+
+```text
 📊 Probe Map Summary:
 
   Entities:       1
@@ -163,6 +171,7 @@ python cli.py summary
 ```
 
 ### Test 4: Link Entity to Document
+
 ```bash
 python cli.py link "PT6A-52" \
   "PT6A-52 Maintenance Manual" \
@@ -172,7 +181,8 @@ python cli.py link "PT6A-52" \
 ```
 
 **Expected:**
-```
+
+```text
 ✓ Linked 'PT6A-52' → 'PT6A-52 Maintenance Manual'
   Relation: mentions
   Document ID: 1
@@ -238,6 +248,7 @@ m.close()
 ```
 
 Run it:
+
 ```bash
 python test_manual.py
 ```
@@ -247,6 +258,7 @@ python test_manual.py
 ## 📝 Next Steps (After Setup)
 
 ### Immediate (v0.1 Foundation)
+
 1. ✅ Schema complete
 2. ✅ Map interface complete
 3. ✅ CLI complete
@@ -254,12 +266,14 @@ python test_manual.py
 5. ⏭️ Start logging violations in `constraints.log`
 
 ### Coming Next (v0.2 Fetching)
+
 1. Implement `probe/crawl/fetcher.py`
 2. Add HTTP fetching with httpx
 3. Add PDF download/extraction
 4. Add HTML cleaning
 
 ### Remember
+
 - Log every temptation in `constraints.log`
 - Don't skip ahead to v0.2+ features
 - Keep architecture aligned with ARCHITECTURE.md

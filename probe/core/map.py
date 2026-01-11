@@ -318,7 +318,7 @@ class Map:
             ),
         )
         self.conn.commit()
-
+    
     def get_domain(self, domain_name: str) -> Optional[Domain]:
         """Retrieve a domain by name."""
         cursor = self.conn.execute(

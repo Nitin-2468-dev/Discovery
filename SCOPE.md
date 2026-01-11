@@ -1,6 +1,7 @@
 # Scope & Milestones
 
 ## v0.1 — Foundation (Current)
+
 **Goal:** Persistent map + basic CLI
 
 - [x] Schema design
@@ -13,6 +14,7 @@
 ---
 
 ## v0.2 — Fetching
+
 **Goal:** Retrieve and clean web content
 
 - [x] HTTP fetcher (httpx-based)
@@ -28,6 +30,7 @@
 ---
 
 ## v0.3 — Scoring (IMPLEMENTED)
+
 **Goal:** Determine page relevance
 
 - [x] Keyword density scorer
@@ -45,7 +48,7 @@
 
 ---
 
-## v0.4 — Gap Detection
+## v0.4 — Gap Detection (in progress)
 **Goal:** Identify what's missing
 
 - [ ] Query map for entity knowledge
@@ -58,6 +61,7 @@
 ---
 
 ## v0.5 — Investigation Loop
+
 **Goal:** End-to-end query → answer
 
 - [ ] Orchestrator (ties components together)
@@ -71,6 +75,7 @@
 ---
 
 ## v0.6 — Embeddings (Optional for v1)
+
 **Goal:** Semantic similarity
 
 - [ ] Generate embeddings for entities/documents
@@ -82,6 +87,7 @@
 ---
 
 ## v1.0 — Production-Ready CLI
+
 **Goal:** Stable, documented, tested
 
 - [ ] Comprehensive test suite

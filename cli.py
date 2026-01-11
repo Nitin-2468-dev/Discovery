@@ -800,6 +800,9 @@ def seeds_run(
                     # on errors parsing robots, be permissive
                     pass
 
+
+
+
             # per-domain / persistent politeness for sequential runs
             try:
                 domain = (
@@ -1235,6 +1238,31 @@ def seeds_run(
     click.echo(f"Done. Successes: {successes}. Failures: {failures}.")
 
 
+@seeds.command(name='gen')
+@click.argument('entity_name')
+@click.option('--type', 'doc_type', default='manual', help='Document type to generate seeds for')
+@click.option('--max', 'max_seeds', default=10, type=int, help='Maximum number of seeds to generate')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--json', 'as_json', is_flag=True, default=False, help='Output JSON')
+def seeds_gen(entity_name, doc_type, max_seeds, db, as_json):
+    """Generate seed URLs for an entity and document type."""
+    import json as _json
+    from probe.analysis.seed_generator import SeedGenerator
+
+    m = Map(db)
+    sg = SeedGenerator(m)
+    seeds = sg.generate_seeds(entity_name, doc_type, max_seeds=max_seeds)
+
+    if as_json:
+        click.echo(_json.dumps({'entity': entity_name, 'doc_type': doc_type, 'seeds': seeds}, indent=2))
+    else:
+        click.echo(f"Seeds for {entity_name} ({doc_type}):")
+        for s in seeds:
+            click.echo(f"  • {s}")
+
+    m.close()
+
+
 @cli.command()
 @click.argument("url")
 @click.option("--timeout", default=10, type=float, help="Request timeout in seconds")
@@ -1248,31 +1276,52 @@ def health_check(url, timeout, max_retries, backoff_factor):
     res = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch(
         url, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
     )
-    click.echo(
-        f"Status: {res.get('status_code')}, Type: {res.get('content_type')}, Error: {res.get('error')}"
-    )
-    if res.get("is_pdf"):
-        click.echo(
-            f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}"
-        )
+    click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}, Error: {res.get('error')}")
+    if res.get('is_pdf'):
+        click.echo(f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}")
 
 
-@cli.command(name="analyze-crawl")
-@click.option("--url", default=None, help="Filter reports for a specific URL")
-@click.option(
-    "--page-id", default=None, type=int, help="Filter reports for a specific page id"
-)
-@click.option("--since", default=None, help="ISO datetime (inclusive) to filter from")
-@click.option("--until", default=None, help="ISO datetime (inclusive) to filter until")
-@click.option(
-    "--format",
-    "fmt",
-    default="csv",
-    type=click.Choice(["csv", "md"]),
-    help="Output format",
-)
-@click.option("--out", default=None, help="Output path (file)")
-@click.option("--db", default="probe.db", help="Database file path")
+@cli.command(name='investigate')
+@click.argument('entity_name')
+@click.option('--types', default='manual,bulletin,spec', help='Comma-separated desired document types')
+@click.option('--max-seeds', default=10, type=int, help='Maximum number of seeds to generate')
+@click.option('--no-dry-run', 'dry_run', flag_value=False, default=True, help='Perform a limited fetch pass for generated seeds')
+@click.option('--db', default='probe.db', help='Database file path')
+@click.option('--json', 'as_json', is_flag=True, default=False, help='Output JSON')
+def investigate(entity_name, types, max_seeds, dry_run, db, as_json):
+    """Run a short investigator: gap detection -> seed generation -> optional limited fetch."""
+    import json as _json
+    from probe.analysis.investigator import Investigator
+
+    m = Map(db)
+    inv = Investigator(m)
+    desired = [t.strip() for t in types.split(',') if t.strip()]
+    res = inv.investigate(entity_name, desired, max_seeds=max_seeds, dry_run=dry_run)
+
+    if as_json:
+        click.echo(_json.dumps(res, indent=2))
+    else:
+        click.echo(f"Investigation for {entity_name} (dry_run={dry_run}):")
+        click.echo(f"  Missing types: {', '.join(res['gap'].get('missing_types', []))}")
+        click.echo(f"  Suggested domains: {', '.join(res['gap'].get('suggested_domains', []))}")
+        click.echo(f"  Seeds: {len(res.get('seeds', []))}")
+        for s in res.get('seeds', []):
+            click.echo(f"    • {s}")
+        if not dry_run:
+            click.echo("  Seed fetch results:")
+            for r in res.get('results', []):
+                click.echo(f"    • {r.get('seed')} -> {r.get('status_code')} {r.get('error')}")
+
+    m.close()
+
+@cli.command(name='analyze-crawl')
+@click.option('--url', default=None, help='Filter reports for a specific URL')
+@click.option('--page-id', default=None, type=int, help='Filter reports for a specific page id')
+@click.option('--since', default=None, help='ISO datetime (inclusive) to filter from')
+@click.option('--until', default=None, help='ISO datetime (inclusive) to filter until')
+@click.option('--format', 'fmt', default='csv', type=click.Choice(['csv','md']), help='Output format')
+@click.option('--out', default=None, help='Output path (file)')
+@click.option('--db', default='probe.db', help='Database file path')
 def analyze_crawl(url, page_id, since, until, fmt, out, db):
     """Export scoring reports to CSV or markdown with optional filters."""
     click.echo("Analyzing scoring reports...")
@@ -1313,24 +1362,12 @@ def analyze_crawl(url, page_id, since, until, fmt, out, db):
 
     m.close()
 
-
-@cli.command(name="export")
-@click.argument("entity_name")
-@click.option(
-    "--format",
-    "fmt",
-    default="md",
-    type=click.Choice(["csv", "md"]),
-    help="Output format",
-)
-@click.option("--out", default=None, help="Output path (file)")
-@click.option(
-    "--top-n",
-    default=None,
-    type=int,
-    help="Limit to top N documents (by existence order)",
-)
-@click.option("--db", default="probe.db", help="Database file path")
+@cli.command(name='export')
+@click.argument('entity_name')
+@click.option('--format', 'fmt', default='md', type=click.Choice(['csv', 'md']), help='Output format')
+@click.option('--out', default=None, help='Output path (file)')
+@click.option('--top-n', default=None, type=int, help='Limit to top N documents (by existence order)')
+@click.option('--db', default='probe.db', help='Database file path')
 def export(entity_name, fmt, out, top_n, db):
     """Export an entity's documents and scores to CSV or Markdown."""
     click.echo(f"Exporting entity: {entity_name}")

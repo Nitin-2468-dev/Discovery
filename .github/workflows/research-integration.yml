@@ -1,0 +1,44 @@
+name: research-integration
+
+on:
+  schedule:
+    - cron: '0 6 * * 0' # weekly on Sundays at 06:00 UTC
+  workflow_dispatch:
+
+env:
+  RUN_REAL_NET_TESTS: "false"
+
+jobs:
+  real-network-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run real-network integration test (opt-in)
+        run: |
+          echo "RUN_REAL_NET_TESTS=${RUN_REAL_NET_TESTS}"
+          if [ "${RUN_REAL_NET_TESTS}" != "true" ]; then
+            echo "RUN_REAL_NET_TESTS != true; skipping real-network integration tests";
+            exit 0
+          fi
+
+          TEST_FILE=tests/test_crawler_integration.py
+          TEST_NAME=tests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real
+
+          if [ -f "${TEST_FILE}" ]; then
+            echo "Found ${TEST_FILE}; running ${TEST_NAME}"
+            pytest -q "${TEST_NAME}"
+          else
+            echo "${TEST_FILE} not present in checkout; skipping real-network integration test"
+          fi
