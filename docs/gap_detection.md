@@ -21,6 +21,25 @@ Gap detection identifies missing documents and weak confidence areas for tracked
 
 - `--json` emits JSON suitable for automation.
 
+## Tuning weights
+
+`GapDetector` supports tunable weights to control how suggested domains are ranked. You can pass weights when instantiating `GapDetector`:
+
+```python
+from probe.analysis.gaps import GapDetector
+
+# example: increase importance of domains known to contain missing types
+gd = GapDetector(map_obj, weights={"count": 3.0, "yield": 1.0, "trust": 0.5, "recent": 0.5})
+```
+
+Supported weight keys:
+- `count` — weight for frequency of domain appearances across missing types (default 2.0)
+- `yield` — weight for domain `yield_score` (default 1.0)
+- `trust` — weight for domain `trust_score` (default 0.5)
+- `recent` — weight for recency boost (default 0.5)
+
+Tweak weights to bias suggestions for your use case (e.g., favor yield over trust for exploratory crawls).
+
 Example:
 
 ```bash

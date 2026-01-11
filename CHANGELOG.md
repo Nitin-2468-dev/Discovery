@@ -9,7 +9,8 @@ All notable changes to this project are documented in this file.
 - Gap detection: `probe.analysis.gaps.GapDetector` with `analyze_entity_gaps(entity_name, desired_doc_types)` that returns missing document types, weak confidence indicator, and suggested domains.
 - CLI: `probe gaps <entity> --types <types>` with a `--json` flag for machine-readable output. ✅
 - Tests: unit tests for `GapDetector` and CLI tests for `probe gaps` (added under `tests/test_gap_detector.py` and `tests/test_cli_gaps.py`).
-- Docs: `docs/gap_detection.md` with usage examples and JSON output examples.
+- Integration: Added an integration test exercising domain stats and suggestion behavior (`tests/test_gap_integration.py`).
+- Heuristics & tuning: exposed configurable weights for `GapDetector` and extended domain scoring to weight by missing-type frequency, domain `yield_score`, `trust_score`, and recency; added tests and documentation for weights.
 
 ## [v0.4.1] - 2026-01-11
 
