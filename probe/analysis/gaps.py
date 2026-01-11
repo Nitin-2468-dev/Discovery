@@ -30,11 +30,13 @@ class GapDetector:
         self.w_trust = float(w.get("trust", defaults["trust"]))
         self.w_recent = float(w.get("recent", defaults["recent"]))
 
-    def analyze_entity_gaps(self, entity_name: str, desired_doc_types: List[str]) -> Dict[str, Any]:
+    def analyze_entity_gaps(self, entity_name: str, desired_doc_types: List[str], include_scores: bool = False) -> Dict[str, Any]:
         """
         Analyze what's missing for an entity.
 
         Returns a dictionary containing existence, missing types, confidence and suggested domains.
+
+        If `include_scores` is True, also returns `domain_scores` detailing component scores for each candidate domain.
         """
         entity = self.map.get_entity(entity_name)
         if not entity:
@@ -97,6 +99,7 @@ class GapDetector:
         now.dt = datetime.utcnow()
 
         scored = []
+        domain_scores = []
         for domain_name, meta in candidates.items():
             count = meta.get('count', 0)
             yield_score = 0.0
@@ -122,9 +125,23 @@ class GapDetector:
 
             score = w_count * float(count) + w_yield * float(yield_score) + w_trust * float(trust_score) + w_recent * float(recent_score)
             scored.append((domain_name, score))
+            domain_scores.append({
+                "domain": domain_name,
+                "count": int(count),
+                "yield_score": float(yield_score),
+                "trust_score": float(trust_score),
+                "recent_score": float(recent_score),
+                "composite_score": float(score),
+            })
 
         scored.sort(key=lambda kv: kv[1], reverse=True)
         suggested_domains_objs = [types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]]
+
+        # If include_scores was requested, attach domain_scores ordered by composite_score
+        if include_scores:
+            domain_scores.sort(key=lambda d: d["composite_score"], reverse=True)
+        else:
+            domain_scores = None
 
         # support older Map versions without get_entity_document_count or get_entity_documents
         if hasattr(self.map, 'get_entity_document_count'):
@@ -134,7 +151,7 @@ class GapDetector:
         else:
             doc_count = 0
 
-        return {
+        result = {
             "entity": entity_name,
             "exists": True,
             "confidence": getattr(entity, "confidence_score", 0.0),
@@ -143,3 +160,8 @@ class GapDetector:
             "weak_confidence": getattr(entity, "confidence_score", 0.0) < 0.7,
             "suggested_domains": [d.domain_name for d in suggested_domains_objs],
         }
+
+        if include_scores:
+            result["domain_scores"] = domain_scores
+
+        return result

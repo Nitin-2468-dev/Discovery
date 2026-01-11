@@ -193,16 +193,33 @@ def summary(db):
     help="Comma-separated desired document types",
 )
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
+@click.option("--metrics", is_flag=True, default=False, help="Include per-domain scoring breakdown in output")
+@click.option("--weight-count", default=None, type=float, help="Weight for domain frequency across missing types")
+@click.option("--weight-yield", default=None, type=float, help="Weight for domain yield_score")
+@click.option("--weight-trust", default=None, type=float, help="Weight for domain trust_score")
+@click.option("--weight-recent", default=None, type=float, help="Weight for recent crawl recency boost")
 @click.option("--db", default="probe.db")
-def gaps(entity_name, types, as_json, db):
+def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weight_trust, weight_recent, db):
     """Analyze knowledge gaps for an entity."""
     from probe.analysis.gaps import GapDetector
 
     m = Map(db)
-    detector = GapDetector(m)
+
+    # Build weights dict from provided CLI flags (None means use defaults)
+    weights = {}
+    if weight_count is not None:
+        weights['count'] = weight_count
+    if weight_yield is not None:
+        weights['yield'] = weight_yield
+    if weight_trust is not None:
+        weights['trust'] = weight_trust
+    if weight_recent is not None:
+        weights['recent'] = weight_recent
+
+    detector = GapDetector(m, weights=weights if weights else None)
 
     desired_types = [t.strip() for t in types.split(",") if t.strip()]
-    analysis = detector.analyze_entity_gaps(entity_name, desired_types)
+    analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
 
     if as_json:
         import json
