@@ -22,7 +22,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt','**/requirements-ocr.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -36,7 +42,13 @@ jobs:
         env:
           CI: true
         run: |
-          pytest -q --maxfail=1 --disable-warnings
+          mkdir -p reports
+          pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
+      - name: Upload JUnit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.python-version }}-${{ matrix.ocr }}
+          path: reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
 
   packaging:
     name: Packaging & editable install verification
@@ -52,6 +64,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Cache pip (packaging)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-packaging-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml','**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-packaging-
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
@@ -72,6 +91,29 @@ jobs:
           name: 'dist-${{ matrix.python-version }}-${{ matrix.ocr }}'
           path: dist
       - name: Announce uploaded artifacts
+        env:
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "Fetching artifacts for run $RUN_ID in $REPO"
+          # Guard: if the token is not available, skip gracefully (avoids unbound variable with set -u)
+          if [ -z "${GITHUB_TOKEN:-}" ]; then
+            echo "::warning::GITHUB_TOKEN not available; skipping artifact announcement"
+            exit 0
+          fi
+          api_url="https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts"
+          # Query artifacts and emit a visible notice for each artifact with its download url
+          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "$api_url")
+          has_artifacts=$(echo "$resp" | jq -r '.total_count')
+          if [ "$has_artifacts" = "0" ] || [ "$has_artifacts" = "null" ]; then
+            echo "::notice::No artifacts found for run $RUN_ID"
+          else
+            echo "$resp" | jq -r '.artifacts[] | "Artifact: \(.name) -> \(.archive_download_url)"' | while IFS= read -r line; do
+              echo "::notice::$line"
+            done
+          fi
         env:
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
@@ -126,6 +168,7 @@ jobs:
       - name: Run packaging validation tests
         run: |
           pytest -q tests/test_packaging_validation.py tests/test_wheel_install.py tests/test_package_metadata.py -q --maxfail=1
+
 
   test-ocr-scheduled:
     name: OCR test (scheduled / ocr branch)

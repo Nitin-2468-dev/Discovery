@@ -2,19 +2,19 @@
 
 This page documents how to run seed lists for v0.2 testing and ad-hoc investigations.
 
-Files
------
+## Files
+
 Place seed lists in `seeds/` or use ad-hoc files. Each file is newline-separated, comments (lines starting with `#`) are ignored.
 
 Example seed file (test_simple.txt):
-```
+```text
 # small test set
 https://example.com/
 https://example.org/
 ```
 
-CLI
----
+## CLI
+
 - `python cli.py seeds run <file>`: run seeds with safe defaults
   - `--limit`: limit number of seeds to run (default 10)
   - `--ingest`: persist results into DB

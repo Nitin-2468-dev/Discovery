@@ -8,7 +8,7 @@
 
 Probe is a personal discovery engine for finding information that search engines surface poorly:
 - Maintenance manuals buried in PDFs
-- Forum posts deep in pagination  
+- Forum posts deep in pagination
 - Archived technical documents
 - Broker listings and spec sheets
 
@@ -19,7 +19,7 @@ It doesn't scrape everything—it investigates intelligently, like a human resea
 Search engines favor SEO pages and stop at surface-level results. Real information lives:
 - Deep in pagination
 - In PDFs
-- In old forum replies  
+- In old forum replies
 - Behind indirect links
 
 ## How Probe Works
@@ -66,6 +66,7 @@ The fetcher is a synchronous, test-first implementation that:
 Tests: full test suite currently passes locally (52 tests).
 
 ### Seed runner & politeness
+
 The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV summary and optional failure log. Important flags:
 
 - `--summary-dir <dir>`: directory where timestamped CSV run summaries are written (default: `run_reports`).
@@ -197,7 +198,7 @@ python cli.py analyze-crawl --url https://example.com/page --format csv --out re
 
 # Export documents for an entity
 python cli.py export "PT6A-52" --format md --out pt6a52.md
-``` 
+```
 
 See the full changelog in `CHANGELOG.md` for details on the v0.3 release and migration instructions.
 

@@ -1,6 +1,7 @@
 # Scope & Milestones
 
 ## v0.1 — Foundation (Current)
+
 **Goal:** Persistent map + basic CLI
 
 - [x] Schema design
@@ -13,6 +14,7 @@
 ---
 
 ## v0.2 — Fetching
+
 **Goal:** Retrieve and clean web content
 
 - [x] HTTP fetcher (httpx-based)
@@ -28,6 +30,7 @@
 ---
 
 ## v0.3 — Scoring (IMPLEMENTED)
+
 **Goal:** Determine page relevance
 
 - [x] Keyword density scorer
