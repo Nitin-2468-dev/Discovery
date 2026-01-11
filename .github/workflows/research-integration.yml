@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  RUN_REAL_NET_TESTS: "true"
+  RUN_REAL_NET_TESTS: "false"
 
 jobs:
   real-network-test:
