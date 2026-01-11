@@ -1,11 +1,13 @@
 ---
+# yamllint disable truthy
 name: CI
+# repository-level: suppress yaml truthy rule for GitHub Actions 'on' key
 
 on:
   push:
   pull_request:
   schedule:
-    - cron: '0 3 * * 1' # weekly on Monday at 03:00 UTC
+    - cron: '0 3 * * 1'  # weekly on Monday at 03:00 UTC
   workflow_dispatch:
 
 jobs:
