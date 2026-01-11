@@ -7,6 +7,7 @@
 ## What This Is
 
 Probe is a personal discovery engine for finding information that search engines surface poorly:
+
 - Maintenance manuals buried in PDFs
 - Forum posts deep in pagination
 - Archived technical documents
@@ -17,6 +18,7 @@ It doesn't scrape everything—it investigates intelligently, like a human resea
 ## The Core Problem
 
 Search engines favor SEO pages and stop at surface-level results. Real information lives:
+
 - Deep in pagination
 - In PDFs
 - In old forum replies
@@ -46,6 +48,7 @@ Every query makes the system smarter. The map compounds over time.
 ## Current Status
 
 **Phase:** Foundation (v0.1)
+
 - [x] Schema design
 - [x] Map interface
 - [x] CLI basics
@@ -54,6 +57,7 @@ Every query makes the system smarter. The map compounds over time.
 - [ ] Investigation loop
 
 ### Fetcher (v0.2) — implemented ✅
+
 The fetcher is a synchronous, test-first implementation that:
 
 - Uses `httpx` for HTTP requests with configurable timeouts and retries
@@ -82,6 +86,7 @@ Persistent politeness stores timestamps in a small JSON file `.probe_state.json`
 (Other useful flags: `--concurrency`, `--per-domain-delay`, `--ignore-robots`, and `--no-log-failures`.)
 
 ### Analyze & export scoring reports
+
 Use `probe analyze-crawl` to export scoring reports for inspection and sharing.
 
 Examples:
@@ -180,6 +185,7 @@ pip install -e .[ocr]
 ```
 
 ## Quick Start
+
 ```bash
 # Initialize or upgrade the database schema (creates missing tables safely)
 python cli.py init --db probe.db

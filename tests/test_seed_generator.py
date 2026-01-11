@@ -6,7 +6,8 @@ def test_generate_seeds_high_yield_domains(tmp_path):
     db = str(tmp_path / "probe.db")
     m = Map(db)
 
-    # Populate domain stats
+    # Populate domain stats: simulate a higher-yield domain (hi1) vs a slightly lower-yield one (hi2).
+    # The exact counts are not important; only their relative frequency matters for the test.
     for _ in range(5):
         m.update_domain_stats("hi1.example", found_document=True)
     for _ in range(4):

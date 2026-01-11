@@ -49,6 +49,7 @@
 ---
 
 ## v0.4 — Gap Detection
+
 **Goal:** Identify what's missing
 
 - [ ] Query map for entity knowledge
@@ -61,6 +62,7 @@
 ---
 
 ## v0.5 — Investigation Loop
+
 **Goal:** End-to-end query → answer
 
 - [ ] Orchestrator (ties components together)
@@ -74,6 +76,7 @@
 ---
 
 ## v0.6 — Embeddings (Optional for v1)
+
 **Goal:** Semantic similarity
 
 - [ ] Generate embeddings for entities/documents
@@ -85,6 +88,7 @@
 ---
 
 ## v1.0 — Production-Ready CLI
+
 **Goal:** Stable, documented, tested
 
 - [ ] Comprehensive test suite
