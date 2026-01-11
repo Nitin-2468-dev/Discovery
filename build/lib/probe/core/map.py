@@ -390,33 +390,6 @@ class Map:
         cursor = self.conn.execute(query, params)
         count = cursor.fetchone()[0]
         return count > 0
-
-    def get_entity_document_types(self, entity_name: str) -> List[str]:
-        """Return a list of distinct document types linked to the given entity.
-
-        This is a lightweight query intended for gap detection and avoids
-        loading complete Document objects when only types are needed.
-        """
-        query = """
-            SELECT DISTINCT d.doc_type FROM documents d
-            JOIN edges e ON e.to_id = d.id AND e.to_type = 'document'
-            JOIN entities en ON en.id = e.from_id AND e.from_type = 'entity'
-            WHERE en.name = ?
-        """
-        cursor = self.conn.execute(query, (entity_name,))
-        return [row[0] for row in cursor.fetchall()]
-
-    def get_entity_document_count(self, entity_name: str) -> int:
-        """Return the count of documents linked to an entity."""
-        query = """
-            SELECT COUNT(*) FROM documents d
-            JOIN edges e ON e.to_id = d.id AND e.to_type = 'document'
-            JOIN entities en ON en.id = e.from_id AND e.from_type = 'entity'
-            WHERE en.name = ?
-        """
-        cursor = self.conn.execute(query, (entity_name,))
-        return int(cursor.fetchone()[0])
-
     
     def get_map_summary(self) -> Dict[str, int]:
         """Get counts of all node types."""

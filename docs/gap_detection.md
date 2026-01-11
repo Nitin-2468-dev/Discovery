@@ -26,3 +26,13 @@ Example:
 ```bash
 probe gaps "PT6A-52" --types manual,bulletin,spec
 ```
+
+## Seed Generation
+
+You can generate seed URLs for a given entity and document type using the CLI:
+
+```bash
+probe seeds gen "PT6A-52" --type manual --max 10
+```
+
+Use `--json` to emit machine-readable seed payloads for automation.
