@@ -1,0 +1,27 @@
+name: Research integration (real network)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  real-integration:
+    name: Real-network integration tests (opt-in)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    env:
+      RUN_REAL_NET_TESTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run real-network crawler integration test
+        run: |
+          pytest -q tests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real -q
