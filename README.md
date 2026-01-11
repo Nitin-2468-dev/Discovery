@@ -56,6 +56,8 @@ Every query makes the system smarter. The map compounds over time.
 - [ ] Relevance scorer
 - [ ] Investigation loop
 
+**Release:** v0.1.1 (2026-01-11) — Adds an opt-in real-network integration workflow and a small `FetcherAdapter` to make validating real-network crawling behavior easier. See `CHANGELOG.md` for details and release notes.
+
 ### Fetcher (v0.2) — implemented ✅
 
 The fetcher is a synchronous, test-first implementation that:
@@ -160,6 +162,13 @@ Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-siz
 python -m pip install -U pip
 pip install -r requirements.txt
 pytest -q
+```
+
+- Opt-in real-network integration test (local):
+
+```bash
+# By default this test is skipped; set env to opt-in and run the specific test
+RUN_REAL_NET_TESTS=true pytest -q tests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real
 ```
 
 - Run tests with OCR extras (optional):

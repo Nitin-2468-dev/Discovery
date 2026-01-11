@@ -27,6 +27,12 @@
 
 > Notes: Implemented a sync `fetch` with configurable `max_retries` and `backoff_factor`. PDF extraction uses `pdfplumber` (fallbacks/edge-case hints are recorded in `error` field). Further work: scorer (v0.3) and politeness (robots.txt) enforcement in v0.3.
 
+**Research / CI (new):**
+
+- Added a small `FetcherAdapter` (`probe/crawl/fetcher_adapter.py`) to provide a stable shim for higher-level tests.
+- Added an opt-in scheduled/manual real-network integration workflow (`.github/workflows/research-integration.yml`) that runs a single real-network test on master when enabled (`RUN_REAL_NET_TESTS=true`). This helps validate end-to-end crawling behavior without introducing flaky tests into the main PR matrix.
+- Local dev: run `RUN_REAL_NET_TESTS=true pytest -q tests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real` to exercise the same test locally.
+
 ---
 
 ## v0.3 — Scoring (IMPLEMENTED)
