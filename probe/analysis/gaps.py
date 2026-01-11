@@ -43,27 +43,63 @@ class GapDetector:
         missing = [t for t in desired_doc_types if t not in existing_types]
 
         # Heuristic: if specific types are missing, prefer domains that contain those types
-        suggested_domains_objs = []
+        # Extended scoring: weight by count matches, domain yield_score, trust_score, and recency
+        candidates = {}
         if missing:
-            # If Map supports domain lookups by doc_type, use it
             if hasattr(self.map, 'get_domains_with_doc_type'):
-                seen = {}
                 for t in missing:
                     try:
-                        for d in self.map.get_domains_with_doc_type(t, limit=5):
-                            # score domains by frequency across missing types
-                            seen.setdefault(d.domain_name, 0)
-                            seen[d.domain_name] += 1
+                        for d in self.map.get_domains_with_doc_type(t, limit=8):
+                            candidates.setdefault(d.domain_name, {'count': 0})
+                            candidates[d.domain_name]['count'] += 1
                     except Exception:
                         continue
-                # Sort by score (descending) then yield_score if available
-                dd = sorted(seen.items(), key=lambda kv: kv[1], reverse=True)
-                suggested_domains_objs = [types.SimpleNamespace(domain_name=k) for k, _ in dd[:5]]
             else:
-                # Fallback: choose high-yield domains
-                suggested_domains_objs = self.map.get_high_yield_domains(limit=5)
+                for d in self.map.get_high_yield_domains(limit=20):
+                    candidates.setdefault(d.domain_name, {'count': 0})
         else:
-            suggested_domains_objs = self.map.get_high_yield_domains(limit=5)
+            for d in self.map.get_high_yield_domains(limit=20):
+                candidates.setdefault(d.domain_name, {'count': 0})
+
+        # Scoring weights (tunable)
+        w_count = 2.0
+        w_yield = 1.0
+        w_trust = 0.5
+        w_recent = 0.5
+
+        now = types.SimpleNamespace()
+        from datetime import datetime
+        now.dt = datetime.utcnow()
+
+        scored = []
+        for domain_name, meta in candidates.items():
+            count = meta.get('count', 0)
+            yield_score = 0.0
+            trust_score = 0.5
+            recent_score = 0.0
+
+            if hasattr(self.map, 'get_domain'):
+                try:
+                    d_obj = self.map.get_domain(domain_name)
+                    if d_obj:
+                        yield_score = getattr(d_obj, 'yield_score', 0.0)
+                        trust_score = getattr(d_obj, 'trust_score', 0.5)
+                        last = getattr(d_obj, 'last_crawled_at', None)
+                        if last:
+                            try:
+                                last_dt = datetime.fromisoformat(last)
+                                days = (now.dt - last_dt).days
+                                recent_score = max(0.0, (30.0 - float(days)) / 30.0)
+                            except Exception:
+                                recent_score = 0.0
+                except Exception:
+                    pass
+
+            score = w_count * float(count) + w_yield * float(yield_score) + w_trust * float(trust_score) + w_recent * float(recent_score)
+            scored.append((domain_name, score))
+
+        scored.sort(key=lambda kv: kv[1], reverse=True)
+        suggested_domains_objs = [types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]]
 
         # support older Map versions without get_entity_document_count
         if hasattr(self.map, 'get_entity_document_count'):
