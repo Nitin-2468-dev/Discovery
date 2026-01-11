@@ -48,3 +48,4 @@ pip install -e .[ocr]
 - CI now produces `junit.xml` reports for each matrix row (uploaded as workflow artifacts) so you can download test reports from the Actions UI and inspect failing tests in CI.
 - The workflow uses `actions/cache` to cache pip downloads across runs (keyed on Python version + requirements file hashes) to speed up dependency installs.
 - Packaging artifacts (sdist/wheel) are also uploaded as workflow artifacts from the `packaging` job to simplify debugging of wheel/sdist builds.
+

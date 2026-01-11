@@ -1,14 +1,17 @@
 from click.testing import CliRunner
 import httpx
 from cli import cli
-import pytest
 
 
 def test_cli_fetch_no_ingest(monkeypatch):
-    html = '''<html><head><title>Fetch Me</title></head><body><p>X</p><a href="/a">A</a></body></html>'''
+    html = """<html><head><title>Fetch Me</title></head><body><p>X</p><a href="/a">A</a></body></html>"""
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=html.encode("utf-8"))
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=html.encode("utf-8"),
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -25,7 +28,11 @@ def test_cli_fetch_with_ingest(monkeypatch, tmp_path):
     html = "<html><head><title>Ingest</title></head><body><p>X</p></body></html>"
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "text/html; charset=utf-8"}, content=html.encode("utf-8"))
+        return httpx.Response(
+            200,
+            headers={"content-type": "text/html; charset=utf-8"},
+            content=html.encode("utf-8"),
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
@@ -38,6 +45,7 @@ def test_cli_fetch_with_ingest(monkeypatch, tmp_path):
     assert "Ingested:" in res.output
     # ensure the DB now has a page
     from probe.core.map import Map
+
     m = Map(db)
     stats = m.get_map_summary()
     assert stats["pages"] == 1

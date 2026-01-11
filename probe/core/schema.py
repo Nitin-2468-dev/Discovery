@@ -12,25 +12,25 @@ Design Principles:
 """
 
 import sqlite3
-from typing import Optional
 
 
 def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     """
     Initialize the database schema.
     Creates all tables and indexes if they don't exist.
-    
+
     Returns the connection for immediate use.
     """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     # ============================================================
     # NODES
     # ============================================================
-    
+
     # Entities: Things being investigated (engines, regulations, companies)
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS entities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
@@ -40,10 +40,12 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-    """)
-    
+    """
+    )
+
     # Documents: Terminal evidence nodes (PDFs, manuals, bulletins)
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -57,10 +59,12 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_accessed_at TIMESTAMP
     )
-    """)
-    
+    """
+    )
+
     # Pages: Navigational nodes (HTML pages)
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS pages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         url TEXT NOT NULL UNIQUE,
@@ -72,10 +76,12 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         last_crawled_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-    """)
-    
+    """
+    )
+
     # Domains: Source tracking (yield and trust scores)
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS domains (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         domain_name TEXT NOT NULL UNIQUE,
@@ -87,13 +93,15 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_crawled_at TIMESTAMP
     )
-    """)
-    
+    """
+    )
+
     # ============================================================
     # EDGES (Relationships)
     # ============================================================
-    
-    cursor.execute("""
+
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS edges (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         from_type TEXT NOT NULL,  -- entity, document, page, domain
@@ -109,81 +117,107 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         -- Prevent duplicate edges
         UNIQUE(from_type, from_id, to_type, to_id, relation)
     )
-    """)
-    
+    """
+    )
+
     # ============================================================
     # INDEXES (for common query patterns)
     # ============================================================
-    
+
     # Entity lookups
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_entities_name 
     ON entities(name)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_entities_type 
     ON entities(type)
-    """)
-    
+    """
+    )
+
     # Document lookups
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_documents_hash 
     ON documents(hash)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_documents_domain 
     ON documents(domain)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_documents_type 
     ON documents(doc_type)
-    """)
-    
+    """
+    )
+
     # Page lookups
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_pages_url 
     ON pages(url)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_pages_domain 
     ON pages(domain)
-    """)
-    
+    """
+    )
+
     # Domain lookups
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_domains_name 
     ON domains(domain_name)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_domains_yield 
     ON domains(yield_score DESC)
-    """)
-    
+    """
+    )
+
     # Edge lookups (critical for graph traversal)
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_edges_from 
     ON edges(from_type, from_id)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_edges_to 
     ON edges(to_type, to_id)
-    """)
-    
-    cursor.execute("""
+    """
+    )
+
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_edges_relation 
     ON edges(relation)
-    """)
+    """
+    )
 
     # ============================================================
     # Scoring Reports: store per-page/component scoring snapshots
     # ============================================================
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE TABLE IF NOT EXISTS scoring_reports (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         page_id INTEGER,  -- nullable when scoring an external URL
@@ -193,19 +227,24 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         metadata TEXT,    -- JSON string for extra info
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-    """)
+    """
+    )
 
-    cursor.execute("""
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_scoring_reports_page
     ON scoring_reports(page_id)
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
     CREATE INDEX IF NOT EXISTS idx_scoring_reports_url
     ON scoring_reports(url)
-    """)
-    
+    """
+    )
+
     conn.commit()
-    
+
     return conn
 
 
@@ -223,44 +262,48 @@ def validate_schema(conn: sqlite3.Connection) -> bool:
     Returns True if schema is valid.
     """
     cursor = conn.cursor()
-    
-    expected_tables = ['entities', 'documents', 'pages', 'domains', 'edges']
-    
-    cursor.execute("""
+
+    expected_tables = ["entities", "documents", "pages", "domains", "edges"]
+
+    cursor.execute(
+        """
         SELECT name FROM sqlite_master 
         WHERE type='table' 
         ORDER BY name
-    """)
-    
+    """
+    )
+
     actual_tables = [row[0] for row in cursor.fetchall()]
-    
+
     for table in expected_tables:
         if table not in actual_tables:
             return False
-    
+
     return True
 
 
 if __name__ == "__main__":
     # Test schema initialization
     print("Initializing Probe database schema...")
-    
+
     conn = initialize_schema("probe.db")
-    
+
     if validate_schema(conn):
         print("✓ Schema initialized successfully")
         print(f"✓ Schema version: {get_schema_version(conn)}")
-        
+
         # Print table summary
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT name FROM sqlite_master 
             WHERE type='table' 
             ORDER BY name
-        """)
+        """
+        )
         tables = [row[0] for row in cursor.fetchall()]
         print(f"✓ Created {len(tables)} tables: {', '.join(tables)}")
     else:
         print("✗ Schema validation failed")
-    
+
     conn.close()

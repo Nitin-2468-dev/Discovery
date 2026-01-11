@@ -7,13 +7,16 @@ def test_committed_pdf_fixture_works():
     fixture = Path("tests/fixtures/sample.pdf").read_bytes()
 
     def handler(request):
-        return httpx.Response(200, headers={"content-type": "application/pdf"}, content=fixture)
+        return httpx.Response(
+            200, headers={"content-type": "application/pdf"}, content=fixture
+        )
 
     transport = httpx.MockTransport(handler)
     client = httpx.Client(transport=transport)
 
     # patch httpx.Client inside fetcher
     import httpx as _httpx
+
     _orig_client = _httpx.Client
     _httpx.Client = lambda *args, **kwargs: client
 

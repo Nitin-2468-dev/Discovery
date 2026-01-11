@@ -48,6 +48,7 @@ jobs:
           mkdir -p reports
           pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
       - name: Upload JUnit report
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: junit-${{ matrix.python-version }}-${{ matrix.ocr }}
