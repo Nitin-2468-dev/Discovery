@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased] - TBD
+
+### Added (unreleased)
+
+- Placeholder: prepare release v0.4.2
+
 ## [v0.4.1] - 2026-01-11
 
 ### Added (v0.4.1)
