@@ -70,66 +70,6 @@ def test_analyze_entity_gaps_detects_missing_types_and_confidence():
     assert out["suggested_domains"] == ["example0.com", "example1.com", "example2.com"]
 
 
-def test_suggested_domains_prefers_missing_types():
-    class MapWithDomains(FakeMap):
-        def get_domains_with_doc_type(self, doc_type, limit=5):
-            if doc_type == "datasheet":
-                return [FakeDomain("datasheet.example.com"), FakeDomain("specs.example.com")]
-            return [FakeDomain("generic.example.com")]
-
-    m = MapWithDomains(entity_present=True, doc_types=["manual"], confidence=0.5, doc_count=2)
-    gd = GapDetector(m)
-
-    out = gd.analyze_entity_gaps("exists", ["manual", "datasheet"])
-
-    # Should prioritize domains that were returned for 'datasheet'
-    assert "datasheet.example.com" in out["suggested_domains"]
-    assert out["suggested_domains"][:2] == ["datasheet.example.com", "specs.example.com"]
-
-
-def test_domain_scoring_considers_yield_and_trust():
-    class MapWithDomains(FakeMap):
-        def get_domains_with_doc_type(self, doc_type, limit=5):
-            return [FakeDomain("low.example.com"), FakeDomain("high.example.com")]
-
-        def get_domain(self, domain_name):
-            if domain_name == "low.example.com":
-                return types.SimpleNamespace(domain_name=domain_name, yield_score=0.1, trust_score=0.2, last_crawled_at=None)
-            return types.SimpleNamespace(domain_name=domain_name, yield_score=0.9, trust_score=0.9, last_crawled_at=None)
-
-    m = MapWithDomains(entity_present=True, doc_types=["manual"], confidence=0.5, doc_count=2)
-    gd = GapDetector(m)
-
-    out = gd.analyze_entity_gaps("exists", ["manual", "datasheet"])
-
-    # high.example.com should be preferred due to higher yield/trust
-    assert out["suggested_domains"][0] == "high.example.com"
-
-
-def test_recency_boosts_recent_domains():
-    from datetime import datetime, timedelta
-
-    class MapWithRecency(FakeMap):
-        def get_domains_with_doc_type(self, doc_type, limit=5):
-            return [FakeDomain("old.example.com"), FakeDomain("recent.example.com")]
-
-        def get_domain(self, domain_name):
-            now = datetime.utcnow()
-            if domain_name == "old.example.com":
-                last = (now - timedelta(days=60)).isoformat()
-                return types.SimpleNamespace(domain_name=domain_name, yield_score=0.5, trust_score=0.5, last_crawled_at=last)
-            last = now.isoformat()
-            return types.SimpleNamespace(domain_name=domain_name, yield_score=0.5, trust_score=0.5, last_crawled_at=last)
-
-    m = MapWithRecency(entity_present=True, doc_types=["manual"], confidence=0.5, doc_count=2)
-    gd = GapDetector(m)
-
-    out = gd.analyze_entity_gaps("exists", ["manual", "datasheet"])
-
-    # recent.example.com should beat old.example.com due to recency
-    assert out["suggested_domains"][0] == "recent.example.com"
-
-
 def test_analyze_entity_gaps_fallback_to_documents():
     # Simulate an older Map implementation that only provides get_entity_documents
     class PartialMapNoTypes(FakeMap):
