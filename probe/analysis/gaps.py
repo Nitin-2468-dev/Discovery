@@ -38,7 +38,8 @@ class GapDetector:
         self.w_trust = float(w.get("trust", defaults["trust"]))
         self.w_recent = float(w.get("recent", defaults["recent"]))
         # normalization mode for counts
-        assert normalize in ("none", "per_page", "log", "per_page_log"), "invalid normalize option"
+        if normalize not in ("none", "per_page", "log", "per_page_log"):
+            raise ValueError(f"invalid normalize option: {normalize!r}")
         self.normalize = normalize
 
     def analyze_entity_gaps(self, entity_name: str, desired_doc_types: List[str], include_scores: bool = False) -> Dict[str, Any]:
