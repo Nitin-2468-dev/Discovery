@@ -371,7 +371,7 @@ class GraphVisualizer:
                 fh.write('digraph G {\n')
                 for n in (self.G["nodes"].keys() if not nx else self.G.nodes()):
                     fh.write(f'"{n}";\n')
-                for a, b in (self.G["edges"] if not nx else self.G.edges()):
+                for a, b, _ in self.G["edges"]:
                     fh.write(f'"{a}" -> "{b}";\n')
                 fh.write('}\n')
             return output_path
