@@ -193,13 +193,8 @@ def summary(db):
     help="Comma-separated desired document types",
 )
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
-@click.option("--metrics", is_flag=True, default=False, help="Include per-domain scoring breakdown in output")
-@click.option("--weight-count", default=None, type=float, help="Weight for domain frequency across missing types")
-@click.option("--weight-yield", default=None, type=float, help="Weight for domain yield_score")
-@click.option("--weight-trust", default=None, type=float, help="Weight for domain trust_score")
-@click.option("--weight-recent", default=None, type=float, help="Weight for recent crawl recency boost")
 @click.option("--db", default="probe.db")
-def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weight_trust, weight_recent, db):
+def gaps(entity_name, types, as_json, db):
     """Analyze knowledge gaps for an entity."""
     from probe.analysis.gaps import GapDetector
 
@@ -220,6 +215,13 @@ def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weigh
 
     desired_types = [t.strip() for t in types.split(",") if t.strip()]
     analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
+
+    if as_json:
+        import json
+
+        click.echo(json.dumps(analysis, indent=2))
+        m.close()
+        return
 
     if as_json:
         import json
