@@ -11,6 +11,8 @@ All notable changes to this project are documented in this file.
 - Tests: unit tests for `GapDetector` and CLI tests for `probe gaps` (added under `tests/test_gap_detector.py` and `tests/test_cli_gaps.py`).
 - Integration: Added an integration test exercising domain stats and suggestion behavior (`tests/test_gap_integration.py`).
 - Heuristics & tuning: exposed configurable weights for `GapDetector` and extended domain scoring to weight by missing-type frequency, domain `yield_score`, `trust_score`, and recency; added tests and documentation for weights.
+- Visualization: added `probe visualize` CLI backed by `probe.visualization.GraphVisualizer` (NetworkX + Plotly) and a short docs page (`docs/visualization.md`) for interactive HTML exports.
+- Testing: added session-scoped `sample_db` fixture and `copy_db_for_test` helper, marked heavy tests with `@pytest.mark.slow`, and enabled parallel test execution with `pytest-xdist` (CI runs fast tests with `-n auto;` slow tests are opt-in via manual workflow dispatch).
 
 ## [v0.4.1] - 2026-01-11
 

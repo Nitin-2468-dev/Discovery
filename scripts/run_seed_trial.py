@@ -97,10 +97,16 @@ def run_analysis(db_path: str, entity_name: str, types: List[str], out_prefix: s
     trusts = [0.0, 0.5]
     recents = [0.0, 0.5]
 
-    from scripts.weight_sweep import run_sweep
+    # Import weight_sweep as a script module (avoid package import issues)
+    import importlib.util
+
+    ws_path = Path(__file__).parent / "weight_sweep.py"
+    spec = importlib.util.spec_from_file_location("weight_sweep", str(ws_path))
+    ws = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ws)  # type: ignore
 
     csv_out = str(out_dir / "sweep.csv")
-    run_sweep([entity_name], types, db_path, csv_out, counts, yields, trusts, recents)
+    ws.run_sweep([entity_name], types, db_path, csv_out, counts, yields, trusts, recents)
 
     return analysis, csv_out
 
@@ -116,6 +122,11 @@ def main(argv: List[str] | None = None) -> int:
     db_path = args.db or (out_prefix + ".db")
 
     print(f"Running seeds: {seeds} -> DB: {db_path}")
+    # ensure db parent directory exists
+    db_parent = Path(db_path).parent
+    if db_parent and not db_parent.exists():
+        db_parent.mkdir(parents=True, exist_ok=True)
+
     entity_name = f"seed-run-{Path(args.seeds).stem}-{args.count}"
 
     fetch_results = fetch_and_ingest(seeds, db_path, entity_name)

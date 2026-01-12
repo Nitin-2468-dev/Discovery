@@ -41,18 +41,52 @@ jobs:
           if [ "${{ matrix.ocr }}" = "true" ]; then
             pip install -r requirements-ocr.txt || pip install -e .[ocr]
           fi
-      - name: Run tests
+      - name: Run fast tests (parallel)
         env:
           CI: true
         run: |
           mkdir -p reports
-          pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
+          # Run only non-slow tests in parallel using pytest-xdist
+          pytest -q -n auto -m "not slow" --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
       - name: Upload JUnit report
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: junit-${{ matrix.python-version }}-${{ matrix.ocr }}
           path: reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
+
+  slow-tests:
+    name: Slow tests (manual/dispatch)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11']
+        ocr: [false]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run slow tests
+        env:
+          CI: true
+        run: |
+          mkdir -p reports
+          pytest -q -m slow -n 2 --maxfail=1 --disable-warnings --junitxml=reports/junit-slow.xml
+      - name: Upload Slow JUnit report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-slow
+          path: reports/junit-slow.xml
 
   packaging:
     name: Packaging & editable install verification

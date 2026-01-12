@@ -1,0 +1,12 @@
+{
+  "entity": "seed-run-seeds_testing-2",
+  "exists": true,
+  "confidence": 0.5,
+  "missing_types": [
+    "pdf"
+  ],
+  "has_documents": 0,
+  "weak_confidence": true,
+  "suggested_domains": [],
+  "domain_scores": []
+}

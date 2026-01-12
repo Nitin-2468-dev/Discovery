@@ -21,6 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from probe.core.schema import initialize_schema, validate_schema
 from probe.core.map import Map, Entity, Document, Edge
+# Expose GraphVisualizer at module-level for tests and simple patches
+from probe.visualization.graph_viz import GraphVisualizer
 
 
 @click.group()
@@ -181,6 +183,63 @@ def summary(db):
             yield_pct = d.yield_score * 100
             click.echo(f"  • {d.domain_name} ({yield_pct:.0f}% yield)")
         click.echo()
+
+    m.close()
+
+
+@cli.command()
+@click.option('--entity', default=None, help='Focus on specific entity')
+@click.option('--depth', default=2, type=int, help='Depth for entity subgraph')
+@click.option('--output', default='graph.html', help='Output HTML file')
+@click.option('--export-png', default=None, help='Export a PNG snapshot (path)')
+@click.option('--export-svg', default=None, help='Export an SVG snapshot (path)')
+@click.option('--open', 'open_in_browser', is_flag=True, default=False, help='Open the generated HTML in the default web browser')
+@click.option('--db', default='probe.db')
+def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
+    """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
+    from probe.visualization.graph_viz import GraphVisualizer
+
+    m = Map(db)
+    viz = GraphVisualizer(m)
+
+    if entity:
+        click.echo(f"Building graph around '{entity}' (depth={depth})...")
+        viz.build_graph(entity_name=entity, depth=depth)
+    else:
+        click.echo("Building full graph...")
+        viz.build_graph()
+
+    stats = viz.get_stats()
+    click.echo(f"Graph stats: {stats['nodes']} nodes, {stats['edges']} edges")
+
+    output_file = viz.plot_interactive(output)
+    click.echo(f"✓ Visualization saved to: {output_file}")
+
+    # optional image exports
+    if export_png:
+        try:
+            out_png = viz.export_image(export_png)
+            click.echo(f"✓ PNG exported to: {out_png}")
+        except Exception as exc:
+            click.echo(f"⚠️ PNG export failed: {exc}")
+
+    if export_svg:
+        try:
+            out_svg = viz.export_image(export_svg)
+            click.echo(f"✓ SVG exported to: {out_svg}")
+        except Exception as exc:
+            click.echo(f"⚠️ SVG export failed: {exc}")
+
+    if open_in_browser:
+        try:
+            import webbrowser
+            webbrowser.open(output_file)
+            click.echo("Opened in default browser")
+        except Exception:
+            click.echo("Could not open browser automatically; open the file manually.")
+
+    # provide a helpful hint about attaching the file to release
+    click.echo("Tip: upload the file to your release with: gh release upload v0.4.2 <path> --clobber --repo <owner/repo>")
 
     m.close()
 
