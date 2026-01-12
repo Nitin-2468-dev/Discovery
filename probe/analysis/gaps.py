@@ -58,8 +58,11 @@ class GapDetector:
                         continue
                 # Sort by score (descending) then yield_score if available
                 dd = sorted(seen.items(), key=lambda kv: kv[1], reverse=True)
-                suggested_domains_objs = [types.SimpleNamespace(domain_name=k) for k, _ in dd[:5]]
-            else:
+                if seen:
+                    dd = sorted(seen.items(), key=lambda kv: kv[1], reverse=True)
+                    suggested_domains_objs = [types.SimpleNamespace(domain_name=k) for k, _ in dd[:5]]
+                else:
+                    suggested_domains_objs = self.map.get_high_yield_domains(limit=5)
                 # Fallback: choose high-yield domains
                 suggested_domains_objs = self.map.get_high_yield_domains(limit=5)
         else:
