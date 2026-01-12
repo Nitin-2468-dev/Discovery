@@ -16,8 +16,8 @@
     "summary": {
       "page_id": 1,
       "document_id": null,
-      "link_count": 287,
-      "edges_created": 259,
+      "link_count": 286,
+      "edges_created": 258,
       "outgoing_links": [
         "https://www.faa.gov/#main",
         "https://www.transportation.gov",
@@ -232,9 +232,8 @@
         "https://www.faa.gov/newsroom/transportation-secretary-duffy-launches-make-travel-family-friendly-again-campaign",
         "https://www.faa.gov/newsroom/trumps-transportation-secretary-duffy-faa-administrator-bedford-announce-prime-integrator",
         "https://www.faa.gov/newsroom",
-        "https://www.faa.gov/#arrival-departure1122266396",
-        "https://www.faa.gov/airport-status/MIA",
-        "https://www.faa.gov/#airport-closures1075756213",
+        "https://www.faa.gov/#airport-closures144726180",
+        "https://www.faa.gov/airport-status/SAN",
         "https://www.faa.gov/airport-status/LAS",
         "https://www.faa.gov/airport-status/STX",
         "https://www.faa.gov/airport-status/STT",
@@ -340,7 +339,7 @@
   {
     "url": "https://www.nasa.gov/",
     "summary": {
-      "page_id": 262,
+      "page_id": 261,
       "document_id": null,
       "link_count": 282,
       "edges_created": 177,

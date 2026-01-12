@@ -17,16 +17,16 @@
       "count": 0,
       "yield_score": 0.0,
       "trust_score": 0.5,
-      "recent_score": 0.0,
-      "composite_score": 0.25
+      "recent_score": 1.0,
+      "composite_score": 0.75
     },
     {
       "domain": "www.nasa.gov",
       "count": 0,
       "yield_score": 0.0,
       "trust_score": 0.5,
-      "recent_score": 0.0,
-      "composite_score": 0.25
+      "recent_score": 1.0,
+      "composite_score": 0.75
     }
   ]
 }

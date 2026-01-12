@@ -106,6 +106,32 @@ class GraphVisualizer:
             self._add_edge(from_id, to_id, relation=row['relation'])
 
     def plot_interactive(self, output_path: str = "graph.html") -> str:
+        # Lazy import: if plotting libs weren't available at module import time, try now.
+        global nx, go
+        try:
+            if nx is None:
+                import importlib
+                nx = importlib.import_module('networkx')
+        except Exception:
+            nx = None
+
+        try:
+            if go is None:
+                import importlib
+                go = importlib.import_module('plotly.graph_objects')
+        except Exception:
+            go = None
+
+        # If we have upgraded to networkx after a fallback, convert the fallback graph to a NetworkX graph
+        if nx and not isinstance(self.G, nx.DiGraph):
+            G_new = nx.DiGraph()
+            # nodes stored in self.G['nodes'] and edges in self.G['edges']
+            for nid, attrs in self.G.get('nodes', {}).items():
+                G_new.add_node(nid, **attrs)
+            for a, b, attrs in self.G.get('edges', []):
+                G_new.add_edge(a, b, **(attrs or {}))
+            self.G = G_new
+
         # If plotly/networkx are available, render a force layout interactive graph.
         if nx and go:
             pos = nx.spring_layout(self.G, k=0.5, iterations=50)
@@ -182,33 +208,135 @@ class GraphVisualizer:
             self._last_fig = fig
             return output_path
 
-        # Fallback: write a minimal HTML listing nodes and edges
+        # Fallback: generate an interactive D3 force-directed graph HTML (no python plotting deps)
         nodes = []
-        edges = []
+        links = []
         if nx:
-            for n in self.G.nodes(data=True):
-                nodes.append((n[0], n[1]))
-            for e in self.G.edges(data=True):
-                edges.append((e[0], e[1], e[2]))
+            for n, attr in self.G.nodes(data=True):
+                nodes.append({"id": n, **attr})
+            for a, b, attr in self.G.edges(data=True):
+                links.append({"source": a, "target": b, "relation": attr.get("relation") if isinstance(attr, dict) else attr})
         else:
             for nid, attrs in self.G["nodes"].items():
-                nodes.append((nid, attrs))
+                nodes.append({"id": nid, **attrs})
             for a, b, attrs in self.G["edges"]:
-                edges.append((a, b, attrs))
+                links.append({"source": a, "target": b, "relation": attrs.get("relation") if isinstance(attrs, dict) else attrs})
 
+        data = {"nodes": nodes, "links": links}
+
+        template = """<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Probe Knowledge Graph (interactive)</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    svg { width: 100vw; height: 90vh; background: #f3f7fb; }
+    .node circle { stroke: #fff; stroke-width: 1.5px; }
+    .node text { font-size: 12px; pointer-events: none; }
+    .link { stroke: #999; stroke-opacity: 0.6; }
+    .tooltip { position: absolute; background: white; border: 1px solid #ccc; padding: 6px; font-size: 12px; display: none; }
+  </style>
+</head>
+<body>
+  <h3 style="margin:8px 12px">Probe Knowledge Graph</h3>
+  <div id="chart"></div>
+  <div id="tooltip" class="tooltip"></div>
+  <script>
+    const data = __DATA_JSON__;
+    const width = window.innerWidth;
+    const height = window.innerHeight * 0.8;
+
+    const svg = d3.select('#chart').append('svg')
+      .attr('width', width)
+      .attr('height', height);
+
+    const link = svg.append('g')
+        .attr('class', 'links')
+      .selectAll('line')
+      .data(data.links)
+      .enter().append('line')
+        .attr('class','link')
+        .attr('stroke-width', 1);
+
+    const node = svg.append('g')
+        .attr('class', 'nodes')
+      .selectAll('g')
+      .data(data.nodes)
+      .enter().append('g')
+        .attr('class','node')
+        .call(d3.drag()
+            .on('start', dragstarted)
+            .on('drag', dragged)
+            .on('end', dragended));
+
+    node.append('circle')
+        .attr('r', d => Math.max(6, (d.degree || 0) * 2 + 6))
+        .attr('fill', d => d.color || '#888')
+
+    node.append('text')
+        .attr('x', 8)
+        .attr('y', 3)
+        .text(d => d.label || d.id);
+
+    const tooltip = d3.select('#tooltip');
+
+    node.on('mouseover', (event, d) => {
+      tooltip.style('display', 'block');
+      tooltip.html('<b>' + (d.label || d.id) + '</b><br/>' + (d.type ? d.type : ''))
+             .style('left', (event.pageX + 8) + 'px')
+             .style('top', (event.pageY + 8) + 'px');
+    }).on('mouseout', () => tooltip.style('display', 'none'));
+
+    const simulation = d3.forceSimulation(data.nodes)
+        .force('link', d3.forceLink(data.links).id(d => d.id).distance(80).strength(0.5))
+        .force('charge', d3.forceManyBody().strength(-200))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .on('tick', ticked);
+
+    function ticked() {
+      link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+      node
+          .attr('transform', d => `translate(${d.x},${d.y})`);
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    // compute degrees for sizing
+    const degreeMap = {};
+    data.links.forEach(l => { degreeMap[l.source] = (degreeMap[l.source] || 0) + 1; degreeMap[l.target] = (degreeMap[l.target] || 0) + 1; });
+    data.nodes.forEach(n => n.degree = degreeMap[n.id] || 0);
+  </script>
+</body>
+</html>"""
+
+        d3_html = template.replace('__DATA_JSON__', json.dumps(data))
         with open(output_path, 'w', encoding='utf-8') as fh:
-            fh.write('<html><body>\n')
-            fh.write('<h1>Probe Knowledge Graph (minimal)</h1>\n')
-            fh.write('<h2>Nodes</h2>\n<ul>\n')
-            for n, attrs in nodes:
-                fh.write(f'<li><strong>{n}</strong>: {json.dumps(attrs)}</li>\n')
-            fh.write('</ul>\n')
-            fh.write('<h2>Edges</h2>\n<ul>\n')
-            for a, b, attrs in edges:
-                fh.write(f'<li>{a} -> {b}: {json.dumps(attrs)}</li>\n')
-            fh.write('</ul>\n')
-            fh.write('</body></html>\n')
+            fh.write(d3_html)
 
+        # store a simple flag that this is a d3 export
+        self._last_fig = None
         return output_path
 
     def export_to_gephi(self, output_path: str = "graph.gexf") -> str:
