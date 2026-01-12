@@ -10,7 +10,7 @@ from typing import List
 
 try:
     import matplotlib.pyplot as plt
-except Exception:
+except ImportError:
     plt = None
 
 import csv
