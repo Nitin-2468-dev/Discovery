@@ -371,7 +371,12 @@ class GraphVisualizer:
                 fh.write('digraph G {\n')
                 for n in (self.G["nodes"].keys() if not nx else self.G.nodes()):
                     fh.write(f'"{n}";\n')
-                for a, b, _ in self.G["edges"]:
+                # edges: in networkx Graph, use G.edges(); in fallback, edges may be stored as tuples
+                for e in (self.G.get("edges", []) if not nx else self.G.edges()):
+                    try:
+                        a, b = e[0], e[1]
+                    except Exception:
+                        continue
                     fh.write(f'"{a}" -> "{b}";\n')
                 fh.write('}\n')
             return output_path

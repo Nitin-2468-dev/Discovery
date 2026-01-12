@@ -85,7 +85,7 @@ def run_sweep(entities: List[str], types: List[str], db_path: str, out_csv: str,
             for wc, wy, wt, wr, norm in itertools.product(counts, yields, trusts, recents, normalizes):
                 m = Map(db_path)
                 try:
-                    detector = GapDetector(m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr})
+                    detector = GapDetector(m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr}, normalize=norm)
                     analysis = detector.analyze_entity_gaps(entity, types, include_scores=True)
                 finally:
                     m.close()
