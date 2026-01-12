@@ -381,7 +381,7 @@ class GraphVisualizer:
                 fh.write('}\n')
             return output_path
         try:
-            import pydot
+            import pydot # type: ignore
             nx.drawing.nx_pydot.write_dot(self.G, output_path)
         except Exception:
             # fallback: write a minimal DOT
@@ -420,7 +420,7 @@ class GraphVisualizer:
 
         # Check for kaleido availability
         try:
-            import kaleido  # noqa: F401
+            import kaleido  # type: ignore # noqa: F401
         except Exception:
             raise RuntimeError("To export images you must install 'kaleido' (pip install kaleido)")
 
