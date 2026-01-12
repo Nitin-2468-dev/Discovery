@@ -103,7 +103,9 @@ def run_analysis(db_path: str, entity_name: str, types: List[str], out_prefix: s
     ws_path = Path(__file__).parent / "weight_sweep.py"
     spec = importlib.util.spec_from_file_location("weight_sweep", str(ws_path))
     ws = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ws)  # type: ignore
+    if spec is None or spec.loader is None:
+        raise FileNotFoundError(f"Cannot find weight_sweep module at {ws_path}")
+    spec.loader.exec_module(ws)
 
     csv_out = str(out_dir / "sweep.csv")
     ws.run_sweep([entity_name], types, db_path, csv_out, counts, yields, trusts, recents)
