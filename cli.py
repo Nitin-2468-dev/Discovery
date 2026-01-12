@@ -21,6 +21,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from probe.core.schema import initialize_schema, validate_schema
 from probe.core.map import Map, Entity, Document, Edge
+# Expose GraphVisualizer at module-level for tests and simple patches
+from probe.visualization.graph_viz import GraphVisualizer
 
 
 @click.group()
@@ -186,22 +188,104 @@ def summary(db):
 
 
 @cli.command()
+@click.option('--entity', default=None, help='Focus on specific entity')
+@click.option('--depth', default=2, type=int, help='Depth for entity subgraph')
+@click.option('--output', default='graph.html', help='Output HTML file')
+@click.option('--export-png', default=None, help='Export a PNG snapshot (path)')
+@click.option('--export-svg', default=None, help='Export an SVG snapshot (path)')
+@click.option('--open', 'open_in_browser', is_flag=True, default=False, help='Open the generated HTML in the default web browser')
+@click.option('--db', default='probe.db')
+def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
+    """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
+    from probe.visualization.graph_viz import GraphVisualizer
+
+    m = Map(db)
+    viz = GraphVisualizer(m)
+
+    if entity:
+        click.echo(f"Building graph around '{entity}' (depth={depth})...")
+        viz.build_graph(entity_name=entity, depth=depth)
+    else:
+        click.echo("Building full graph...")
+        viz.build_graph()
+
+    stats = viz.get_stats()
+    click.echo(f"Graph stats: {stats['nodes']} nodes, {stats['edges']} edges")
+
+    output_file = viz.plot_interactive(output)
+    click.echo(f"✓ Visualization saved to: {output_file}")
+
+    # optional image exports
+    if export_png:
+        try:
+            out_png = viz.export_image(export_png)
+            click.echo(f"✓ PNG exported to: {out_png}")
+        except Exception as exc:
+            click.echo(f"⚠️ PNG export failed: {exc}")
+
+    if export_svg:
+        try:
+            out_svg = viz.export_image(export_svg)
+            click.echo(f"✓ SVG exported to: {out_svg}")
+        except Exception as exc:
+            click.echo(f"⚠️ SVG export failed: {exc}")
+
+    if open_in_browser:
+        try:
+            import webbrowser
+            webbrowser.open(output_file)
+            click.echo("Opened in default browser")
+        except Exception:
+            click.echo("Could not open browser automatically; open the file manually.")
+
+    # provide a helpful hint about attaching the file to release
+    click.echo("Tip: upload the file to your release with: gh release upload v0.4.2 <path> --clobber --repo <owner/repo>")
+
+    m.close()
+
+
+@cli.command()
 @click.argument("entity_name")
 @click.option(
     "--types",
     default="manual,bulletin,spec",
     help="Comma-separated desired document types",
 )
+@click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
+@click.option("--metrics", is_flag=True, default=False, help="Include per-domain scoring breakdown in output")
+@click.option("--weight-count", default=None, type=float, help="Weight for domain frequency across missing types")
+@click.option("--weight-yield", default=None, type=float, help="Weight for domain yield_score")
+@click.option("--weight-trust", default=None, type=float, help="Weight for domain trust_score")
+@click.option("--weight-recent", default=None, type=float, help="Weight for recent crawl recency boost")
 @click.option("--db", default="probe.db")
-def gaps(entity_name, types, db):
+def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weight_trust, weight_recent, db):
     """Analyze knowledge gaps for an entity."""
     from probe.analysis.gaps import GapDetector
 
     m = Map(db)
-    detector = GapDetector(m)
+
+    # Build weights dict from provided CLI flags (None means use defaults)
+    weights = {}
+    if weight_count is not None:
+        weights['count'] = weight_count
+    if weight_yield is not None:
+        weights['yield'] = weight_yield
+    if weight_trust is not None:
+        weights['trust'] = weight_trust
+    if weight_recent is not None:
+        weights['recent'] = weight_recent
+
+    detector = GapDetector(m, weights=weights if weights else None)
 
     desired_types = [t.strip() for t in types.split(",") if t.strip()]
-    analysis = detector.analyze_entity_gaps(entity_name, desired_types)
+    analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
+
+    if as_json:
+        import json
+
+        click.echo(json.dumps(analysis, indent=2))
+        m.close()
+        return
 
     if not analysis.get("exists"):
         click.echo(f"❌ Entity '{entity_name}' not found in map")
@@ -216,10 +300,14 @@ def gaps(entity_name, types, db):
             for t in analysis.get("missing_types", []):
                 click.echo(f"   • {t}")
 
-        if analysis.get("suggested_domains"):
-            click.echo("\n💡 Suggested Sources:")
-            for d in analysis.get("suggested_domains", []):
+        # Always show Suggested Sources section for consistency in CLI output.
+        click.echo("\n💡 Suggested Sources:")
+        sd = analysis.get("suggested_domains", []) or []
+        if sd:
+            for d in sd:
                 click.echo(f"   • {d}")
+        else:
+            click.echo("   • (none)")
 
     m.close()
 
@@ -630,6 +718,13 @@ def seeds_run(
     config = load_config()
 
     # Optional tqdm progress bar (import if available and enabled in config)
+    from typing import TYPE_CHECKING
+    if TYPE_CHECKING:  # pragma: no cover - static analysis only
+        try:
+            from tqdm import tqdm  # type: ignore
+        except Exception:
+            pass
+
     try:
         from tqdm import tqdm
 

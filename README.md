@@ -164,6 +164,22 @@ pip install -r requirements.txt
 pytest -q
 ```
 
+- Parallel / fast tests (recommended):
+
+```bash
+# Install xdist (already included in dev requirements)
+pip install -r requirements.txt
+# Run all fast tests in parallel (-m "not slow")
+pytest -q -n auto -m "not slow"
+```
+
+- Slow / integration tests (opt-in):
+
+```bash
+# Slow tests are marked with @pytest.mark.slow. Run them manually or in CI dispatch.
+pytest -q -m slow -n 2
+```
+
 - Opt-in real-network integration test (local):
 
 ```bash
@@ -182,7 +198,6 @@ pytest -q
 pip install -e .[ocr]
 pytest -q
 ```
-
 - Reproduce packaging & editable install checks:
 
 ```bash
