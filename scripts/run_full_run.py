@@ -110,7 +110,7 @@ def pick_top_domain(flat_csv: str) -> str | None:
         for row in r:
             try:
                 score = float(row.get('composite_score') or 0)
-            except Exception:
+            except (ValueError, TypeError):
                 continue
             if score > best_score:
                 best_score = score
