@@ -61,7 +61,7 @@ def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):
                 break
             try:
                 res = fetcher.fetch(url, timeout=10, max_retries=2, max_size=2000000)
-            except Exception as exc:
+            except Exception:  # noqa: BLE001 - intentionally skip failed fetches
                 continue
             if res.get("error"):
                 continue
