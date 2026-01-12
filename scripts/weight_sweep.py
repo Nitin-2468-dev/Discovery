@@ -84,9 +84,11 @@ def run_sweep(entities: List[str], types: List[str], db_path: str, out_csv: str,
         for entity in entities:
             for wc, wy, wt, wr, norm in itertools.product(counts, yields, trusts, recents, normalizes):
                 m = Map(db_path)
-                detector = GapDetector(m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr}, normalize=norm)
-                analysis = detector.analyze_entity_gaps(entity, types, include_scores=True)
-                m.close()
+                try:
+                    detector = GapDetector(m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr})
+                    analysis = detector.analyze_entity_gaps(entity, types, include_scores=True)
+                finally:
+                    m.close()
 
                 ds = analysis.get("domain_scores") or []
                 top_domain = ds[0]["domain"] if ds else ""
