@@ -76,7 +76,8 @@ def test_analyze_entity_gaps_fallback_to_documents():
         def __init__(self):
             super().__init__(entity_present=True, doc_types=["report"], confidence=0.5, doc_count=1)
 
-        # intentionally do NOT implement get_entity_document_types
+        def get_entity_document_types(self, name):
+            raise AttributeError("get_entity_document_types")
 
     m = PartialMapNoTypes()
     gd = GapDetector(m)
