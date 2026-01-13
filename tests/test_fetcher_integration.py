@@ -7,9 +7,6 @@ from probe.crawl.ingest import Ingestor
 from probe.crawl.seed_loader import SeedLoader
 
 
-def _old_test_fetcher_ingest_pipeline_end_to_end(monkeypatch, tmp_path):
-    """Legacy end-to-end integration test replaced by smaller focused tests."""
-    pass
 
 
 def _make_transport_and_patch(monkeypatch):
