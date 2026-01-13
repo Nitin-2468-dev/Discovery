@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
-from probe.core.map import Map, Entity, Document, Edge
+
 from probe.analysis.investigator import Investigator
+from probe.core.map import Document, Edge, Entity, Map
 
 
 def test_investigator_ingest_increments_domain_docs(tmp_path, monkeypatch):
@@ -10,14 +11,44 @@ def test_investigator_ingest_increments_domain_docs(tmp_path, monkeypatch):
     # Create entity with manual doc
     e = Entity(id=None, name="E1", type="device", confidence_score=0.6)
     e_id = m.add_entity(e)
-    m.add_document(Document(id=None, title="Manual", doc_type="manual", hash="h1", url="https://ex/manual.pdf", domain="low.example.com"))
-    m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=1, relation="has_document"))
+    m.add_document(
+        Document(
+            id=None,
+            title="Manual",
+            doc_type="manual",
+            hash="h1",
+            url="https://ex/manual.pdf",
+            domain="low.example.com",
+        )
+    )
+    m.add_edge(
+        Edge(
+            id=None,
+            from_type="entity",
+            from_id=e_id,
+            to_type="document",
+            to_id=1,
+            relation="has_document",
+        )
+    )
 
     now = datetime.now(timezone.utc).isoformat()
     # Add a domain with some datasheets
-    m.conn.execute("INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, trust_score, last_crawled_at) VALUES (?,?,?,?,?,?)", ("high.example.com", 10, 0, 0.9, 0.9, now))
+    m.conn.execute(
+        "INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, trust_score, last_crawled_at) VALUES (?,?,?,?,?,?)",
+        ("high.example.com", 10, 0, 0.9, 0.9, now),
+    )
     for i in range(3):
-        m.add_document(Document(id=None, title=f"H{i}", doc_type="datasheet", hash=f"h{i}", url=f"https://high/{i}.pdf", domain="high.example.com"))
+        m.add_document(
+            Document(
+                id=None,
+                title=f"H{i}",
+                doc_type="datasheet",
+                hash=f"h{i}",
+                url=f"https://high/{i}.pdf",
+                domain="high.example.com",
+            )
+        )
     m.conn.commit()
 
     # Check initial documents_found
@@ -31,8 +62,8 @@ def test_investigator_ingest_increments_domain_docs(tmp_path, monkeypatch):
     def fake_ingest(map_obj, fetch_result):
         return {"document_id": 123, "edges_created": 1, "outgoing_links": []}
 
-    monkeypatch.setattr('probe.crawl.fetcher.fetch', fake_fetch)
-    monkeypatch.setattr('probe.crawl.ingest.ingest_fetch_result', fake_ingest)
+    monkeypatch.setattr("probe.crawl.fetcher.fetch", fake_fetch)
+    monkeypatch.setattr("probe.crawl.ingest.ingest_fetch_result", fake_ingest)
 
     inv = Investigator(m, ingest_on_fetch=True)
     # limit to 1 seed so we increment documents_found by exactly 1

@@ -4,6 +4,7 @@
 Produces an HTML file with an interactive heatmap for a selected domain.
 """
 from __future__ import annotations
+
 import argparse
 import csv
 import json
@@ -23,23 +24,23 @@ def parse_args(argv=None):
 def main(argv=None):  # noqa: C901 - CLI plotting helper; scheduled for refactor
     args = parse_args(argv)
     rows = []
-    with open(args.csv, newline='', encoding='utf-8') as fh:
+    with open(args.csv, newline="", encoding="utf-8") as fh:
         r = csv.DictReader(fh)
         for row in r:
             ds = []
-            if row.get('domain_scores_json'):
+            if row.get("domain_scores_json"):
                 try:
-                    ds = json.loads(row['domain_scores_json'])
+                    ds = json.loads(row["domain_scores_json"])
                 except Exception:
                     pass
             # Find domain score
             sc = None
             for d in ds:
-                if d.get('domain') == args.domain:
-                    sc = d.get('composite_score')
+                if d.get("domain") == args.domain:
+                    sc = d.get("composite_score")
                     break
-            if sc is None and row.get('top_domain') == args.domain:
-                sc = float(row.get('top_score') or 0.0)
+            if sc is None and row.get("top_domain") == args.domain:
+                sc = float(row.get("top_score") or 0.0)
             if sc is None:
                 continue
             try:
@@ -50,7 +51,7 @@ def main(argv=None):  # noqa: C901 - CLI plotting helper; scheduled for refactor
                 continue
 
     if not rows:
-        print('No data for domain')
+        print("No data for domain")
         return 1
 
     # Build grid
@@ -71,15 +72,17 @@ def main(argv=None):  # noqa: C901 - CLI plotting helper; scheduled for refactor
     try:
         import plotly.graph_objects as go
     except Exception:
-        print('plotly not available; install plotly to produce interactive HTML')
+        print("plotly not available; install plotly to produce interactive HTML")
         return 2
 
-    fig = go.Figure(data=go.Heatmap(z=z, x=xs, y=ys, colorscale='Viridis'))
-    fig.update_layout(title=f'Heatmap: {args.domain}', xaxis_title=args.x, yaxis_title=args.y)
-    fig.write_html(args.out, include_plotlyjs='cdn')
-    print('Wrote', args.out)
+    fig = go.Figure(data=go.Heatmap(z=z, x=xs, y=ys, colorscale="Viridis"))
+    fig.update_layout(
+        title=f"Heatmap: {args.domain}", xaxis_title=args.x, yaxis_title=args.y
+    )
+    fig.write_html(args.out, include_plotlyjs="cdn")
+    print("Wrote", args.out)
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,5 +1,5 @@
-from probe.core.map import Map, Entity, Document, Edge
 from probe.analysis.gaps import GapDetector
+from probe.core.map import Document, Edge, Entity, Map
 
 
 def test_integration_suggests_domain_based_on_docs_and_stats(tmp_path):
@@ -12,17 +12,51 @@ def test_integration_suggests_domain_based_on_docs_and_stats(tmp_path):
 
     # Domain setup: low and high
     # Add documents and update domain stats to create different yield scores
-    doc1 = Document(id=None, title="Doc1", doc_type="datasheet", hash="h1", url="https://low.example.com/d1", domain="low.example.com")
+    doc1 = Document(
+        id=None,
+        title="Doc1",
+        doc_type="datasheet",
+        hash="h1",
+        url="https://low.example.com/d1",
+        domain="low.example.com",
+    )
     dlow_id = m.add_document(doc1)
-    m.add_edge(Edge(id=None, from_type="entity", from_id=eid, to_type="document", to_id=dlow_id, relation="has_document", confidence=1.0))
+    m.add_edge(
+        Edge(
+            id=None,
+            from_type="entity",
+            from_id=eid,
+            to_type="document",
+            to_id=dlow_id,
+            relation="has_document",
+            confidence=1.0,
+        )
+    )
     # low has many pages crawled but low document yield
     for _ in range(10):
         m.update_domain_stats("low.example.com", found_document=False)
 
     # high domain
-    doc2 = Document(id=None, title="Doc2", doc_type="manual", hash="h2", url="https://high.example.com/d2", domain="high.example.com")
+    doc2 = Document(
+        id=None,
+        title="Doc2",
+        doc_type="manual",
+        hash="h2",
+        url="https://high.example.com/d2",
+        domain="high.example.com",
+    )
     dhigh_id = m.add_document(doc2)
-    m.add_edge(Edge(id=None, from_type="entity", from_id=eid, to_type="document", to_id=dhigh_id, relation="has_document", confidence=1.0))
+    m.add_edge(
+        Edge(
+            id=None,
+            from_type="entity",
+            from_id=eid,
+            to_type="document",
+            to_id=dhigh_id,
+            relation="has_document",
+            confidence=1.0,
+        )
+    )
     # high has fewer pages but more documents found
     for _ in range(2):
         m.update_domain_stats("high.example.com", found_document=True)

@@ -1,5 +1,5 @@
-import sys
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -59,7 +59,9 @@ def test_wheel_contains_expected_files_and_nonempty(tmp_path: Path):
                 assert len(data) > 10, f"File {m} in wheel appears empty"
                 txt = data.decode("utf-8", errors="replace")
                 kws = EXPECTED_KEYWORDS.get(expected, [])
-                assert any(k in txt for k in kws), f"None of expected keywords {kws} found in {m}"
+                assert any(
+                    k in txt for k in kws
+                ), f"None of expected keywords {kws} found in {m}"
 
 
 def test_pyproject_license_has_text_or_license_file_present():
@@ -77,7 +79,9 @@ def test_pyproject_license_has_text_or_license_file_present():
             tomllib = None
 
     if tomllib is None:
-        pytest.skip("tomllib/tomli not available; skipping pyproject license text check")
+        pytest.skip(
+            "tomllib/tomli not available; skipping pyproject license text check"
+        )
 
     p = ROOT / "pyproject.toml"
     assert p.exists(), "pyproject.toml missing"
@@ -89,7 +93,9 @@ def test_pyproject_license_has_text_or_license_file_present():
     assert license_entry, "No [project].license in pyproject.toml"
     if isinstance(license_entry, dict):
         text = license_entry.get("text")
-        assert text and text.strip(), "[project].license.text in pyproject.toml is empty"
+        assert (
+            text and text.strip()
+        ), "[project].license.text in pyproject.toml is empty"
 
 
 def test_expected_symbols_present_in_source():
@@ -100,12 +106,12 @@ def test_expected_symbols_present_in_source():
 
     import probe.analysis.seed_generator as sg
 
-    assert (hasattr(sg, "SeedGenerator") or hasattr(sg, "generate_seeds")), (
-        "SeedGenerator or generate_seeds not found in probe.analysis.seed_generator"
-    )
+    assert hasattr(sg, "SeedGenerator") or hasattr(
+        sg, "generate_seeds"
+    ), "SeedGenerator or generate_seeds not found in probe.analysis.seed_generator"
 
     import probe.analysis.investigator as inv
 
-    assert hasattr(inv, "investigate") or hasattr(inv, "Investigator"), (
-        "investigate or Investigator not found in probe.analysis.investigator"
-    )
+    assert hasattr(inv, "investigate") or hasattr(
+        inv, "Investigator"
+    ), "investigate or Investigator not found in probe.analysis.investigator"

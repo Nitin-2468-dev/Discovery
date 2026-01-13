@@ -7,10 +7,10 @@ Provides an Ingestor class with richer features than the legacy helper.
 """
 
 from hashlib import sha256
+from typing import Any, Dict
 from urllib.parse import urlparse
-from typing import Dict, Any
 
-from probe.core.map import Map, Page, Document, Edge
+from probe.core.map import Document, Edge, Map, Page
 
 
 class Ingestor:
@@ -50,7 +50,9 @@ class Ingestor:
         self.map.update_domain_stats(domain, found_document=False)
 
         links = fetch_result.get("links") or []
-        edges_created, outgoing_links, external_links = self._process_links(links, domain, url, page_id)
+        edges_created, outgoing_links, external_links = self._process_links(
+            links, domain, url, page_id
+        )
 
         # Update metadata if any outgoing/external links were discovered
         metadata = fetch_result.get("metadata") or {}
@@ -81,7 +83,9 @@ class Ingestor:
             "external_links": external_links,
         }
 
-    def _ingest_pdf(self, fetch_result: Dict[str, Any], raw: bytes, domain: str) -> Dict[str, Any]:
+    def _ingest_pdf(
+        self, fetch_result: Dict[str, Any], raw: bytes, domain: str
+    ) -> Dict[str, Any]:
         """Create a Document from PDF bytes and update domain stats."""
         h = sha256(raw or b"").hexdigest()
         doc = Document(
@@ -133,7 +137,9 @@ class Ingestor:
             link_domain = parsed.netloc
             if link_domain == domain:
                 # Create a minimal page record for the linked URL (idempotent)
-                link_page = Page(id=None, url=link_url, domain=link_domain, title=link.get("text"))
+                link_page = Page(
+                    id=None, url=link_url, domain=link_domain, title=link.get("text")
+                )
                 link_page_id = self.map.add_page(link_page)
                 # create an edge page -> page
                 edge = Edge(

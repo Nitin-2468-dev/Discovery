@@ -4,9 +4,9 @@ Stores `domain -> last_crawled_iso` in a small JSON file (`.probe_state.json`).
 Provides get_last_crawled(domain) and set_last_crawled(domain, datetime).
 """
 
-from pathlib import Path
-from datetime import datetime
 import json
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 STATE_FILE = Path(".probe_state.json")

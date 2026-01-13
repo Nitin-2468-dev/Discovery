@@ -1,4 +1,5 @@
 import sqlite3
+
 from probe.core.schema import initialize_schema, validate_schema
 
 

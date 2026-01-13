@@ -1,6 +1,7 @@
-from typing import List, Dict, Any
-from probe.core.map import Map
+from typing import Any, Dict, List
+
 from probe.analysis.seed_generator import SeedGenerator
+from probe.core.map import Map
 
 
 def _load_gap_detector_cls():
@@ -15,7 +16,9 @@ def _load_gap_detector_cls():
             )
         return mod.GapDetector
     except Exception as e:
-        raise ImportError(f"Could not import GapDetector from probe.analysis.gaps: {e}") from e
+        raise ImportError(
+            f"Could not import GapDetector from probe.analysis.gaps: {e}"
+        ) from e
 
 
 def _domain_yield_score(map_obj: Map, seed_url: str) -> float:
@@ -41,11 +44,19 @@ class Investigator:
         # When True, fetched seed pages will be ingested into the provided Map
         self.ingest_on_fetch = bool(ingest_on_fetch)
 
-    def _maybe_apply_ingest_feedback(self, seed_url: str, ingested: Dict[str, Any]) -> None:
+    def _maybe_apply_ingest_feedback(
+        self, seed_url: str, ingested: Dict[str, Any]
+    ) -> None:
         """If ingest produced a document, increment the domain document count."""
         try:
-            domain = __import__("urllib.parse", fromlist=["urlparse"]).urlparse(seed_url).netloc
-            found_doc = bool(ingested.get("document_id")) or (ingested.get("edges_created", 0) > 0)
+            domain = (
+                __import__("urllib.parse", fromlist=["urlparse"])
+                .urlparse(seed_url)
+                .netloc
+            )
+            found_doc = bool(ingested.get("document_id")) or (
+                ingested.get("edges_created", 0) > 0
+            )
             for out in ingested.get("outgoing_links", []):
                 if out.lower().endswith(".pdf"):
                     found_doc = True
@@ -56,11 +67,15 @@ class Investigator:
             # best-effort: swallow errors and continue
             pass
 
-    def _fetch_seeds(self, seeds: List[str], fetch_timeout: float) -> List[Dict[str, Any]]:
+    def _fetch_seeds(
+        self, seeds: List[str], fetch_timeout: float
+    ) -> List[Dict[str, Any]]:
         """Perform best-effort fetches for seeds, ingesting if configured."""
         from probe.crawl.fetcher import fetch
 
-        seeds_sorted = sorted(seeds, key=lambda s: _domain_yield_score(self.map, s), reverse=True)
+        seeds_sorted = sorted(
+            seeds, key=lambda s: _domain_yield_score(self.map, s), reverse=True
+        )
         seed_results: List[Dict[str, Any]] = []
         for s in seeds_sorted:
             try:
@@ -69,7 +84,11 @@ class Investigator:
                 seed_results.append({"seed": s, "status_code": None, "error": str(e)})
                 continue
 
-            entry = {"seed": s, "status_code": r.get("status_code"), "error": r.get("error")}
+            entry = {
+                "seed": s,
+                "status_code": r.get("status_code"),
+                "error": r.get("error"),
+            }
 
             if getattr(self, "ingest_on_fetch", False):
                 try:
@@ -86,7 +105,15 @@ class Investigator:
 
         return seed_results
 
-    def investigate(self, entity_name: str, desired_doc_types: List[str], *, max_seeds: int = 10, dry_run: bool = True, fetch_timeout: float = 5.0) -> Dict[str, Any]:
+    def investigate(
+        self,
+        entity_name: str,
+        desired_doc_types: List[str],
+        *,
+        max_seeds: int = 10,
+        dry_run: bool = True,
+        fetch_timeout: float = 5.0,
+    ) -> Dict[str, Any]:
         gap_detector_cls = _load_gap_detector_cls()
 
         detector = gap_detector_cls(self.map)

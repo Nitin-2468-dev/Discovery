@@ -3,6 +3,7 @@
 This adapter delegates to `probe.crawl.fetcher.Fetcher` but provides a tiny stable shim
 that higher-level code (and tests) can import without depending on Fetcher internals.
 """
+
 from typing import Any, Dict
 
 from probe.crawl.fetcher import Fetcher

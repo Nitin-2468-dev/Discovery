@@ -7,12 +7,13 @@ Public API:
 This is an initial, test-driven implementation focusing on HTML cleaning and link extraction.
 """
 
-from typing import Tuple, List, Dict, Any
+import threading
+from typing import Any, Dict, List, Tuple
 from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
-import threading
+
 from probe.observability import get_logger
 
 logger = get_logger("fetcher")
@@ -160,8 +161,9 @@ class Fetcher:
                                 except Exception:
                                     # Then try HTTP-date formats (RFC-1123 etc.)
                                     try:
-                                        from email.utils import parsedate_to_datetime
                                         from datetime import datetime, timezone
+                                        from email.utils import \
+                                            parsedate_to_datetime
 
                                         dt = parsedate_to_datetime(ra)
                                         if dt.tzinfo is None:
@@ -263,8 +265,9 @@ class Fetcher:
                         ):
                             result["is_pdf"] = True
                             try:
-                                import pdfplumber
                                 from io import BytesIO
+
+                                import pdfplumber
 
                                 with pdfplumber.open(BytesIO(content)) as pdf:
                                     pages = [p.extract_text() or "" for p in pdf.pages]
@@ -330,8 +333,8 @@ def _ocr_pdf(pdf_bytes: bytes) -> str:
     This function is best-effort and may be slow; callers should guard by size/timeout.
     """
     try:
-        from pdf2image import convert_from_bytes
         import pytesseract
+        from pdf2image import convert_from_bytes
     except Exception as exc:
         raise ImportError("OCR dependencies not available") from exc
 

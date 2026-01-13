@@ -3,8 +3,9 @@
 This module must be non-empty so packaging and CI checks include it.
 """
 
-from typing import List, Dict, Any
 import types
+from typing import Any, Dict, List
+
 from probe.core.map import Map
 
 
@@ -20,7 +21,13 @@ class GapDetector:
       - recent: weight for recency boost (default 0.5)
     """
 
-    def __init__(self, map_obj: Map, *, weights: Dict[str, float] | None = None, normalize: str = "none"):
+    def __init__(
+        self,
+        map_obj: Map,
+        *,
+        weights: Dict[str, float] | None = None,
+        normalize: str = "none",
+    ):
         """Create a GapDetector.
 
         normalize: how to normalize per-domain document counts. Options:
@@ -42,7 +49,12 @@ class GapDetector:
             raise ValueError(f"invalid normalize option: {normalize!r}")
         self.normalize = normalize
 
-    def analyze_entity_gaps(self, entity_name: str, desired_doc_types: List[str], include_scores: bool = False) -> Dict[str, Any]:
+    def analyze_entity_gaps(
+        self,
+        entity_name: str,
+        desired_doc_types: List[str],
+        include_scores: bool = False,
+    ) -> Dict[str, Any]:
         """
         Analyze what's missing for an entity.
 
@@ -64,7 +76,7 @@ class GapDetector:
 
         # Use a lightweight query to fetch only document types for efficiency if available.
         # If the lighter-weight method exists but raises, fall back to the full-document query.
-        if hasattr(self.map, 'get_entity_document_types'):
+        if hasattr(self.map, "get_entity_document_types"):
             try:
                 existing_types = set(self.map.get_entity_document_types(entity_name))
             except Exception:
@@ -82,20 +94,24 @@ class GapDetector:
         # Gather candidate domains for missing types using a helper to keep this method small
         candidates = self._gather_candidates(missing) if missing else {}
 
-
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
+
         now.dt = datetime.now(timezone.utc)
 
         # Compute scores for candidate domains
-        scored, domain_scores = self._compute_domain_scores(candidates, now, include_scores)
+        scored, domain_scores = self._compute_domain_scores(
+            candidates, now, include_scores
+        )
         # Create suggested domain objects from sorted scored list
-        suggested_domains_objs = [types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]]
+        suggested_domains_objs = [
+            types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]
+        ]
 
         # support older Map versions without get_entity_document_count or get_entity_documents
-        if hasattr(self.map, 'get_entity_document_count'):
+        if hasattr(self.map, "get_entity_document_count"):
             doc_count = self.map.get_entity_document_count(entity_name)
-        elif hasattr(self.map, 'get_entity_documents'):
+        elif hasattr(self.map, "get_entity_documents"):
             doc_count = len(self.map.get_entity_documents(entity_name))
         else:
             doc_count = 0
@@ -115,39 +131,50 @@ class GapDetector:
 
         return result
 
-    def _compute_domain_scores(self, candidates: dict, now: types.SimpleNamespace, include_scores: bool):
+    def _compute_domain_scores(
+        self, candidates: dict, now: types.SimpleNamespace, include_scores: bool
+    ):
         """Compute composite scores and return a sorted scored list and domain_scores list."""
         scored = []
         domain_scores = []
         import math
 
         for domain_name, meta in candidates.items():
-            count = meta.get('count', 0)
-            pages = meta.get('pages', 0)
+            count = meta.get("count", 0)
+            pages = meta.get("pages", 0)
 
             # Apply normalization to counts as configured
             base = float(count)
-            if self.normalize in ('per_page', 'per_page_log'):
+            if self.normalize in ("per_page", "per_page_log"):
                 base = float(count) / max(1.0, float(pages or 0))
-            if self.normalize in ('log', 'per_page_log'):
+            if self.normalize in ("log", "per_page_log"):
                 base = math.log1p(base)
 
             # Get domain-level scores (yield, trust, recency) from helper
-            yield_score, trust_score, recent_score = self._get_domain_scores(domain_name, now)
+            yield_score, trust_score, recent_score = self._get_domain_scores(
+                domain_name, now
+            )
 
             # Use normalized base value for count contribution
-            score = self.w_count * float(base) + self.w_yield * float(yield_score) + self.w_trust * float(trust_score) + self.w_recent * float(recent_score)
+            score = (
+                self.w_count * float(base)
+                + self.w_yield * float(yield_score)
+                + self.w_trust * float(trust_score)
+                + self.w_recent * float(recent_score)
+            )
             scored.append((domain_name, score))
-            domain_scores.append({
-                "domain": domain_name,
-                "count": int(count),
-                "pages": int(pages),
-                "normalized_count": float(base),
-                "yield_score": float(yield_score),
-                "trust_score": float(trust_score),
-                "recent_score": float(recent_score),
-                "composite_score": float(score),
-            })
+            domain_scores.append(
+                {
+                    "domain": domain_name,
+                    "count": int(count),
+                    "pages": int(pages),
+                    "normalized_count": float(base),
+                    "yield_score": float(yield_score),
+                    "trust_score": float(trust_score),
+                    "recent_score": float(recent_score),
+                    "composite_score": float(score),
+                }
+            )
 
         scored.sort(key=lambda kv: kv[1], reverse=True)
         if include_scores:
@@ -162,7 +189,7 @@ class GapDetector:
         if not missing:
             return candidates
 
-        if hasattr(self.map, 'get_domains_with_doc_type'):
+        if hasattr(self.map, "get_domains_with_doc_type"):
             for t in missing:
                 self._gather_from_doc_type(t, candidates)
         else:
@@ -184,7 +211,7 @@ class GapDetector:
                 WHERE d.doc_type = ?
                 GROUP BY d.domain
                 """,
-                (doc_type,)
+                (doc_type,),
             )
             for row in cur.fetchall():
                 domain_name = row["domain"]
@@ -192,7 +219,9 @@ class GapDetector:
                 pages = int(row["pages"] or 0)
                 candidates.setdefault(domain_name, {"count": 0, "pages": pages})
                 candidates[domain_name]["count"] += cnt
-                candidates[domain_name]["pages"] = max(candidates[domain_name].get("pages", 0), pages)
+                candidates[domain_name]["pages"] = max(
+                    candidates[domain_name].get("pages", 0), pages
+                )
         except Exception:
             try:
                 for d in self.map.get_domains_with_doc_type(doc_type, limit=8):
@@ -208,28 +237,33 @@ class GapDetector:
         except TypeError:
             domains = self.map.get_high_yield_domains(limit=20)
         for d in domains:
-            candidates.setdefault(d.domain_name, {'count': 0, 'pages': getattr(d, 'pages_crawled', 0)})
+            candidates.setdefault(
+                d.domain_name, {"count": 0, "pages": getattr(d, "pages_crawled", 0)}
+            )
 
     def _get_domain_scores(self, domain_name: str, now: types.SimpleNamespace) -> tuple:
         """Return (yield_score, trust_score, recent_score) for a domain."""
         yield_score = 0.0
         trust_score = 0.5
         recent_score = 0.0
-        if hasattr(self.map, 'get_domain'):
+        if hasattr(self.map, "get_domain"):
             try:
                 d_obj = self.map.get_domain(domain_name)
                 if d_obj:
-                    yield_score = getattr(d_obj, 'yield_score', 0.0)
-                    trust_score = getattr(d_obj, 'trust_score', 0.5)
-                    last = getattr(d_obj, 'last_crawled_at', None)
+                    yield_score = getattr(d_obj, "yield_score", 0.0)
+                    trust_score = getattr(d_obj, "trust_score", 0.5)
+                    last = getattr(d_obj, "last_crawled_at", None)
                     if last:
                         try:
                             from datetime import datetime, timezone
+
                             last_dt = datetime.fromisoformat(last)
                             if last_dt.tzinfo is None:
                                 last_dt = last_dt.replace(tzinfo=timezone.utc)
                             days = (now.dt - last_dt).days
-                            recent_score = min(1.0, max(0.0, (30.0 - float(days)) / 30.0))
+                            recent_score = min(
+                                1.0, max(0.0, (30.0 - float(days)) / 30.0)
+                            )
                         except Exception:
                             recent_score = 0.0
             except Exception:

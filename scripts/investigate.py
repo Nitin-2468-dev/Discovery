@@ -5,10 +5,12 @@ Usage:
   python scripts/investigate.py --entity "ACME-PT6A" --types datasheet --out seeds.csv
 """
 from __future__ import annotations
+
 import argparse
 import csv
-from probe.core.map import Map
+
 from probe.analysis.investigator import Investigator
+from probe.core.map import Map
 
 
 def parse_args(argv=None):
@@ -30,7 +32,7 @@ def main(argv=None):
     m.close()
 
     seeds = result.get("seeds", [])
-    with open(args.out, "w", newline='', encoding='utf-8') as fh:
+    with open(args.out, "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["seed"])
         for s in seeds:
@@ -38,5 +40,6 @@ def main(argv=None):
     print(f"Wrote {len(seeds)} seeds to {args.out}")
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     raise SystemExit(main())

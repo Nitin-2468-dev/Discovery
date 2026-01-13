@@ -1,8 +1,8 @@
-import sys
-import subprocess
-from pathlib import Path
 import os
+import subprocess
+import sys
 import venv
+from pathlib import Path
 
 import pytest
 
@@ -41,12 +41,24 @@ def test_install_wheel_and_imports(tmp_path: Path):
         venv_python = venv_dir / "bin" / "python"
 
     # Upgrade pip and install the wheel
-    completed = subprocess.run([str(venv_python), "-m", "pip", "install", "--upgrade", "pip"], capture_output=True, text=True)
-    assert completed.returncode == 0, f"Failed to upgrade pip: {completed.stdout}\n{completed.stderr}"
+    completed = subprocess.run(
+        [str(venv_python), "-m", "pip", "install", "--upgrade", "pip"],
+        capture_output=True,
+        text=True,
+    )
+    assert (
+        completed.returncode == 0
+    ), f"Failed to upgrade pip: {completed.stdout}\n{completed.stderr}"
 
-    completed = subprocess.run([str(venv_python), "-m", "pip", "install", "--no-deps", str(wheel)], capture_output=True, text=True)
+    completed = subprocess.run(
+        [str(venv_python), "-m", "pip", "install", "--no-deps", str(wheel)],
+        capture_output=True,
+        text=True,
+    )
     if completed.returncode != 0:
-        raise RuntimeError(f"Failed to pip install wheel: {completed.stdout}\n{completed.stderr}")
+        raise RuntimeError(
+            f"Failed to pip install wheel: {completed.stdout}\n{completed.stderr}"
+        )
 
     # Run a python snippet inside the venv that imports the package and checks symbols
     check_code = (
@@ -59,5 +71,9 @@ def test_install_wheel_and_imports(tmp_path: Path):
         "sys.exit(0 if ok else 2)"
     )
 
-    completed = subprocess.run([str(venv_python), "-c", check_code], capture_output=True, text=True)
-    assert completed.returncode == 0, f"Import/symbol check failed in installed wheel: returncode={completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+    completed = subprocess.run(
+        [str(venv_python), "-c", check_code], capture_output=True, text=True
+    )
+    assert (
+        completed.returncode == 0
+    ), f"Import/symbol check failed in installed wheel: returncode={completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"

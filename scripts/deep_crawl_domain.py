@@ -15,14 +15,18 @@ def parse_args(argv: List[str] | None = None):
     p = argparse.ArgumentParser(description="Deep crawl domain and ingest pages")
     p.add_argument("--db", required=True, help="Path to DB file")
     p.add_argument("--domain", required=True, help="Domain to crawl (netloc)")
-    p.add_argument("--depth", type=int, default=1, help="Depth to follow outgoing internal links")
+    p.add_argument(
+        "--depth", type=int, default=1, help="Depth to follow outgoing internal links"
+    )
     p.add_argument("--limit", type=int, default=100, help="Maximum pages to fetch")
     return p.parse_args(argv)
 
 
 def get_pages_for_domain(m: Map, domain: str) -> List[dict]:
     # direct SQL access for simplicity
-    cur = m.conn.execute("SELECT id, url, metadata FROM pages WHERE domain = ?", (domain,))
+    cur = m.conn.execute(
+        "SELECT id, url, metadata FROM pages WHERE domain = ?", (domain,)
+    )
     out = []
     for r in cur.fetchall():
         md = json.loads(r[2]) if r[2] else {}
@@ -30,7 +34,9 @@ def get_pages_for_domain(m: Map, domain: str) -> List[dict]:
     return out
 
 
-def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):  # noqa: C901 - script helper; scheduled for refactor
+def run_deep_crawl(
+    db_path: str, domain: str, depth: int = 1, limit: int = 100
+):  # noqa: C901 - script helper; scheduled for refactor
     fetcher = __import__("probe.crawl.fetcher", fromlist=["fetch"])  # module
     m = Map(db_path)
 
@@ -78,6 +84,7 @@ def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):
                 if lurl.startswith("//"):
                     continue
                 from urllib.parse import urlparse
+
                 parsed = urlparse(lurl)
                 if parsed.netloc != domain:
                     continue

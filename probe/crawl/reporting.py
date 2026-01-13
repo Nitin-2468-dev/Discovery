@@ -1,8 +1,8 @@
 """Reporting helpers: CSV reports and failure log entries."""
 
-from pathlib import Path
-from datetime import datetime
 import csv
+from datetime import datetime
+from pathlib import Path
 
 CONSTRAINTS_LOG = Path("constraints.log")
 RUN_REPORTS_DIR = Path("run_reports")

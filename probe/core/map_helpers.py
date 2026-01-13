@@ -4,7 +4,8 @@ Some environments may have an older `Map` class loaded; this module ensures the 
 helpers `get_entity_document_types` and `get_entity_document_count` are available
 on the `Map` class regardless.
 """
-from typing import Optional, List
+
+from typing import List, Optional
 
 from .map import Map
 
@@ -22,7 +23,9 @@ def get_entity_document_types(self, entity_name: str) -> List[str]:
     return [row[0] for row in cursor.fetchall()]
 
 
-def get_entity_document_count(self, entity_name: str, doc_type: Optional[str] = None) -> int:
+def get_entity_document_count(
+    self, entity_name: str, doc_type: Optional[str] = None
+) -> int:
     query = """
         SELECT COUNT(*) FROM documents d
         JOIN edges e ON e.to_id = d.id AND e.to_type = 'document'
@@ -38,10 +41,10 @@ def get_entity_document_count(self, entity_name: str, doc_type: Optional[str] = 
 
 
 # Attach methods if not present
-if not hasattr(Map, 'get_entity_document_types'):
+if not hasattr(Map, "get_entity_document_types"):
     Map.get_entity_document_types = get_entity_document_types
 
-if not hasattr(Map, 'get_entity_document_count'):
+if not hasattr(Map, "get_entity_document_count"):
     Map.get_entity_document_count = get_entity_document_count
 
 
@@ -60,9 +63,10 @@ def get_domains_with_doc_type(self, doc_type: str, limit: int = 5):
     )
     # Build Domain objects lazily to avoid import cycles
     from .map import Domain
+
     return [Domain(**dict(row)) for row in cursor.fetchall()]
 
 
 # Attach domain helper if missing
-if not hasattr(Map, 'get_domains_with_doc_type'):
+if not hasattr(Map, "get_domains_with_doc_type"):
     Map.get_domains_with_doc_type = get_domains_with_doc_type

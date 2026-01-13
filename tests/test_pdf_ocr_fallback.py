@@ -1,4 +1,5 @@
 import httpx
+
 from probe.crawl.fetcher import Fetcher
 
 
@@ -18,8 +19,8 @@ def test_pdf_ocr_fallback(monkeypatch):
     )
 
     # make pdfplumber.open raise
-    import types
     import sys
+    import types
 
     fake_pdfplumber = types.SimpleNamespace(
         open=lambda f: (_ for _ in ()).throw(Exception("fail"))

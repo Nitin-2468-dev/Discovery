@@ -10,9 +10,10 @@ Returns dict with keys:
 - links: list[dict] with keys 'url' and 'text'
 """
 
-from bs4 import BeautifulSoup
+from typing import Dict, List
 from urllib.parse import urljoin, urlparse
-from typing import List, Dict
+
+from bs4 import BeautifulSoup
 
 
 def clean_html(html: str, base_url: str) -> Dict:

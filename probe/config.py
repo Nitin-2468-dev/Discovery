@@ -8,9 +8,9 @@ Behavior:
 - Provides sensible defaults when keys are missing.
 """
 
+import json
 from pathlib import Path
 from typing import Any, Dict
-import json
 
 DEFAULTS: Dict[str, Any] = {
     "concurrency": 1,

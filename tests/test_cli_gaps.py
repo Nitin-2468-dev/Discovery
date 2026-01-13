@@ -1,6 +1,6 @@
-from click.testing import CliRunner
 import json
 
+from click.testing import CliRunner
 
 from cli import cli
 
@@ -11,7 +11,9 @@ class FakeDomain:
 
 
 class FakeMapForCLI:
-    def __init__(self, db=None, entity_present=True, doc_types=None, confidence=0.0, doc_count=0):
+    def __init__(
+        self, db=None, entity_present=True, doc_types=None, confidence=0.0, doc_count=0
+    ):
         self._entity_present = entity_present
         self._doc_types = doc_types or []
         self._confidence = confidence
@@ -53,7 +55,9 @@ def test_gaps_cli_shows_missing_types_and_domains(monkeypatch):
     runner = CliRunner()
 
     def fake_map(db):
-        return FakeMapForCLI(entity_present=True, doc_types=["manual"], confidence=0.8, doc_count=2)
+        return FakeMapForCLI(
+            entity_present=True, doc_types=["manual"], confidence=0.8, doc_count=2
+        )
 
     monkeypatch.setattr("cli.Map", fake_map)
 
@@ -69,11 +73,15 @@ def test_gaps_cli_json_output(monkeypatch):
     runner = CliRunner()
 
     def fake_map(db):
-        return FakeMapForCLI(entity_present=True, doc_types=["manual"], confidence=0.6, doc_count=1)
+        return FakeMapForCLI(
+            entity_present=True, doc_types=["manual"], confidence=0.6, doc_count=1
+        )
 
     monkeypatch.setattr("cli.Map", fake_map)
 
-    res = runner.invoke(cli, ["gaps", "exists", "--json", "--types", "manual,datasheet"])
+    res = runner.invoke(
+        cli, ["gaps", "exists", "--json", "--types", "manual,datasheet"]
+    )
     assert res.exit_code == 0
 
     parsed = json.loads(res.output)

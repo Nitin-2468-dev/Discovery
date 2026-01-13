@@ -3,4 +3,4 @@ def test_map_helper_attached_on_import():
     from probe.core.map import Map
 
     # The Map class should expose `get_domains_with_doc_type` (either directly or via attached helper)
-    assert hasattr(Map, 'get_domains_with_doc_type')
+    assert hasattr(Map, "get_domains_with_doc_type")

@@ -12,18 +12,19 @@ Commands:
 - summary: Display map statistics
 """
 
-import click
-import sys
 import logging
+import sys
 from pathlib import Path
+
+import click
 
 logger = logging.getLogger(__name__)
 
 # Add probe package to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+from probe.core.map import Document, Edge, Entity, Map  # noqa: E402
 from probe.core.schema import initialize_schema, validate_schema  # noqa: E402
-from probe.core.map import Map, Entity, Document, Edge  # noqa: E402
 # Expose GraphVisualizer at module-level for tests and simple patches
 from probe.visualization.graph_viz import GraphVisualizer  # noqa: E402
 
@@ -191,13 +192,19 @@ def summary(db):
 
 
 @cli.command()
-@click.option('--entity', default=None, help='Focus on specific entity')
-@click.option('--depth', default=2, type=int, help='Depth for entity subgraph')
-@click.option('--output', default='graph.html', help='Output HTML file')
-@click.option('--export-png', default=None, help='Export a PNG snapshot (path)')
-@click.option('--export-svg', default=None, help='Export an SVG snapshot (path)')
-@click.option('--open', 'open_in_browser', is_flag=True, default=False, help='Open the generated HTML in the default web browser')
-@click.option('--db', default='probe.db')
+@click.option("--entity", default=None, help="Focus on specific entity")
+@click.option("--depth", default=2, type=int, help="Depth for entity subgraph")
+@click.option("--output", default="graph.html", help="Output HTML file")
+@click.option("--export-png", default=None, help="Export a PNG snapshot (path)")
+@click.option("--export-svg", default=None, help="Export an SVG snapshot (path)")
+@click.option(
+    "--open",
+    "open_in_browser",
+    is_flag=True,
+    default=False,
+    help="Open the generated HTML in the default web browser",
+)
+@click.option("--db", default="probe.db")
 def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
     """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
 
@@ -237,6 +244,7 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
     if open_in_browser:
         try:
             import webbrowser
+
             webbrowser.open(output_file)
             click.echo("Opened in default browser")
         except Exception:
@@ -293,25 +301,64 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
     default="manual,bulletin,spec",
     help="Comma-separated desired document types",
 )
-@click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
-@click.option("--metrics", is_flag=True, default=False, help="Include per-domain scoring breakdown in output")
-@click.option("--weight-count", default=None, type=float, help="Weight for domain frequency across missing types")
-@click.option("--weight-yield", default=None, type=float, help="Weight for domain yield_score")
-@click.option("--weight-trust", default=None, type=float, help="Weight for domain trust_score")
-@click.option("--weight-recent", default=None, type=float, help="Weight for recent crawl recency boost")
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
+    help="Output machine-readable JSON",
+)
+@click.option(
+    "--metrics",
+    is_flag=True,
+    default=False,
+    help="Include per-domain scoring breakdown in output",
+)
+@click.option(
+    "--weight-count",
+    default=None,
+    type=float,
+    help="Weight for domain frequency across missing types",
+)
+@click.option(
+    "--weight-yield", default=None, type=float, help="Weight for domain yield_score"
+)
+@click.option(
+    "--weight-trust", default=None, type=float, help="Weight for domain trust_score"
+)
+@click.option(
+    "--weight-recent",
+    default=None,
+    type=float,
+    help="Weight for recent crawl recency boost",
+)
 @click.option("--db", default="probe.db")
-def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weight_trust, weight_recent, db):
+def gaps(
+    entity_name,
+    types,
+    as_json,
+    metrics,
+    weight_count,
+    weight_yield,
+    weight_trust,
+    weight_recent,
+    db,
+):
     """Analyze knowledge gaps for an entity."""
     from probe.analysis.gaps import GapDetector
 
     m = Map(db)
 
-    weights = _build_gap_weights(weight_count, weight_yield, weight_trust, weight_recent)
+    weights = _build_gap_weights(
+        weight_count, weight_yield, weight_trust, weight_recent
+    )
 
     detector = GapDetector(m, weights=weights)
 
     desired_types = [t.strip() for t in types.split(",") if t.strip()]
-    analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
+    analysis = detector.analyze_entity_gaps(
+        entity_name, desired_types, include_scores=metrics
+    )
 
     if as_json:
         import json
@@ -486,11 +533,8 @@ def score(
     if keywords:
         kws = [k.strip() for k in keywords.split(",") if k.strip()]
 
-    from probe.crawl.scorer import (
-        RelevanceScorer,
-        KeywordDensityScorer,
-        BoilerplateDetector,
-    )
+    from probe.crawl.scorer import (BoilerplateDetector, KeywordDensityScorer,
+                                    RelevanceScorer)
 
     components = [
         KeywordDensityScorer(keywords=kws, weight=1.0),
@@ -607,11 +651,7 @@ def _load_blocked_set(bd_flag, cfg):
 def _normalize_concurrency_flag(concurrency, cfg):
     """Normalize concurrency flag with config precedence."""
     try:
-        if (
-            concurrency == 1
-            and cfg.get("concurrency")
-            and cfg.get("concurrency") != 1
-        ):
+        if concurrency == 1 and cfg.get("concurrency") and cfg.get("concurrency") != 1:
             return int(cfg.get("concurrency"))
         return int(concurrency)
     except Exception:
@@ -646,7 +686,9 @@ def _normalize_min_delay_flag(min_delay, cfg):
         return 0.0
 
 
-def _apply_sequential_politeness(u, domain_last_time, per_domain_delay, persistent_politeness):
+def _apply_sequential_politeness(
+    u, domain_last_time, per_domain_delay, persistent_politeness
+):
     """Enforce per-domain politeness including optional persistent politeness state."""
     try:
         domain = __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc
@@ -664,7 +706,9 @@ def _apply_sequential_politeness(u, domain_last_time, per_domain_delay, persiste
                     last = last_mon
                     domain_last_time[domain] = last
             except Exception:
-                logger.debug("Persistent politeness failed for %s", domain, exc_info=True)
+                logger.debug(
+                    "Persistent politeness failed for %s", domain, exc_info=True
+                )
 
         now = __import__("time").monotonic()
         wait = max(0, per_domain_delay - (now - last))
@@ -672,7 +716,9 @@ def _apply_sequential_politeness(u, domain_last_time, per_domain_delay, persiste
             __import__("time").sleep(wait)
         domain_last_time[domain] = __import__("time").monotonic()
     except Exception as exc:
-        logger.debug("Per-domain delay computation failed for %s: %s", u, exc, exc_info=True)
+        logger.debug(
+            "Per-domain delay computation failed for %s: %s", u, exc, exc_info=True
+        )
 
 
 def _check_block_and_robots(u, blocked_set, opts, append_failure_log):
@@ -754,7 +800,9 @@ def _make_base_row(u_ret, res, success_flag):
     return {
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "url": u_ret,
-        "domain": __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u_ret).netloc,
+        "domain": __import__("urllib.parse", fromlist=["urlparse"])
+        .urlparse(u_ret)
+        .netloc,
         "status_code": res.get("status_code") or 0,
         "success": "True" if success_flag else "False",
         "error_message": res.get("error") or "",
@@ -820,9 +868,9 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
 
     if opts.get("score"):
         try:
-            cleaned = __import__("probe.crawl.cleaner", fromlist=["clean_html"]).clean_html(
-                res.get("raw_bytes").decode("utf-8", errors="ignore"), u_ret
-            )
+            cleaned = __import__(
+                "probe.crawl.cleaner", fromlist=["clean_html"]
+            ).clean_html(res.get("raw_bytes").decode("utf-8", errors="ignore"), u_ret)
         except Exception:
             cleaned = {"text": "", "boilerplate_ratio": 0.0}
 
@@ -831,15 +879,13 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
 
         kws = []
         if opts.get("score_keywords"):
-            kws = [k.strip() for k in opts.get("score_keywords").split(",") if k.strip()]
+            kws = [
+                k.strip() for k in opts.get("score_keywords").split(",") if k.strip()
+            ]
 
-        from probe.crawl.scorer import (
-            RelevanceScorer,
-            KeywordDensityScorer,
-            BoilerplateDetector,
-            LinkDensityScorer,
-            EntityRegexScorer,
-        )
+        from probe.crawl.scorer import (BoilerplateDetector, EntityRegexScorer,
+                                        KeywordDensityScorer,
+                                        LinkDensityScorer, RelevanceScorer)
 
         components = [
             KeywordDensityScorer(keywords=kws, weight=1.0),
@@ -854,7 +900,9 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
         total = scorer.score(page)
 
         row["score"] = float(total)
-        row["top_component"] = (max(comps.items(), key=lambda kv: kv[1])[0] if comps else "")
+        row["top_component"] = (
+            max(comps.items(), key=lambda kv: kv[1])[0] if comps else ""
+        )
         import json
 
         row["component_scores"] = json.dumps(comps)
@@ -865,7 +913,9 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
             click.echo(f"    Persisted scoring report id: {rpt_id}")
 
     if opts.get("ingest") and m:
-        out = __import__("probe.crawl.ingest", fromlist=["ingest_fetch_result"]).ingest_fetch_result(m, res)
+        out = __import__(
+            "probe.crawl.ingest", fromlist=["ingest_fetch_result"]
+        ).ingest_fetch_result(m, res)
         click.echo(f"    Ingested: {out}")
 
     return True
@@ -874,12 +924,19 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
 def _append_exception_row(u, exc, rows, opts, append_failure_log):
     """Append a row representing an exception during fetching and record the failure."""
     if not opts["no_log_failures"]:
-        append_failure_log(u, str(exc), opts["file"], f"cli seeds run {opts['file']} --limit {opts['limit']}")
+        append_failure_log(
+            u,
+            str(exc),
+            opts["file"],
+            f"cli seeds run {opts['file']} --limit {opts['limit']}",
+        )
     rows.append(
         {
             "timestamp": __import__("datetime").datetime.now().isoformat(),
             "url": u,
-            "domain": __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc,
+            "domain": __import__("urllib.parse", fromlist=["urlparse"])
+            .urlparse(u)
+            .netloc,
             "status_code": 0,
             "success": False,
             "error_message": str(exc),
@@ -916,7 +973,9 @@ def _maybe_set_last_crawled(d, opts):
             pass
 
 
-def _apply_concurrent_politeness(d, domain_last_time, per_domain_delay, persistent_politeness):
+def _apply_concurrent_politeness(
+    d, domain_last_time, per_domain_delay, persistent_politeness
+):
     """Compute and apply per-domain politeness for concurrent worker.
 
     This mirrors the logic used for sequential politeness but operates on a domain
@@ -943,10 +1002,14 @@ def _apply_concurrent_politeness(d, domain_last_time, per_domain_delay, persiste
         if wait > 0:
             __import__("time").sleep(wait)
     except Exception as exc:
-        logger.debug("Per-domain delay computation failed for %s: %s", d, exc, exc_info=True)
+        logger.debug(
+            "Per-domain delay computation failed for %s: %s", d, exc, exc_info=True
+        )
 
 
-def _run_sequential_seeds(urls, opts, m, blocked_set, append_failure_log, tqdm, no_progress):
+def _run_sequential_seeds(
+    urls, opts, m, blocked_set, append_failure_log, tqdm, no_progress
+):
     """Run seeds sequentially. Returns (rows, successes, failures)."""
     successes = 0
     failures = 0
@@ -970,7 +1033,9 @@ def _run_sequential_seeds(urls, opts, m, blocked_set, append_failure_log, tqdm, 
             click.echo(f"  ✗ {row['error_message']}")
             continue
 
-        _apply_sequential_politeness(u, domain_last_time, opts["per_domain_delay"], opts["persistent_politeness"])
+        _apply_sequential_politeness(
+            u, domain_last_time, opts["per_domain_delay"], opts["persistent_politeness"]
+        )
 
         try:
             u_ret, res = _perform_fetch(u, opts)
@@ -991,10 +1056,12 @@ def _run_sequential_seeds(urls, opts, m, blocked_set, append_failure_log, tqdm, 
 
 def _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log):  # noqa: C901
     """Run seeds concurrently using ThreadPoolExecutor. Returns (rows, successes, failures)."""
-    from concurrent.futures import ThreadPoolExecutor, as_completed
     import threading
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    click.echo(f"Running with concurrency={opts['concurrency']}, per_domain_delay={opts['per_domain_delay']}")
+    click.echo(
+        f"Running with concurrency={opts['concurrency']}, per_domain_delay={opts['per_domain_delay']}"
+    )
     domain_locks = {}
     domain_last_time = {}
     domain_lock = threading.Lock()
@@ -1010,14 +1077,29 @@ def _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log):  # no
 
         _ensure_domain_lock_for(d, domain_lock, domain_locks)
         with domain_locks[d]:
-            _apply_concurrent_politeness(d, domain_last_time, opts["per_domain_delay"], opts["persistent_politeness"])
+            _apply_concurrent_politeness(
+                d,
+                domain_last_time,
+                opts["per_domain_delay"],
+                opts["persistent_politeness"],
+            )
 
             # Blocklist check only (robots are handled in sequential mode)
             if d in blocked_set:
-                res = {"status_code": 0, "error": "blocked_by_blocklist", "content_type": "", "content_length": 0}
+                res = {
+                    "status_code": 0,
+                    "error": "blocked_by_blocklist",
+                    "content_type": "",
+                    "content_length": 0,
+                }
                 row = _make_base_row(u, res, False)
                 if not opts["no_log_failures"]:
-                    append_failure_log(u, "blocked_by_blocklist", opts["file"], f"cli seeds run {opts['file']} --limit {opts['limit']}")
+                    append_failure_log(
+                        u,
+                        "blocked_by_blocklist",
+                        opts["file"],
+                        f"cli seeds run {opts['file']} --limit {opts['limit']}",
+                    )
                 return row, False
 
             try:
@@ -1029,16 +1111,25 @@ def _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log):  # no
                 # persist domain last-crawled if enabled
                 _maybe_set_last_crawled(d, opts)
 
-                row, ok = _process_fetch_result(u, u_ret, res, opts, m, append_failure_log)
+                row, ok = _process_fetch_result(
+                    u, u_ret, res, opts, m, append_failure_log
+                )
                 return row, ok
             except Exception as exc:
                 logger.exception("Error fetching seed %s", u)
                 if not opts["no_log_failures"]:
-                    append_failure_log(u, str(exc), opts["file"], f"cli seeds run {opts['file']} --limit {opts['limit']}")
+                    append_failure_log(
+                        u,
+                        str(exc),
+                        opts["file"],
+                        f"cli seeds run {opts['file']} --limit {opts['limit']}",
+                    )
                 err_row = {
                     "timestamp": __import__("datetime").datetime.now().isoformat(),
                     "url": u,
-                    "domain": __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc,
+                    "domain": __import__("urllib.parse", fromlist=["urlparse"])
+                    .urlparse(u)
+                    .netloc,
                     "status_code": 0,
                     "success": False,
                     "error_message": str(exc),
@@ -1198,8 +1289,8 @@ def seeds_run(
     Implementation delegates the sequential and concurrent processing to helpers
     so the CLI function remains concise and testable.
     """
+    from probe.crawl.reporting import append_failure_log, write_csv_report
     from probe.crawl.seed_loader import load_file, summarize
-    from probe.crawl.reporting import write_csv_report, append_failure_log
 
     click.echo(f"Loading seeds from: {file}")
     urls = load_file(file)[:limit]
@@ -1219,6 +1310,7 @@ def seeds_run(
 
     try:
         from tqdm import tqdm
+
         if not config.get("tqdm", True):
             tqdm = None
     except Exception:
@@ -1256,9 +1348,13 @@ def seeds_run(
     }
 
     if concurrency <= 1:
-        rows, successes, failures = _run_sequential_seeds(urls, opts, m, blocked_set, append_failure_log, tqdm, no_progress)
+        rows, successes, failures = _run_sequential_seeds(
+            urls, opts, m, blocked_set, append_failure_log, tqdm, no_progress
+        )
     else:
-        rows, successes, failures = _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log)
+        rows, successes, failures = _run_concurrent_seeds(
+            urls, opts, m, blocked_set, append_failure_log
+        )
 
     if m:
         m.close()
@@ -1275,18 +1371,24 @@ def seeds_run(
     click.echo(f"Done. Successes: {successes}. Failures: {failures}.")
 
 
-
-
-
-@seeds.command(name='gen')
-@click.argument('entity_name')
-@click.option('--type', 'doc_type', default='manual', help='Document type to generate seeds for')
-@click.option('--max', 'max_seeds', default=10, type=int, help='Maximum number of seeds to generate')
-@click.option('--db', default='probe.db', help='Database file path')
-@click.option('--json', 'as_json', is_flag=True, default=False, help='Output JSON')
+@seeds.command(name="gen")
+@click.argument("entity_name")
+@click.option(
+    "--type", "doc_type", default="manual", help="Document type to generate seeds for"
+)
+@click.option(
+    "--max",
+    "max_seeds",
+    default=10,
+    type=int,
+    help="Maximum number of seeds to generate",
+)
+@click.option("--db", default="probe.db", help="Database file path")
+@click.option("--json", "as_json", is_flag=True, default=False, help="Output JSON")
 def seeds_gen(entity_name, doc_type, max_seeds, db, as_json):
     """Generate seed URLs for an entity and document type."""
     import json as _json
+
     from probe.analysis.seed_generator import SeedGenerator
 
     m = Map(db)
@@ -1294,7 +1396,11 @@ def seeds_gen(entity_name, doc_type, max_seeds, db, as_json):
     seeds = sg.generate_seeds(entity_name, doc_type, max_seeds=max_seeds)
 
     if as_json:
-        click.echo(_json.dumps({'entity': entity_name, 'doc_type': doc_type, 'seeds': seeds}, indent=2))
+        click.echo(
+            _json.dumps(
+                {"entity": entity_name, "doc_type": doc_type, "seeds": seeds}, indent=2
+            )
+        )
     else:
         click.echo(f"Seeds for {entity_name} ({doc_type}):")
         for s in seeds:
@@ -1316,26 +1422,43 @@ def health_check(url, timeout, max_retries, backoff_factor):
     res = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch(
         url, timeout=timeout, max_retries=max_retries, backoff_factor=backoff_factor
     )
-    click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}, Error: {res.get('error')}")
-    if res.get('is_pdf'):
-        click.echo(f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}")
+    click.echo(
+        f"Status: {res.get('status_code')}, Type: {res.get('content_type')}, Error: {res.get('error')}"
+    )
+    if res.get("is_pdf"):
+        click.echo(
+            f"PDF pages: {res.get('metadata', {}).get('pages')}, text_len: {len(res.get('text',''))}"
+        )
 
 
-@cli.command(name='investigate')
-@click.argument('entity_name')
-@click.option('--types', default='manual,bulletin,spec', help='Comma-separated desired document types')
-@click.option('--max-seeds', default=10, type=int, help='Maximum number of seeds to generate')
-@click.option('--no-dry-run', 'dry_run', flag_value=False, default=True, help='Perform a limited fetch pass for generated seeds')
-@click.option('--db', default='probe.db', help='Database file path')
-@click.option('--json', 'as_json', is_flag=True, default=False, help='Output JSON')
+@cli.command(name="investigate")
+@click.argument("entity_name")
+@click.option(
+    "--types",
+    default="manual,bulletin,spec",
+    help="Comma-separated desired document types",
+)
+@click.option(
+    "--max-seeds", default=10, type=int, help="Maximum number of seeds to generate"
+)
+@click.option(
+    "--no-dry-run",
+    "dry_run",
+    flag_value=False,
+    default=True,
+    help="Perform a limited fetch pass for generated seeds",
+)
+@click.option("--db", default="probe.db", help="Database file path")
+@click.option("--json", "as_json", is_flag=True, default=False, help="Output JSON")
 def investigate(entity_name, types, max_seeds, dry_run, db, as_json):
     """Run a short investigator: gap detection -> seed generation -> optional limited fetch."""
     import json as _json
+
     from probe.analysis.investigator import Investigator
 
     m = Map(db)
     inv = Investigator(m)
-    desired = [t.strip() for t in types.split(',') if t.strip()]
+    desired = [t.strip() for t in types.split(",") if t.strip()]
     res = inv.investigate(entity_name, desired, max_seeds=max_seeds, dry_run=dry_run)
 
     if as_json:
@@ -1343,25 +1466,38 @@ def investigate(entity_name, types, max_seeds, dry_run, db, as_json):
     else:
         click.echo(f"Investigation for {entity_name} (dry_run={dry_run}):")
         click.echo(f"  Missing types: {', '.join(res['gap'].get('missing_types', []))}")
-        click.echo(f"  Suggested domains: {', '.join(res['gap'].get('suggested_domains', []))}")
+        click.echo(
+            f"  Suggested domains: {', '.join(res['gap'].get('suggested_domains', []))}"
+        )
         click.echo(f"  Seeds: {len(res.get('seeds', []))}")
-        for s in res.get('seeds', []):
+        for s in res.get("seeds", []):
             click.echo(f"    • {s}")
         if not dry_run:
             click.echo("  Seed fetch results:")
-            for r in res.get('results', []):
-                click.echo(f"    • {r.get('seed')} -> {r.get('status_code')} {r.get('error')}")
+            for r in res.get("results", []):
+                click.echo(
+                    f"    • {r.get('seed')} -> {r.get('status_code')} {r.get('error')}"
+                )
 
     m.close()
 
-@cli.command(name='analyze-crawl')
-@click.option('--url', default=None, help='Filter reports for a specific URL')
-@click.option('--page-id', default=None, type=int, help='Filter reports for a specific page id')
-@click.option('--since', default=None, help='ISO datetime (inclusive) to filter from')
-@click.option('--until', default=None, help='ISO datetime (inclusive) to filter until')
-@click.option('--format', 'fmt', default='csv', type=click.Choice(['csv','md']), help='Output format')
-@click.option('--out', default=None, help='Output path (file)')
-@click.option('--db', default='probe.db', help='Database file path')
+
+@cli.command(name="analyze-crawl")
+@click.option("--url", default=None, help="Filter reports for a specific URL")
+@click.option(
+    "--page-id", default=None, type=int, help="Filter reports for a specific page id"
+)
+@click.option("--since", default=None, help="ISO datetime (inclusive) to filter from")
+@click.option("--until", default=None, help="ISO datetime (inclusive) to filter until")
+@click.option(
+    "--format",
+    "fmt",
+    default="csv",
+    type=click.Choice(["csv", "md"]),
+    help="Output format",
+)
+@click.option("--out", default=None, help="Output path (file)")
+@click.option("--db", default="probe.db", help="Database file path")
 def analyze_crawl(url, page_id, since, until, fmt, out, db):
     """Export scoring reports to CSV or markdown with optional filters."""
     click.echo("Analyzing scoring reports...")
@@ -1402,12 +1538,24 @@ def analyze_crawl(url, page_id, since, until, fmt, out, db):
 
     m.close()
 
-@cli.command(name='export')
-@click.argument('entity_name')
-@click.option('--format', 'fmt', default='md', type=click.Choice(['csv', 'md']), help='Output format')
-@click.option('--out', default=None, help='Output path (file)')
-@click.option('--top-n', default=None, type=int, help='Limit to top N documents (by existence order)')
-@click.option('--db', default='probe.db', help='Database file path')
+
+@cli.command(name="export")
+@click.argument("entity_name")
+@click.option(
+    "--format",
+    "fmt",
+    default="md",
+    type=click.Choice(["csv", "md"]),
+    help="Output format",
+)
+@click.option("--out", default=None, help="Output path (file)")
+@click.option(
+    "--top-n",
+    default=None,
+    type=int,
+    help="Limit to top N documents (by existence order)",
+)
+@click.option("--db", default="probe.db", help="Database file path")
 def export(entity_name, fmt, out, top_n, db):
     """Export an entity's documents and scores to CSV or Markdown."""
     click.echo(f"Exporting entity: {entity_name}")

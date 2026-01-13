@@ -1,8 +1,10 @@
-from click.testing import CliRunner
-from pathlib import Path
-from cli import cli
-import httpx
 import json
+from pathlib import Path
+
+import httpx
+from click.testing import CliRunner
+
+from cli import cli
 
 
 def test_config_concurrency_precedence(tmp_path, monkeypatch):

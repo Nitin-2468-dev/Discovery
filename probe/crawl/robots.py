@@ -11,14 +11,13 @@ Behavior:
 - On errors fetching/parsing, treats as permissive (returns True) and logs nothing
 """
 
-from urllib.parse import urlparse
-from urllib.robotparser import RobotFileParser
+import threading
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-import threading
+from urllib.parse import urlparse
+from urllib.robotparser import RobotFileParser
 
 import httpx
-
 
 CACHE_TTL = timedelta(hours=24)
 

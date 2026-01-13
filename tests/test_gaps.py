@@ -1,5 +1,5 @@
-from probe.core.map import Map, Entity, Document, Edge
 from probe.analysis.gaps import GapDetector
+from probe.core.map import Document, Edge, Entity, Map
 
 
 def test_gap_detection_missing_types(tmp_path):

@@ -1,11 +1,14 @@
-from click.testing import CliRunner
 import json
+
+from click.testing import CliRunner
 
 from cli import cli
 
 
 class FakeDomain:
-    def __init__(self, domain_name, yield_score=0.5, trust_score=0.5, last_crawled_at=None):
+    def __init__(
+        self, domain_name, yield_score=0.5, trust_score=0.5, last_crawled_at=None
+    ):
         self.domain_name = domain_name
         self.yield_score = yield_score
         self.trust_score = trust_score
@@ -23,7 +26,10 @@ class FakeMapForMetrics:
         return []
 
     def get_high_yield_domains(self, limit=5, min_pages=1):
-        return [FakeDomain("a.example.com", yield_score=0.1), FakeDomain("b.example.com", yield_score=0.9)]
+        return [
+            FakeDomain("a.example.com", yield_score=0.1),
+            FakeDomain("b.example.com", yield_score=0.9),
+        ]
 
     def get_domain(self, name):
         if name == "a.example.com":
@@ -42,7 +48,9 @@ def test_cli_metrics_json(monkeypatch):
 
     monkeypatch.setattr("cli.Map", fake_map)
 
-    res = runner.invoke(cli, ["gaps", "E", "--types", "manual,datasheet", "--json", "--metrics"])
+    res = runner.invoke(
+        cli, ["gaps", "E", "--types", "manual,datasheet", "--json", "--metrics"]
+    )
     assert res.exit_code == 0
 
     parsed = json.loads(res.output)

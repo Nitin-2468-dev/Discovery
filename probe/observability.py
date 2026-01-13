@@ -7,8 +7,8 @@ Provides:
 Metrics attempts to use prometheus_client if available, otherwise falls back to a simple in-memory collector useful for tests.
 """
 
-from typing import Dict, Any, TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     # Help static type checkers and linters (prometheus_client is optional at runtime)

@@ -1,12 +1,15 @@
-from probe.crawl.seed_loader import SeedLoader
-from probe.crawl.ingest import Ingestor
-from probe.crawl.cleaner import clean_html
-from probe.crawl.fetcher import fetch
-from probe.core.map import Map
 import httpx
 
+from probe.core.map import Map
+from probe.crawl.cleaner import clean_html
+from probe.crawl.fetcher import fetch
+from probe.crawl.ingest import Ingestor
+from probe.crawl.seed_loader import SeedLoader
 
-def test_fetcher_ingest_pipeline_end_to_end(monkeypatch, tmp_path):  # noqa: C901 - integration test; can be split later
+
+def test_fetcher_ingest_pipeline_end_to_end(
+    monkeypatch, tmp_path
+):  # noqa: C901 - integration test; can be split later
     # Prepare seeds file
     seeds_file = tmp_path / "s.txt"
     seeds_file.write_text(

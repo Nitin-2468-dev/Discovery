@@ -4,8 +4,8 @@ probe/crawl/seed_loader.py
 Utility for loading and managing seed URLs from text files.
 """
 
-from typing import List
 from pathlib import Path
+from typing import List
 from urllib.parse import urlparse
 
 

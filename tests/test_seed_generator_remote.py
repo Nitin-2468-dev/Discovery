@@ -26,20 +26,22 @@ def test_discover_sitemap_and_robots(monkeypatch):
     """
 
     def fake_get(url, timeout=0):
-        if url.endswith('sitemap.xml'):
+        if url.endswith("sitemap.xml"):
             return Dummy(sitemap_xml)
-        if url.endswith('robots.txt'):
+        if url.endswith("robots.txt"):
             return Dummy(robots_txt)
-        raise RuntimeError('unexpected')
+        raise RuntimeError("unexpected")
 
-    monkeypatch.setattr('httpx.get', fake_get)
+    monkeypatch.setattr("httpx.get", fake_get)
 
-    urls = sg.discover_sitemap('example.com')
-    assert 'https://example.com/datasheet1.pdf' in urls
+    urls = sg.discover_sitemap("example.com")
+    assert "https://example.com/datasheet1.pdf" in urls
 
-    dis = sg.discover_robots_disallows('example.com')
-    assert '/private' in dis
+    dis = sg.discover_robots_disallows("example.com")
+    assert "/private" in dis
 
     # generate_seeds_for_domain should avoid disallowed paths
-    seeds = sg.generate_seeds_for_domain('example.com', 'datasheet', limit=5, fetch_remote=True)
-    assert all('/private' not in s for s in seeds)
+    seeds = sg.generate_seeds_for_domain(
+        "example.com", "datasheet", limit=5, fetch_remote=True
+    )
+    assert all("/private" not in s for s in seeds)

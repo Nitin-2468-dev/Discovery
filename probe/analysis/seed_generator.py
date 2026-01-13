@@ -1,10 +1,12 @@
 from typing import List, Optional
 from urllib.parse import quote_plus
+
 try:
     import httpx
 except Exception:
     httpx = None
 import xml.etree.ElementTree as ET
+
 from probe.core.map import Map
 
 
@@ -16,7 +18,9 @@ class SeedGenerator:
     during unit tests; tests should mock `httpx.get` when exercising remote discovery.
     """
 
-    def __init__(self, map_obj: Map, *, fetch_remote: bool = False, http_timeout: float = 3.0):
+    def __init__(
+        self, map_obj: Map, *, fetch_remote: bool = False, http_timeout: float = 3.0
+    ):
         self.map = map_obj
         self.fetch_remote = bool(fetch_remote)
         self.http_timeout = float(http_timeout)
@@ -44,7 +48,9 @@ class SeedGenerator:
             return []
         try:
             root = ET.fromstring(text)
-            urls = [elem.text.strip() for elem in root.findall('.//{*}loc') if elem.text]
+            urls = [
+                elem.text.strip() for elem in root.findall(".//{*}loc") if elem.text
+            ]
             return urls
         except Exception:
             return []
@@ -60,15 +66,21 @@ class SeedGenerator:
         disallows = []
         for line in txt.splitlines():
             line = line.strip()
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
-            if line.lower().startswith('disallow:'):
-                path = line.split(':', 1)[1].strip()
+            if line.lower().startswith("disallow:"):
+                path = line.split(":", 1)[1].strip()
                 if path:
                     disallows.append(path)
         return disallows
 
-    def generate_seeds_for_domain(self, domain: str, doc_type: str, limit: int = 5, fetch_remote: Optional[bool] = None) -> List[str]:
+    def generate_seeds_for_domain(
+        self,
+        domain: str,
+        doc_type: str,
+        limit: int = 5,
+        fetch_remote: Optional[bool] = None,
+    ) -> List[str]:
         """Generate up to `limit` seed URLs for a domain and desired doc_type.
 
         If fetch_remote is True, attempt to consult sitemap/robots for additional URLs and to avoid disallowed paths.
@@ -79,7 +91,15 @@ class SeedGenerator:
         out.append(base + "/")
 
         # common heuristic paths
-        common_paths = ["/datasheets", "/downloads", "/search?q={q}", "/{q}", "/{q}s", "/products", "/resources"]
+        common_paths = [
+            "/datasheets",
+            "/downloads",
+            "/search?q={q}",
+            "/{q}",
+            "/{q}s",
+            "/products",
+            "/resources",
+        ]
 
         for path in common_paths:
             if len(out) >= limit:
@@ -101,11 +121,22 @@ class SeedGenerator:
             disallowed = self.discover_robots_disallows(domain)
             # filter out any entries that match disallowed prefixes
             if disallowed:
-                out = [u for u in out if not any(u.startswith(base + p) for p in disallowed)]
+                out = [
+                    u
+                    for u in out
+                    if not any(u.startswith(base + p) for p in disallowed)
+                ]
 
         return out[:limit]
 
-    def generate_seeds(self, domains_or_entity, doc_types_or_type, per_domain: int = 3, fetch_remote: Optional[bool] = None, max_seeds: Optional[int] = None) -> List[str]:
+    def generate_seeds(
+        self,
+        domains_or_entity,
+        doc_types_or_type,
+        per_domain: int = 3,
+        fetch_remote: Optional[bool] = None,
+        max_seeds: Optional[int] = None,
+    ) -> List[str]:
         """Generate seed URLs.
 
         Backwards-compatible behavior:
@@ -116,7 +147,13 @@ class SeedGenerator:
         """
         # Legacy call signature: (entity_name: str, doc_type: str, max_seeds=int)
         if isinstance(domains_or_entity, str) and isinstance(doc_types_or_type, str):
-            return self._generate_seeds_for_entity(domains_or_entity, doc_types_or_type, per_domain, fetch_remote, max_seeds)
+            return self._generate_seeds_for_entity(
+                domains_or_entity,
+                doc_types_or_type,
+                per_domain,
+                fetch_remote,
+                max_seeds,
+            )
 
         # New-style call: domains list + doc_types list
         domains = domains_or_entity
@@ -125,27 +162,46 @@ class SeedGenerator:
         seen = set()
         for domain in domains:
             for dt in doc_types:
-                for url in self.generate_seeds_for_domain(domain, dt, limit=per_domain, fetch_remote=fetch_remote):
+                for url in self.generate_seeds_for_domain(
+                    domain, dt, limit=per_domain, fetch_remote=fetch_remote
+                ):
                     if url not in seen:
                         seeds.append(url)
                         seen.add(url)
         return seeds
 
-
-    def _generate_seeds_for_entity(self, entity_name: str, doc_type: str, per_domain: int, fetch_remote: Optional[bool], max_seeds: Optional[int]) -> List[str]:
+    def _generate_seeds_for_entity(
+        self,
+        entity_name: str,
+        doc_type: str,
+        per_domain: int,
+        fetch_remote: Optional[bool],
+        max_seeds: Optional[int],
+    ) -> List[str]:
         """Legacy helper: generate seeds for an entity name and a single doc_type."""
         max_s = int(max_seeds) if max_seeds else int(per_domain)
 
         # prefer high-yield domains
         try:
-            domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=max_s)]
+            domains = [
+                d.domain_name for d in self.map.get_high_yield_domains(limit=max_s)
+            ]
         except Exception:
             domains = []
 
         seeds = []
         # distribute per-domain budget across domains to prefer breadth
-        per_domain_budget = max(1, int(max_s // max(1, len(domains)))) if domains else max_s
-        seeds.extend(self.generate_seeds(domains, [doc_type], per_domain=per_domain_budget, fetch_remote=fetch_remote))
+        per_domain_budget = (
+            max(1, int(max_s // max(1, len(domains)))) if domains else max_s
+        )
+        seeds.extend(
+            self.generate_seeds(
+                domains,
+                [doc_type],
+                per_domain=per_domain_budget,
+                fetch_remote=fetch_remote,
+            )
+        )
 
         # add google search for the entity and related entities
         gq = quote_plus(f"{entity_name} {doc_type}")

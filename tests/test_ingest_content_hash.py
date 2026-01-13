@@ -1,6 +1,7 @@
+import hashlib
+
 from probe.core.map import Map
 from probe.crawl.ingest import Ingestor
-import hashlib
 
 
 def test_ingest_uses_cleaned_text_for_hash(tmp_path):

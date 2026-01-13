@@ -11,12 +11,11 @@ Design Principles:
 - Handles all SQL internally (no leaky abstractions)
 """
 
-import sqlite3
 import json
-from datetime import datetime
-from typing import List, Dict, Optional
+import sqlite3
 from dataclasses import dataclass
-
+from datetime import datetime
+from typing import Dict, List, Optional
 
 # ============================================================
 # DATA MODELS
@@ -327,11 +326,14 @@ class Map:
         # Ensure domain row exists
         cursor = self.conn.execute(
             "INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score)\n            VALUES (?, 0, ?, 0.0)\n            ON CONFLICT(domain_name) DO UPDATE SET documents_found = documents_found + ?\n            RETURNING id, pages_crawled, documents_found",
-            (domain_name, max(0, delta), delta)
+            (domain_name, max(0, delta), delta),
         )
         # Recalculate yield_score if pages_crawled > 0
         try:
-            cursor = self.conn.execute("SELECT pages_crawled, documents_found FROM domains WHERE domain_name = ?", (domain_name,))
+            cursor = self.conn.execute(
+                "SELECT pages_crawled, documents_found FROM domains WHERE domain_name = ?",
+                (domain_name,),
+            )
             pr = cursor.fetchone()
             pages = pr[0] or 0
             docs = pr[1] or 0
@@ -339,10 +341,14 @@ class Map:
                 ys = float(docs) / pages
             else:
                 ys = float(docs)
-            self.conn.execute("UPDATE domains SET yield_score = ? WHERE domain_name = ?", (ys, domain_name))
+            self.conn.execute(
+                "UPDATE domains SET yield_score = ? WHERE domain_name = ?",
+                (ys, domain_name),
+            )
             self.conn.commit()
         except Exception:
             self.conn.commit()
+
     def get_domain(self, domain_name: str) -> Optional[Domain]:
         """Retrieve a domain by name."""
         cursor = self.conn.execute(

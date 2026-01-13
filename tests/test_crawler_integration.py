@@ -1,8 +1,12 @@
 import os
+
 import pytest
 
 # Opt-in real-network integration test: run only when RUN_REAL_NET_TESTS=true
-pytestmark = pytest.mark.skipif(os.getenv("RUN_REAL_NET_TESTS", "false") != "true", reason="real-network tests are opt-in")
+pytestmark = pytest.mark.skipif(
+    os.getenv("RUN_REAL_NET_TESTS", "false") != "true",
+    reason="real-network tests are opt-in",
+)
 
 from probe.crawl.fetcher import fetch  # noqa: E402
 

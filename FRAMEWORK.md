@@ -7,7 +7,7 @@ This project follows the BMad Method for project control:
 - README.md defines what and why
 - Prevents building without purpose
 
-## 2. Architecture-First Implementation  
+## 2. Architecture-First Implementation
 
 - ARCHITECTURE.md locks system design
 - Code implements the design, not the other way around

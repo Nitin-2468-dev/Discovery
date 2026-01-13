@@ -52,4 +52,3 @@ pip install -e .[ocr]
 
 ### Optional real-network integration tests (scheduled & manual)
 We run a single real-network integration test on a weekly schedule and via manual dispatch. The workflow is .github/workflows/research-integration.yml. This job sets RUN_REAL_NET_TESTS=1 and runs the test 	ests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real.
-
