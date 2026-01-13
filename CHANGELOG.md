@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed (unreleased)
 
+- Replace deprecated `datetime.utcnow()` usages with timezone-aware `datetime.now(timezone.utc)` in tests and helper scripts; removes DeprecationWarnings in test runs and ensures timezone-aware timestamps.
 - Ensure `Map.get_domains_with_doc_type` is attached to `Map` at import time for runtimes that may have loaded an older `Map` class (avoids missing-method runtime failures).
 - Make `GapDetector.analyze_entity_gaps` robust: if domain-specific lookup returns no candidates, fall back to `get_high_yield_domains` so suggested domains are always returned.
 
