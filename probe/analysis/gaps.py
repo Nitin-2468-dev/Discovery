@@ -212,7 +212,8 @@ class GapDetector:
                                 if last_dt.tzinfo is None:
                                     last_dt = last_dt.replace(tzinfo=timezone.utc)
                                 days = (now.dt - last_dt).days
-                                recent_score = max(0.0, (30.0 - float(days)) / 30.0)
+                                # Clamp recent_score between 0.0 and 1.0 to handle future or extreme dates
+                                recent_score = min(1.0, max(0.0, (30.0 - float(days)) / 30.0))
                             except Exception:
                                 recent_score = 0.0
                 except Exception:

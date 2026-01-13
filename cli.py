@@ -14,7 +14,10 @@ Commands:
 
 import click
 import sys
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Add probe package to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -221,6 +224,7 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
             out_png = viz.export_image(export_png)
             click.echo(f"✓ PNG exported to: {out_png}")
         except Exception as exc:
+            logger.exception("PNG export failed for %s", export_png)
             click.echo(f"⚠️ PNG export failed: {exc}")
 
     if export_svg:
@@ -228,6 +232,7 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
             out_svg = viz.export_image(export_svg)
             click.echo(f"✓ SVG exported to: {out_svg}")
         except Exception as exc:
+            logger.exception("SVG export failed for %s", export_svg)
             click.echo(f"⚠️ SVG export failed: {exc}")
 
     if open_in_browser:
@@ -235,12 +240,8 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
             import webbrowser
             webbrowser.open(output_file)
             click.echo("Opened in default browser")
-        except Exception:
-            click.echo("Could not open browser automatically; open the file manually.")
-
-    # provide a helpful hint about attaching the file to release
-    click.echo("Tip: upload the file to your release with: gh release upload v0.4.2 <path> --clobber --repo <owner/repo>")
-
+        except Exception as exc:
+            logger.exception("Failed to open browser for %s", output_file)
     m.close()
 
 
@@ -353,8 +354,8 @@ def fetch_cmd(
             honor_retry_after=(not ignore_retry_after),
         )
     except Exception as exc:
-        click.echo(f"✗ Fetch failed: {exc}")
-        raise
+        logger.exception("Fetch failed for URL: %s", url)
+        raise click.ClickException(f"Fetch failed: {exc}")
 
     if res.get("error"):
         click.echo(f"✗ {res.get('error')}")
@@ -447,9 +448,9 @@ def score(
                 backoff_factor=backoff_factor,
             )
         except Exception as exc:
-            click.echo(f"✗ Fetch failed: {exc}")
+            logger.exception("Fetch failed for scoring URL: %s", url)
             m.close()
-            raise
+            raise click.ClickException(f"Fetch failed: {exc}")
 
         if res.get("error"):
             click.echo(f"✗ {res.get('error')}")
@@ -461,7 +462,8 @@ def score(
             cleaned = __import__(
                 "probe.crawl.cleaner", fromlist=["clean_html"]
             ).clean_html(res.get("raw_bytes").decode("utf-8", errors="ignore"), url)
-        except Exception:
+        except Exception as exc:
+            logger.exception("clean_html failed for %s", url)
             cleaned = {"text": "", "boilerplate_ratio": 0.0}
 
         page = dict(res)
@@ -747,7 +749,8 @@ def seeds_run(
                     d = line.strip()
                     if d:
                         blocked_set.add(d)
-    except Exception:
+    except Exception as exc:
+        logger.exception("Error loading blocked domains from %s", bd_path)
         blocked_set = set()
 
     # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
@@ -892,8 +895,8 @@ def seeds_run(
                         click.echo("  ✗ blocked_by_robots")
                         continue
                 except Exception:
-                    # on errors parsing robots, be permissive
-                    pass
+                    # on errors parsing robots, be permissive; log at debug for troubleshooting
+                    logger.debug("Robots parsing error for %s", u, exc_info=True)
 
 
 
@@ -917,15 +920,15 @@ def seeds_run(
                             last = last_mon
                             domain_last_time[domain] = last
                     except Exception:
-                        pass
+                        logger.debug("Persistent politeness failed for %s", domain, exc_info=True)
 
                 now = __import__("time").monotonic()
                 wait = max(0, per_domain_delay - (now - last))
                 if wait > 0:
                     __import__("time").sleep(wait)
                 domain_last_time[domain] = __import__("time").monotonic()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Per-domain delay computation failed for %s: %s", u, exc, exc_info=True)
 
             try:
                 res = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch(
@@ -1056,6 +1059,7 @@ def seeds_run(
                         ).ingest_fetch_result(m, res)
                         click.echo(f"    Ingested: {out}")
             except Exception as exc:
+                logger.exception("Error fetching seed %s", u)
                 click.echo(f"  ✗ Exception: {exc}")
                 failures += 1
                 if not no_log_failures:
