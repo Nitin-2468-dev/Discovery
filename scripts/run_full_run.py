@@ -23,7 +23,7 @@ from typing import List
 
 
 def now_iso():
-    return datetime.datetime.utcnow().isoformat() + "Z"
+    return datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z"
 
 
 def time_it(step_name: str, fn, *args, **kwargs):

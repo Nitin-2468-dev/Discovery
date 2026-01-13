@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from probe.core.map import Map, Entity, Document, Edge
 from probe.analysis.gaps import GapDetector
 
@@ -15,8 +15,8 @@ def setup_two_domain_scenario(tmp_path):
     m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=d_id, relation="has_document"))
 
     # Setup timestamps
-    now = datetime.utcnow().isoformat()
-    old = (datetime.utcnow() - timedelta(days=60)).isoformat()
+    now = datetime.now(timezone.utc).isoformat()
+    old = (datetime.now(timezone.utc) - timedelta(days=60)).isoformat()
 
     # Domain A: higher count, lower yield
     m.conn.execute("INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, trust_score, last_crawled_at) VALUES (?, ?, ?, ?, ?, ?)", ("a.example.com", 20, 5, 0.2, 0.5, old))

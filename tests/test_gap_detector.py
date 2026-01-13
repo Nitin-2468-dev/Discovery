@@ -107,14 +107,14 @@ def test_domain_scoring_considers_yield_and_trust():
 
 
 def test_recency_boosts_recent_domains():
-    from datetime import datetime, timedelta
+    from datetime import datetime, timedelta, timezone
 
     class MapWithRecency(FakeMap):
         def get_domains_with_doc_type(self, doc_type, limit=5):
             return [FakeDomain("old.example.com"), FakeDomain("recent.example.com")]
 
         def get_domain(self, domain_name):
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             if domain_name == "old.example.com":
                 last = (now - timedelta(days=60)).isoformat()
                 return types.SimpleNamespace(domain_name=domain_name, yield_score=0.5, trust_score=0.5, last_crawled_at=last)
