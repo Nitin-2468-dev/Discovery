@@ -49,13 +49,17 @@ def _get_seed_urls(m: Map, domain: str) -> List[str]:
     return out
 
 
-def _fetch_and_ingest(fetcher_module, m: Map, url: str, *, timeout: int = 10) -> dict | None:
+def _fetch_and_ingest(
+    fetcher_module, m: Map, url: str, *, timeout: int = 10
+) -> dict | None:
     """Fetch a URL via the fetcher module and ingest it into the Map on success.
 
     Returns the fetch result dict on success, or None on error.
     """
     try:
-        res = fetcher_module.fetch(url, timeout=timeout, max_retries=2, max_size=2000000)
+        res = fetcher_module.fetch(
+            url, timeout=timeout, max_retries=2, max_size=2000000
+        )
     except Exception:
         return None
 

@@ -20,7 +20,9 @@ def test_run_deep_crawl_basic(monkeypatch):
     monkeypatch.setitem(sys.modules, "probe.crawl.fetcher", fake_fetcher_mod)
 
     # Prevent DB access by monkeypatching get_pages_for_domain to return empty
-    monkeypatch.setattr("scripts.deep_crawl_domain.get_pages_for_domain", lambda m, d: [])
+    monkeypatch.setattr(
+        "scripts.deep_crawl_domain.get_pages_for_domain", lambda m, d: []
+    )
 
     # Stub Map to avoid DB dependency
     class DummyMap:
