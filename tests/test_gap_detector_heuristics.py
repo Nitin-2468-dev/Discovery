@@ -57,7 +57,7 @@ def test_include_scores_details_components(tmp_path):
     assert "domain_scores" in out and isinstance(out["domain_scores"], list)
     # ensure scores contain component fields and composite_score
     for d in out["domain_scores"]:
-        assert set(["domain", "count", "yield_score", "trust_score", "recent_score", "composite_score"]) <= set(d.keys())
+        assert {"domain", "count", "yield_score", "trust_score", "recent_score", "composite_score"} <= set(d.keys())
 
     # the ordering of domain_scores should correspond to suggested_domains order
     ordered_domains = [d["domain"] for d in out["domain_scores"]]

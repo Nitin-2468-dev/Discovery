@@ -7,7 +7,6 @@ from the analysis and write individual HTML files.
 Usage:
     python scripts/visualize_run.py --run results/testing-5 --top 3 --outdir results/testing-5/visualizations
 """
-import os
 import json
 import argparse
 from pathlib import Path
@@ -58,7 +57,7 @@ def main():
     else:
         # full graph
         viz.build_graph()
-        out = outdir / f"full-graph.html"
+        out = outdir / "full-graph.html"
         viz.plot_interactive(str(out))
         print("Wrote", out)
 

@@ -1,7 +1,6 @@
 def test_seed_generator_import_without_httpx(monkeypatch):
     """Ensure the seed_generator module imports cleanly even if `httpx` is not installed."""
     import sys
-    import importlib
 
     # Simulate httpx not installed
     monkeypatch.setitem(sys.modules, 'httpx', None)

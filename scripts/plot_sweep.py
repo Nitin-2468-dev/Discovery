@@ -28,7 +28,7 @@ def parse_args(argv: List[str] | None = None):
     p.add_argument("--heatmap-domain", default=None, help="Domain to aggregate for heatmap (required for heatmap)")
     return p.parse_args(argv)
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: List[str] | None = None) -> int:  # noqa: C901 - CLI plotting helper; scheduled for refactor
     args = parse_args(argv)
     input_path = Path(args.input)
     out_path = Path(args.output)
@@ -110,16 +110,12 @@ def main(argv: List[str] | None = None) -> int:
             return 2
 
         # build grid dictionary keyed by (x_val, y_val) -> average score
-        grid = {}
         xs_unique = set()
         ys_unique = set()
-        for x, y, sc in zip(xs, ys, labels):
-            # In heatmap expansion above, labels holds domain for each point; we need to map x,y,score differently
-            pass
+        # Points will be aggregated by re-reading the CSV below
 
         # Re-read CSV to aggregate using specified fields
         from collections import defaultdict
-        import math
 
         agg = defaultdict(list)
         with input_path.open(newline='', encoding='utf-8') as fh:
@@ -157,14 +153,14 @@ def main(argv: List[str] | None = None) -> int:
         xs_sorted = sorted(xs_unique)
         ys_sorted = sorted(ys_unique)
         import numpy as np
-        Z = np.zeros((len(ys_sorted), len(xs_sorted)))
+        z = np.zeros((len(ys_sorted), len(xs_sorted)))
         for i, yv in enumerate(ys_sorted):
             for j, xv in enumerate(xs_sorted):
                 vals = agg.get((xv, yv), [])
-                Z[i, j] = sum(vals) / len(vals) if vals else np.nan
+                z[i, j] = sum(vals) / len(vals) if vals else np.nan
 
         plt.figure(figsize=(8, 6))
-        plt.imshow(Z, aspect='auto', origin='lower', interpolation='nearest', extent=(min(xs_sorted), max(xs_sorted), min(ys_sorted), max(ys_sorted)))
+        plt.imshow(z, aspect='auto', origin='lower', interpolation='nearest', extent=(min(xs_sorted), max(xs_sorted), min(ys_sorted), max(ys_sorted)))
         plt.colorbar(label='composite_score')
         plt.xlabel(args.heatmap_x)
         plt.ylabel(args.heatmap_y)

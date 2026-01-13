@@ -1,5 +1,6 @@
-import subprocess, sys, csv
-from pathlib import Path
+import subprocess
+import sys
+import csv
 
 
 def test_plot_sweep_heatmap_cli(tmp_path):

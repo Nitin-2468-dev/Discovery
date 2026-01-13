@@ -1,4 +1,3 @@
-import types
 from probe.core.map import Map, Entity, Document, Edge
 from probe.analysis.gaps import GapDetector
 
@@ -31,7 +30,7 @@ def test_integration_suggests_domain_based_on_docs_and_stats(tmp_path):
     # Missing desired type is 'datasheet' and 'manual' both present, but assume missing 'spec'
     gd = GapDetector(m)
 
-    out = gd.analyze_entity_gaps("ACME-PT6A", ["manual", "datasheet", "spec"]) 
+    out = gd.analyze_entity_gaps("ACME-PT6A", ["manual", "datasheet", "spec"])
 
     # suggested domains should include 'high.example.com' (better yield/trust)
     assert isinstance(out.get("suggested_domains"), list)

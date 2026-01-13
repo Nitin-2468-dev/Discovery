@@ -18,7 +18,6 @@ import csv
 import itertools
 import json
 import os
-import sys
 from typing import List
 
 from probe.core.map import Map

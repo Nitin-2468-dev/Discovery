@@ -1,5 +1,6 @@
-import subprocess, sys, csv
-from pathlib import Path
+import subprocess
+import sys
+import csv
 
 def test_plot_sweep_creates_png(tmp_path):
     # Create a small synthetic sweep CSV with domain_scores_json

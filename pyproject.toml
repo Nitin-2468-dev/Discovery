@@ -30,3 +30,15 @@ ocr = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["probe*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+select = ["E", "F", "W", "C", "N"]
+ignore = ["E501", "D"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+check_untyped_defs = false
+exclude = "(^build/|/build/)"

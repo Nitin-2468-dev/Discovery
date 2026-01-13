@@ -1,4 +1,5 @@
-import yaml, sys
+import yaml
+import sys
 p='.github/workflows/ci.yml'
 src=open(p).read()
 try:

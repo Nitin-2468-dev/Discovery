@@ -7,7 +7,7 @@ def test_investigator_dry_run_gathers_seeds(tmp_path):
     m = Map(db)
 
     # create entity with no docs
-    ent_id = m.add_entity(Entity(id=None, name="PT6A-52"))
+    m.add_entity(Entity(id=None, name="PT6A-52"))
 
     # add some high-yield domains
     for _ in range(4):
@@ -53,7 +53,7 @@ def test_investigator_runs_fetches_when_not_dry(tmp_path, monkeypatch):
     db = str(tmp_path / "probe.db")
     m = Map(db)
 
-    ent_id = m.add_entity(Entity(id=None, name="PT6A-52"))
+    m.add_entity(Entity(id=None, name="PT6A-52"))
 
     # Add domain so seed generator makes seeds
     for _ in range(3):

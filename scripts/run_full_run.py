@@ -14,8 +14,6 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime
-import os
-import subprocess
 import sys
 import time
 from pathlib import Path
@@ -84,7 +82,6 @@ def plot_sweep(flat_csv: str, out_png: str, domain: str | None = None):
 
 def visualize_run(run_dir: str, top: int = 3, outdir: str | None = None):
     import importlib.util
-    import sys
     path = Path(__file__).parent / 'visualize_run.py'
     spec = importlib.util.spec_from_file_location('visualize_run', str(path))
     mod = importlib.util.module_from_spec(spec)

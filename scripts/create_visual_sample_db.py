@@ -1,7 +1,7 @@
+import os
 from probe.core.map import Map, Entity, Document, Page, Edge
 
 out_dir = "results/visualization-sample"
-import os
 os.makedirs(out_dir, exist_ok=True)
 
 db = os.path.join(out_dir, "probe.db")
@@ -25,7 +25,6 @@ page_id = m.add_page(page)
 print("Added page id", page_id)
 
 # Add edges: entity -> document, page -> entity
-from datetime import datetime
 edge1 = Edge(id=None, from_type="entity", from_id=ent_id, to_type="document", to_id=doc_id, relation="has_document")
 edge2 = Edge(id=None, from_type="page", from_id=page_id, to_type="entity", to_id=ent_id, relation="mentions")
 

@@ -9,13 +9,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import sys
 import time
 from pathlib import Path
 from typing import List
 
-from probe.core.map import Map, Entity, Edge, Document
+from probe.core.map import Map, Entity, Edge
 from probe.crawl.ingest import ingest_fetch_result
 
 

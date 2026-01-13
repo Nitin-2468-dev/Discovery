@@ -1,4 +1,4 @@
-from probe.core.map import Map, Entity, Document, Page, Edge
+from probe.core.map import Map, Entity, Document, Edge
 
 
 def test_get_entity_document_types_and_count(tmp_path):

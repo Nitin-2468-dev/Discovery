@@ -1,4 +1,4 @@
-from probe.core.map import Map, Domain, Document, Entity, Edge
+from probe.core.map import Map, Document
 
 
 def test_get_domains_with_doc_type_orders_by_count_and_yield(tmp_path):

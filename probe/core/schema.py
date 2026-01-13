@@ -113,7 +113,7 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
         metadata TEXT,  -- JSON string
         source_page_id INTEGER,  -- which page led to this discovery
         discovered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        
+
         -- Prevent duplicate edges
         UNIQUE(from_type, from_id, to_type, to_id, relation)
     )
@@ -127,14 +127,14 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     # Entity lookups
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_entities_name 
+    CREATE INDEX IF NOT EXISTS idx_entities_name
     ON entities(name)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_entities_type 
+    CREATE INDEX IF NOT EXISTS idx_entities_type
     ON entities(type)
     """
     )
@@ -142,21 +142,21 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     # Document lookups
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_documents_hash 
+    CREATE INDEX IF NOT EXISTS idx_documents_hash
     ON documents(hash)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_documents_domain 
+    CREATE INDEX IF NOT EXISTS idx_documents_domain
     ON documents(domain)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_documents_type 
+    CREATE INDEX IF NOT EXISTS idx_documents_type
     ON documents(doc_type)
     """
     )
@@ -164,14 +164,14 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     # Page lookups
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_pages_url 
+    CREATE INDEX IF NOT EXISTS idx_pages_url
     ON pages(url)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_pages_domain 
+    CREATE INDEX IF NOT EXISTS idx_pages_domain
     ON pages(domain)
     """
     )
@@ -179,14 +179,14 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     # Domain lookups
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_domains_name 
+    CREATE INDEX IF NOT EXISTS idx_domains_name
     ON domains(domain_name)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_domains_yield 
+    CREATE INDEX IF NOT EXISTS idx_domains_yield
     ON domains(yield_score DESC)
     """
     )
@@ -194,21 +194,21 @@ def initialize_schema(db_path: str = "probe.db") -> sqlite3.Connection:
     # Edge lookups (critical for graph traversal)
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_edges_from 
+    CREATE INDEX IF NOT EXISTS idx_edges_from
     ON edges(from_type, from_id)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_edges_to 
+    CREATE INDEX IF NOT EXISTS idx_edges_to
     ON edges(to_type, to_id)
     """
     )
 
     cursor.execute(
         """
-    CREATE INDEX IF NOT EXISTS idx_edges_relation 
+    CREATE INDEX IF NOT EXISTS idx_edges_relation
     ON edges(relation)
     """
     )
@@ -267,8 +267,8 @@ def validate_schema(conn: sqlite3.Connection) -> bool:
 
     cursor.execute(
         """
-        SELECT name FROM sqlite_master 
-        WHERE type='table' 
+        SELECT name FROM sqlite_master
+        WHERE type='table'
         ORDER BY name
     """
     )
@@ -296,8 +296,8 @@ if __name__ == "__main__":
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT name FROM sqlite_master 
-            WHERE type='table' 
+            SELECT name FROM sqlite_master
+            WHERE type='table'
             ORDER BY name
         """
         )

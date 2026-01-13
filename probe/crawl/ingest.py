@@ -31,37 +31,11 @@ class Ingestor:
         raw = fetch_result.get("raw_bytes")
 
         if fetch_result.get("is_pdf"):
-            # Create Document
-            h = sha256(raw or b"").hexdigest()
-            doc = Document(
-                id=None,
-                title=fetch_result.get("title") or "",
-                doc_type="pdf",
-                hash=h,
-                url=url,
-                domain=domain,
-                file_size=len(raw) if raw else None,
-                publication_date=None,
-                metadata=fetch_result.get("metadata"),
-            )
-            doc_id = self.map.add_document(doc)
-            self.map.update_domain_stats(domain, found_document=True)
-            return {
-                "page_id": None,
-                "document_id": doc_id,
-                "link_count": 0,
-                "edges_created": 0,
-            }
+            return self._ingest_pdf(fetch_result, raw, domain)
 
         # Otherwise ingest as a page
         raw_text = fetch_result.get("text")
-        # Prefer cleaned text for content hashing; fall back to raw bytes
-        if raw_text:
-            content_hash = sha256(raw_text.encode("utf-8")).hexdigest()
-        elif isinstance(raw, (bytes, bytearray)):
-            content_hash = sha256(raw).hexdigest()
-        else:
-            content_hash = sha256(b"").hexdigest()
+        content_hash = self._compute_content_hash(raw_text, raw)
 
         page = Page(
             id=None,
@@ -75,50 +49,13 @@ class Ingestor:
         page_id = self.map.add_page(page)
         self.map.update_domain_stats(domain, found_document=False)
 
-        # Process links: separate internal (same-domain) and external links.
         links = fetch_result.get("links") or []
-        edges_created = 0
-        outgoing_links = []
-        external_links = []
-        for link in links:
-            link_url = link.get("url")
-            if not link_url:
-                continue
-            # Skip javascript:, mailto:, fragments etc (safety)
-            parsed = urlparse(link_url)
-            if parsed.scheme not in ("http", "https"):
-                continue
-            # Avoid self-links
-            if link_url == url:
-                continue
-            outgoing_links.append(link_url)
+        edges_created, outgoing_links, external_links = self._process_links(links, domain, url, page_id)
 
-            link_domain = parsed.netloc
-            if link_domain == domain:
-                # Create a minimal page record for the linked URL (idempotent)
-                link_page = Page(
-                    id=None, url=link_url, domain=link_domain, title=link.get("text")
-                )
-                link_page_id = self.map.add_page(link_page)
-                # create an edge page -> page
-                edge = Edge(
-                    id=None,
-                    from_type="page",
-                    from_id=page_id,
-                    to_type="page",
-                    to_id=link_page_id,
-                    relation="links_to",
-                    source_page_id=page_id,
-                )
-                self.map.add_edge(edge)
-                edges_created += 1
-            else:
-                external_links.append(link_url)
-
-        # Update the page metadata with outgoing and external links for follow-up
+        # Update metadata if any outgoing/external links were discovered
         metadata = fetch_result.get("metadata") or {}
         if outgoing_links:
-            metadata = dict(metadata)  # copy
+            metadata = dict(metadata)
             metadata["outgoing_links"] = outgoing_links
         if external_links:
             metadata = dict(metadata)
@@ -143,6 +80,77 @@ class Ingestor:
             "outgoing_links": outgoing_links,
             "external_links": external_links,
         }
+
+    def _ingest_pdf(self, fetch_result: Dict[str, Any], raw: bytes, domain: str) -> Dict[str, Any]:
+        """Create a Document from PDF bytes and update domain stats."""
+        h = sha256(raw or b"").hexdigest()
+        doc = Document(
+            id=None,
+            title=fetch_result.get("title") or "",
+            doc_type="pdf",
+            hash=h,
+            url=fetch_result.get("url"),
+            domain=domain,
+            file_size=len(raw) if raw else None,
+            publication_date=None,
+            metadata=fetch_result.get("metadata"),
+        )
+        doc_id = self.map.add_document(doc)
+        self.map.update_domain_stats(domain, found_document=True)
+        return {
+            "page_id": None,
+            "document_id": doc_id,
+            "link_count": 0,
+            "edges_created": 0,
+        }
+
+    def _compute_content_hash(self, raw_text: str | None, raw: bytes | None) -> str:
+        """Compute a content hash preferring cleaned text when available."""
+        if raw_text:
+            return sha256(raw_text.encode("utf-8")).hexdigest()
+        if isinstance(raw, (bytes, bytearray)):
+            return sha256(raw).hexdigest()
+        return sha256(b"").hexdigest()
+
+    def _process_links(self, links: list, domain: str, url: str, page_id: int):
+        """Process discovered links and create page->page edges for internal links."""
+        edges_created = 0
+        outgoing_links = []
+        external_links = []
+        for link in links:
+            link_url = link.get("url")
+            if not link_url:
+                continue
+            # Skip javascript:, mailto:, fragments etc (safety)
+            parsed = urlparse(link_url)
+            if parsed.scheme not in ("http", "https"):
+                continue
+            # Avoid self-links
+            if link_url == url:
+                continue
+            outgoing_links.append(link_url)
+
+            link_domain = parsed.netloc
+            if link_domain == domain:
+                # Create a minimal page record for the linked URL (idempotent)
+                link_page = Page(id=None, url=link_url, domain=link_domain, title=link.get("text"))
+                link_page_id = self.map.add_page(link_page)
+                # create an edge page -> page
+                edge = Edge(
+                    id=None,
+                    from_type="page",
+                    from_id=page_id,
+                    to_type="page",
+                    to_id=link_page_id,
+                    relation="links_to",
+                    source_page_id=page_id,
+                )
+                self.map.add_edge(edge)
+                edges_created += 1
+            else:
+                external_links.append(link_url)
+
+        return edges_created, outgoing_links, external_links
 
 
 # Backwards-compatible helper

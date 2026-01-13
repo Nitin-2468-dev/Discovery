@@ -51,7 +51,7 @@ class Fetcher:
         self._last_fetch = {}
         self._last_fetch_lock = threading.Lock()
 
-    def fetch(
+    def fetch(  # noqa: C901 - complex fetch/retry logic, will refactor in follow-up
         self,
         url: str,
         timeout: int = DEFAULT_TIMEOUT,

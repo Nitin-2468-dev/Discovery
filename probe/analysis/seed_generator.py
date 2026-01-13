@@ -1,5 +1,5 @@
 from typing import List, Optional
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus
 try:
     import httpx
 except Exception:
@@ -58,13 +58,10 @@ class SeedGenerator:
         if not txt:
             return []
         disallows = []
-        ua = None
         for line in txt.splitlines():
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
-            if line.lower().startswith('user-agent:'):
-                ua = line.split(':', 1)[1].strip()
             if line.lower().startswith('disallow:'):
                 path = line.split(':', 1)[1].strip()
                 if path:
@@ -119,42 +116,7 @@ class SeedGenerator:
         """
         # Legacy call signature: (entity_name: str, doc_type: str, max_seeds=int)
         if isinstance(domains_or_entity, str) and isinstance(doc_types_or_type, str):
-            entity_name = domains_or_entity
-            doc_type = doc_types_or_type
-            max_s = int(max_seeds) if max_seeds else int(per_domain)
-
-            # prefer high-yield domains
-            try:
-                domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=max_s)]
-            except Exception:
-                domains = []
-
-            seeds = []
-            # distribute per-domain budget across domains to prefer breadth
-            per_domain_budget = max(1, int(max_s // max(1, len(domains)))) if domains else max_s
-            seeds.extend(self.generate_seeds(domains, [doc_type], per_domain=per_domain_budget, fetch_remote=fetch_remote))
-
-            # add google search for the entity and related entities
-            gq = quote_plus(f"{entity_name} {doc_type}")
-            seeds.append(f"https://www.google.com/search?q={gq}")
-            try:
-                rels = self.map.get_related_entities(entity_name)
-                for r in rels:
-                    rq = quote_plus(f"{r.name} {doc_type}")
-                    seeds.append(f"https://www.google.com/search?q={rq}")
-            except Exception:
-                pass
-
-            # deduplicate preserving order and enforce max_s
-            out = []
-            seen = set()
-            for s in seeds:
-                if s not in seen:
-                    out.append(s)
-                    seen.add(s)
-                if len(out) >= max_s:
-                    break
-            return out
+            return self._generate_seeds_for_entity(domains_or_entity, doc_types_or_type, per_domain, fetch_remote, max_seeds)
 
         # New-style call: domains list + doc_types list
         domains = domains_or_entity
@@ -168,3 +130,44 @@ class SeedGenerator:
                         seeds.append(url)
                         seen.add(url)
         return seeds
+
+
+    def _generate_seeds_for_entity(self, entity_name: str, doc_type: str, per_domain: int, fetch_remote: Optional[bool], max_seeds: Optional[int]) -> List[str]:
+        """Legacy helper: generate seeds for an entity name and a single doc_type."""
+        max_s = int(max_seeds) if max_seeds else int(per_domain)
+
+        # prefer high-yield domains
+        try:
+            domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=max_s)]
+        except Exception:
+            domains = []
+
+        seeds = []
+        # distribute per-domain budget across domains to prefer breadth
+        per_domain_budget = max(1, int(max_s // max(1, len(domains)))) if domains else max_s
+        seeds.extend(self.generate_seeds(domains, [doc_type], per_domain=per_domain_budget, fetch_remote=fetch_remote))
+
+        # add google search for the entity and related entities
+        gq = quote_plus(f"{entity_name} {doc_type}")
+        seeds.append(f"https://www.google.com/search?q={gq}")
+        try:
+            rels = self.map.get_related_entities(entity_name)
+            for r in rels:
+                rq = quote_plus(f"{r.name} {doc_type}")
+                seeds.append(f"https://www.google.com/search?q={rq}")
+        except Exception:
+            pass
+
+        return self._dedupe_and_limit(seeds, max_s)
+
+    def _dedupe_and_limit(self, seeds: List[str], max_s: int) -> List[str]:
+        """Deduplicate preserving order and enforce a maximum length."""
+        out: List[str] = []
+        seen = set()
+        for s in seeds:
+            if s not in seen:
+                out.append(s)
+                seen.add(s)
+            if len(out) >= max_s:
+                break
+        return out

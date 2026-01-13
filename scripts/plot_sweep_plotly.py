@@ -8,7 +8,6 @@ import argparse
 import csv
 import json
 from collections import defaultdict
-from pathlib import Path
 
 
 def parse_args(argv=None):
@@ -21,7 +20,7 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-def main(argv=None):
+def main(argv=None):  # noqa: C901 - CLI plotting helper; scheduled for refactor
     args = parse_args(argv)
     rows = []
     with open(args.csv, newline='', encoding='utf-8') as fh:

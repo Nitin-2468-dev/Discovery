@@ -1,4 +1,3 @@
-import pytest
 from probe.analysis.seed_generator import SeedGenerator
 
 
@@ -25,8 +24,6 @@ def test_discover_sitemap_and_robots(monkeypatch):
     User-agent: *
     Disallow: /private
     """
-
-    calls = {}
 
     def fake_get(url, timeout=0):
         if url.endswith('sitemap.xml'):

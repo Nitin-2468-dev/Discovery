@@ -1,7 +1,6 @@
 import csv
 import subprocess
 import sys
-from pathlib import Path
 
 
 def test_weight_sweep_cli(tmp_path):

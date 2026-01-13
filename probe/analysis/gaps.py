@@ -79,64 +79,9 @@ class GapDetector:
 
         # Heuristic: if specific types are missing, prefer domains that contain those types
         # Extended scoring: weight by count matches, domain yield_score, trust_score, and recency
-        candidates = {}
-        if missing:
-            if hasattr(self.map, 'get_domains_with_doc_type'):
-                for t in missing:
-                    try:
-                        # Count the number of documents per domain for this doc_type so 'count' reflects
-                        # document frequency (not just presence of the type on a domain).
-                        # Include pages_crawled in the query so normalizations (per_page) can use it
-                        cur = self.map.conn.execute(
-                            """
-                            SELECT d.domain AS domain, COUNT(*) AS cnt, COALESCE(dom.pages_crawled, 0) AS pages
-                            FROM documents d
-                            LEFT JOIN domains dom ON dom.domain_name = d.domain
-                            WHERE d.doc_type = ?
-                            GROUP BY d.domain
-                            """,
-                            (t,)
-                        )
-                        for row in cur.fetchall():
-                            domain_name = row["domain"]
-                            cnt = int(row["cnt"])
-                            pages = int(row["pages"] or 0)
-                            candidates.setdefault(domain_name, {"count": 0, "pages": pages})
-                            # accumulate both document counts and ensure pages is recorded (max existing)
-                            candidates[domain_name]["count"] += cnt
-                            candidates[domain_name]["pages"] = max(candidates[domain_name].get("pages", 0), pages)
-                    except Exception:
-                        # If DB access fails for some reason, fall back to presence-based counting
-                        try:
-                            for d in self.map.get_domains_with_doc_type(t, limit=8):
-                                candidates.setdefault(d.domain_name, {"count": 0})
-                                candidates[d.domain_name]["count"] += 1
-                        except Exception:
-                            continue
+        # Gather candidate domains for missing types using a helper to keep this method small
+        candidates = self._gather_candidates(missing) if missing else {}
 
-            else:
-                # Some Map mocks may not accept min_pages kwarg; fall back if needed
-                try:
-                    domains = self.map.get_high_yield_domains(limit=20, min_pages=1)
-                except TypeError:
-                    domains = self.map.get_high_yield_domains(limit=20)
-                for d in domains:
-                    candidates.setdefault(d.domain_name, {'count': 0, 'pages': getattr(d, 'pages_crawled', 0)})
-            # If candidates are still empty (e.g., domain helper exists but returned no results),
-            # fall back to high-yield domains as a graceful default so we always have suggestions.
-            if not candidates:
-                try:
-                    domains = self.map.get_high_yield_domains(limit=20, min_pages=1)
-                except TypeError:
-                    domains = self.map.get_high_yield_domains(limit=20)
-                for d in domains:
-                    candidates.setdefault(d.domain_name, {'count': 0})
-
-        # Scoring weights (tunable) - use instance configuration
-        w_count = self.w_count
-        w_yield = self.w_yield
-        w_trust = self.w_trust
-        w_recent = self.w_recent
 
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
@@ -172,14 +117,8 @@ class GapDetector:
 
     def _compute_domain_scores(self, candidates: dict, now: types.SimpleNamespace, include_scores: bool):
         """Compute composite scores and return a sorted scored list and domain_scores list."""
-        w_count = self.w_count
-        w_yield = self.w_yield
-        w_trust = self.w_trust
-        w_recent = self.w_recent
-
         scored = []
         domain_scores = []
-        from datetime import datetime
         import math
 
         for domain_name, meta in candidates.items():
@@ -193,33 +132,11 @@ class GapDetector:
             if self.normalize in ('log', 'per_page_log'):
                 base = math.log1p(base)
 
-            yield_score = 0.0
-            trust_score = 0.5
-            recent_score = 0.0
-
-            if hasattr(self.map, 'get_domain'):
-                try:
-                    d_obj = self.map.get_domain(domain_name)
-                    if d_obj:
-                        yield_score = getattr(d_obj, 'yield_score', 0.0)
-                        trust_score = getattr(d_obj, 'trust_score', 0.5)
-                        last = getattr(d_obj, 'last_crawled_at', None)
-                        if last:
-                            try:
-                                last_dt = datetime.fromisoformat(last)
-                                # Ensure timezone-aware comparison: assume UTC if naive
-                                from datetime import timezone
-                                if last_dt.tzinfo is None:
-                                    last_dt = last_dt.replace(tzinfo=timezone.utc)
-                                days = (now.dt - last_dt).days
-                                recent_score = max(0.0, (30.0 - float(days)) / 30.0)
-                            except Exception:
-                                recent_score = 0.0
-                except Exception:
-                    pass
+            # Get domain-level scores (yield, trust, recency) from helper
+            yield_score, trust_score, recent_score = self._get_domain_scores(domain_name, now)
 
             # Use normalized base value for count contribution
-            score = w_count * float(base) + w_yield * float(yield_score) + w_trust * float(trust_score) + w_recent * float(recent_score)
+            score = self.w_count * float(base) + self.w_yield * float(yield_score) + self.w_trust * float(trust_score) + self.w_recent * float(recent_score)
             scored.append((domain_name, score))
             domain_scores.append({
                 "domain": domain_name,
@@ -238,3 +155,83 @@ class GapDetector:
         else:
             domain_scores = None
         return scored, domain_scores
+
+    def _gather_candidates(self, missing: List[str]) -> dict:
+        """Gather candidate domains for the list of missing doc types."""
+        candidates: dict = {}
+        if not missing:
+            return candidates
+
+        if hasattr(self.map, 'get_domains_with_doc_type'):
+            for t in missing:
+                self._gather_from_doc_type(t, candidates)
+        else:
+            self._gather_high_yield(candidates)
+
+        if not candidates:
+            self._gather_high_yield(candidates)
+
+        return candidates
+
+    def _gather_from_doc_type(self, doc_type: str, candidates: dict) -> None:
+        """Gather candidates for a single document type (DB-backed or fallback)."""
+        try:
+            cur = self.map.conn.execute(
+                """
+                SELECT d.domain AS domain, COUNT(*) AS cnt, COALESCE(dom.pages_crawled, 0) AS pages
+                FROM documents d
+                LEFT JOIN domains dom ON dom.domain_name = d.domain
+                WHERE d.doc_type = ?
+                GROUP BY d.domain
+                """,
+                (doc_type,)
+            )
+            for row in cur.fetchall():
+                domain_name = row["domain"]
+                cnt = int(row["cnt"])
+                pages = int(row["pages"] or 0)
+                candidates.setdefault(domain_name, {"count": 0, "pages": pages})
+                candidates[domain_name]["count"] += cnt
+                candidates[domain_name]["pages"] = max(candidates[domain_name].get("pages", 0), pages)
+        except Exception:
+            try:
+                for d in self.map.get_domains_with_doc_type(doc_type, limit=8):
+                    candidates.setdefault(d.domain_name, {"count": 0})
+                    candidates[d.domain_name]["count"] += 1
+            except Exception:
+                return
+
+    def _gather_high_yield(self, candidates: dict) -> None:
+        """Populate candidates with high-yield domains as a fallback."""
+        try:
+            domains = self.map.get_high_yield_domains(limit=20, min_pages=1)
+        except TypeError:
+            domains = self.map.get_high_yield_domains(limit=20)
+        for d in domains:
+            candidates.setdefault(d.domain_name, {'count': 0, 'pages': getattr(d, 'pages_crawled', 0)})
+
+    def _get_domain_scores(self, domain_name: str, now: types.SimpleNamespace) -> tuple:
+        """Return (yield_score, trust_score, recent_score) for a domain."""
+        yield_score = 0.0
+        trust_score = 0.5
+        recent_score = 0.0
+        if hasattr(self.map, 'get_domain'):
+            try:
+                d_obj = self.map.get_domain(domain_name)
+                if d_obj:
+                    yield_score = getattr(d_obj, 'yield_score', 0.0)
+                    trust_score = getattr(d_obj, 'trust_score', 0.5)
+                    last = getattr(d_obj, 'last_crawled_at', None)
+                    if last:
+                        try:
+                            from datetime import datetime, timezone
+                            last_dt = datetime.fromisoformat(last)
+                            if last_dt.tzinfo is None:
+                                last_dt = last_dt.replace(tzinfo=timezone.utc)
+                            days = (now.dt - last_dt).days
+                            recent_score = min(1.0, max(0.0, (30.0 - float(days)) / 30.0))
+                        except Exception:
+                            recent_score = 0.0
+            except Exception:
+                pass
+        return yield_score, trust_score, recent_score

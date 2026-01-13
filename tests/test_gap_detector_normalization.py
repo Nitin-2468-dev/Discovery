@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from probe.core.map import Map, Entity, Document, Edge
 from probe.analysis.gaps import GapDetector
 

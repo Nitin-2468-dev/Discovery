@@ -207,7 +207,7 @@ class Map:
 
         cursor = self.conn.execute(
             """
-            INSERT INTO documents (title, doc_type, hash, url, domain, 
+            INSERT INTO documents (title, doc_type, hash, url, domain,
                                    file_size, publication_date, metadata)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(hash) DO UPDATE SET
@@ -248,7 +248,7 @@ class Map:
 
         cursor = self.conn.execute(
             """
-            INSERT INTO pages (url, domain, title, content_hash, 
+            INSERT INTO pages (url, domain, title, content_hash,
                                relevance_score, metadata, last_crawled_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(url) DO UPDATE SET
@@ -286,9 +286,9 @@ class Map:
         """
         cursor = self.conn.execute(
             """
-            SELECT * FROM domains 
+            SELECT * FROM domains
             WHERE pages_crawled >= ?
-            ORDER BY yield_score DESC 
+            ORDER BY yield_score DESC
             LIMIT ?
             """,
             (min_pages, limit),
@@ -329,7 +329,6 @@ class Map:
             "INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score)\n            VALUES (?, 0, ?, 0.0)\n            ON CONFLICT(domain_name) DO UPDATE SET documents_found = documents_found + ?\n            RETURNING id, pages_crawled, documents_found",
             (domain_name, max(0, delta), delta)
         )
-        row = cursor.fetchone()
         # Recalculate yield_score if pages_crawled > 0
         try:
             cursor = self.conn.execute("SELECT pages_crawled, documents_found FROM domains WHERE domain_name = ?", (domain_name,))
@@ -343,7 +342,7 @@ class Map:
             self.conn.execute("UPDATE domains SET yield_score = ? WHERE domain_name = ?", (ys, domain_name))
             self.conn.commit()
         except Exception:
-            self.conn.commit()    
+            self.conn.commit()
     def get_domain(self, domain_name: str) -> Optional[Domain]:
         """Retrieve a domain by name."""
         cursor = self.conn.execute(
@@ -365,8 +364,8 @@ class Map:
 
         cursor = self.conn.execute(
             """
-            INSERT OR IGNORE INTO edges 
-            (from_type, from_id, to_type, to_id, relation, confidence, 
+            INSERT OR IGNORE INTO edges
+            (from_type, from_id, to_type, to_id, relation, confidence,
              metadata, source_page_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,

@@ -6,7 +6,7 @@ from probe.core.map import Map
 import httpx
 
 
-def test_fetcher_ingest_pipeline_end_to_end(monkeypatch, tmp_path):
+def test_fetcher_ingest_pipeline_end_to_end(monkeypatch, tmp_path):  # noqa: C901 - integration test; can be split later
     # Prepare seeds file
     seeds_file = tmp_path / "s.txt"
     seeds_file.write_text(

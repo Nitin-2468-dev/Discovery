@@ -1,9 +1,7 @@
 import sys
 import subprocess
-import zipfile
 from pathlib import Path
 import os
-import shutil
 import venv
 
 import pytest

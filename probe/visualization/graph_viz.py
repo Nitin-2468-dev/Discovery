@@ -8,28 +8,19 @@ try:
 except Exception:
     go = None
 
-# Optional plotting/export dependencies - import if available, otherwise keep None.
-try:
-    import pydot
-except Exception:
-    pydot = None
-
-try:
-    import kaleido
-except Exception:
-    kaleido = None
-
 from typing import Optional, TYPE_CHECKING
+
+# Optional plotting/export dependencies are only imported for type checking.
+# Importing them at runtime is not required; use lazy imports where needed.
+if TYPE_CHECKING:
+    try:  # pragma: no cover - static analysis only
+        import pydot  # type: ignore  # noqa: F401
+        import kaleido  # type: ignore  # noqa: F401
+    except Exception:
+        pass
 from probe.core.map import Map
 import json
 
-if TYPE_CHECKING:
-    # Type checkers can resolve these when available; these imports are optional at runtime.
-    try:  # pragma: no cover - only for static analysis
-        import pydot  # type: ignore
-        import kaleido  # type: ignore
-    except Exception:
-        pass
 
 class GraphVisualizer:
     """Visualize the Probe knowledge graph using NetworkX + Plotly.
@@ -124,8 +115,8 @@ class GraphVisualizer:
             to_id = f"{row['to_type']}_{row['to_id']}"
             self._add_edge(from_id, to_id, relation=row['relation'])
 
-    def plot_interactive(self, output_path: str = "graph.html") -> str:
-        # Lazy import: if plotting libs weren't available at module import time, try now.
+    def _ensure_plotting_libs(self) -> None:
+        """Lazy import plotting libraries (networkx, plotly) if available."""
         global nx, go
         try:
             if nx is None:
@@ -141,89 +132,99 @@ class GraphVisualizer:
         except Exception:
             go = None
 
-        # If we have upgraded to networkx after a fallback, convert the fallback graph to a NetworkX graph
+    def _convert_fallback_to_nx(self) -> None:
+        """If we have upgraded to networkx after a fallback, convert the fallback graph."""
+        global nx
         if nx and not isinstance(self.G, nx.DiGraph):
-            G_new = nx.DiGraph()
+            g_new = nx.DiGraph()
             # nodes stored in self.G['nodes'] and edges in self.G['edges']
             for nid, attrs in self.G.get('nodes', {}).items():
-                G_new.add_node(nid, **attrs)
+                g_new.add_node(nid, **attrs)
             for a, b, attrs in self.G.get('edges', []):
-                G_new.add_edge(a, b, **(attrs or {}))
-            self.G = G_new
+                g_new.add_edge(a, b, **(attrs or {}))
+            self.G = g_new
 
-        # If plotly/networkx are available, render a force layout interactive graph.
+    def _create_plotly_fig(self, pos) -> 'go.Figure':
+        """Build a Plotly Figure from the current graph and layout positions."""
+        # Build edge traces and annotations
+        edge_x = []
+        edge_y = []
+        edge_annotations = []  # (a,b,relation,mid_x,mid_y)
+
+        for a, b, edata in self.G.edges(data=True):
+            if a not in pos or b not in pos:
+                continue
+            x0, y0 = pos[a]
+            x1, y1 = pos[b]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+            rel = edata.get('relation') if isinstance(edata, dict) else edata
+            mx, my = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+            edge_annotations.append((a, b, rel, mx, my))
+
+        edge_trace = go.Scatter(x=edge_x, y=edge_y, line={'width': 0.5, 'color': '#888'}, hoverinfo='none', mode='lines')
+
+        # Build node scatter
+        node_x = []
+        node_y = []
+        node_color = []
+        node_text = []
+        node_hover = []
+        node_size = []
+
+        for node in self.G.nodes(data=True):
+            n_id = node[0]
+            nd = node[1]
+            if n_id not in pos:
+                continue
+            x, y = pos[n_id]
+            node_x.append(x)
+            node_y.append(y)
+            node_color.append(nd.get('color', '#888'))
+            label = nd.get('label', n_id)
+            node_text.append(label)
+            # hover text: include name, type and optional extra metadata
+            hover_info = {'name': nd.get('name'), 'type': nd.get('type')}
+            hover_info.update({k: v for k, v in nd.items() if k not in ('name', 'type', 'label', 'color')})
+            node_hover.append(json.dumps(hover_info))
+            deg = self.G.degree(n_id)
+            node_size.append(10 + deg * 6)
+
+        node_trace = go.Scatter(
+            x=node_x,
+            y=node_y,
+            mode='markers+text',
+            hoverinfo='text',
+            text=node_text,
+            textposition='top center',
+            hovertext=node_hover,
+            marker={'color': node_color, 'size': node_size, 'line': {'width': 2, 'color': 'white'}}
+        )
+
+        # Create edge labels as annotations at the midpoints
+        annotations = []
+        for ea, eb, etext, ex, ey in edge_annotations:
+            if etext:
+                annotations.append({'x': ex, 'y': ey, 'xref': 'x', 'yref': 'y', 'text': str(etext), 'showarrow': False, 'font': {'size': 10, 'color': '#333'}})
+
+        # Legend entries (create dummy traces)
+        entity_legend = go.Scatter(x=[None], y=[None], mode='markers', marker={'size': 12, 'color': '#FF6B6B'}, name='Entity')
+        doc_legend = go.Scatter(x=[None], y=[None], mode='markers', marker={'size': 12, 'color': '#4ECDC4'}, name='Document')
+        page_legend = go.Scatter(x=[None], y=[None], mode='markers', marker={'size': 12, 'color': '#FFD166'}, name='Page')
+
+        fig = go.Figure(data=[edge_trace, node_trace, entity_legend, doc_legend, page_legend], layout=go.Layout(title='Probe Knowledge Graph', showlegend=True, hovermode='closest', margin={'b': 0, 'l': 0, 'r': 0, 't': 40}, xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}, yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False}, annotations=annotations))
+        return fig
+
+    def plot_interactive(self, output_path: str = "graph.html") -> str:
+        # Lazy import and ensure libs
+        self._ensure_plotting_libs()
+        self._convert_fallback_to_nx()
+
+        global nx, go
         if nx and go:
             pos = nx.spring_layout(self.G, k=0.5, iterations=50)
-
-            edge_x = []
-            edge_y = []
-            edge_annotations = []  # (a,b,relation,mid_x,mid_y)
-
-            for a, b, edata in self.G.edges(data=True):
-                if a not in pos or b not in pos:
-                    continue
-                x0, y0 = pos[a]
-                x1, y1 = pos[b]
-                edge_x.extend([x0, x1, None])
-                edge_y.extend([y0, y1, None])
-                rel = edata.get('relation') if isinstance(edata, dict) else edata
-                mx, my = (x0 + x1) / 2.0, (y0 + y1) / 2.0
-                edge_annotations.append((a, b, rel, mx, my))
-
-            edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=0.5, color='#888'), hoverinfo='none', mode='lines')
-
-            node_x = []
-            node_y = []
-            node_color = []
-            node_text = []
-            node_hover = []
-            node_size = []
-
-            for node in self.G.nodes(data=True):
-                n_id = node[0]
-                nd = node[1]
-                if n_id not in pos:
-                    continue
-                x, y = pos[n_id]
-                node_x.append(x)
-                node_y.append(y)
-                node_color.append(nd.get('color', '#888'))
-                label = nd.get('label', n_id)
-                node_text.append(label)
-                # hover text: include name, type and optional extra metadata
-                hover_info = {'name': nd.get('name'), 'type': nd.get('type')}
-                hover_info.update({k: v for k, v in nd.items() if k not in ('name', 'type', 'label', 'color')})
-                node_hover.append(json.dumps(hover_info))
-                deg = self.G.degree(n_id)
-                node_size.append(10 + deg * 6)
-
-            # Node scatter with hover text showing label + metadata
-            node_trace = go.Scatter(
-                x=node_x,
-                y=node_y,
-                mode='markers+text',
-                hoverinfo='text',
-                text=node_text,
-                textposition='top center',
-                hovertext=node_hover,
-                marker=dict(color=node_color, size=node_size, line=dict(width=2, color='white'))
-            )
-
-            # Create edge labels as annotations at the midpoints
-            annotations = []
-            for ea, eb, etext, ex, ey in edge_annotations:
-                if etext:
-                    annotations.append(dict(x=ex, y=ey, xref='x', yref='y', text=str(etext), showarrow=False, font=dict(size=10, color='#333')))
-
-            # Legend entries (create dummy traces)
-            entity_legend = go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color='#FF6B6B'), name='Entity')
-            doc_legend = go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color='#4ECDC4'), name='Document')
-            page_legend = go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color='#FFD166'), name='Page')
-
-            fig = go.Figure(data=[edge_trace, node_trace, entity_legend, doc_legend, page_legend], layout=go.Layout(title='Probe Knowledge Graph', showlegend=True, hovermode='closest', margin=dict(b=0, l=0, r=0, t=40), xaxis=dict(showgrid=False, zeroline=False, showticklabels=False), yaxis=dict(showgrid=False, zeroline=False, showticklabels=False), annotations=annotations))
-
+            fig = self._create_plotly_fig(pos)
             fig.write_html(output_path)
-            # store the figure for potential export
             self._last_fig = fig
             return output_path
 
@@ -381,7 +382,6 @@ class GraphVisualizer:
                 fh.write('}\n')
             return output_path
         try:
-            import pydot # type: ignore
             nx.drawing.nx_pydot.write_dot(self.G, output_path)
         except Exception:
             # fallback: write a minimal DOT

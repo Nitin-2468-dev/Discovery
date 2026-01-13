@@ -14,15 +14,18 @@ Commands:
 
 import click
 import sys
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Add probe package to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from probe.core.schema import initialize_schema, validate_schema
-from probe.core.map import Map, Entity, Document, Edge
+from probe.core.schema import initialize_schema, validate_schema  # noqa: E402
+from probe.core.map import Map, Entity, Document, Edge  # noqa: E402
 # Expose GraphVisualizer at module-level for tests and simple patches
-from probe.visualization.graph_viz import GraphVisualizer
+from probe.visualization.graph_viz import GraphVisualizer  # noqa: E402
 
 
 @click.group()
@@ -46,8 +49,8 @@ def init(db):
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT name FROM sqlite_master 
-            WHERE type='table' 
+            SELECT name FROM sqlite_master
+            WHERE type='table'
             ORDER BY name
         """
         )
@@ -197,7 +200,6 @@ def summary(db):
 @click.option('--db', default='probe.db')
 def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
     """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
-    from probe.visualization.graph_viz import GraphVisualizer
 
     m = Map(db)
     viz = GraphVisualizer(m)
@@ -221,6 +223,7 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
             out_png = viz.export_image(export_png)
             click.echo(f"✓ PNG exported to: {out_png}")
         except Exception as exc:
+            logger.exception("PNG export failed for %s", export_png)
             click.echo(f"⚠️ PNG export failed: {exc}")
 
     if export_svg:
@@ -228,6 +231,7 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
             out_svg = viz.export_image(export_svg)
             click.echo(f"✓ SVG exported to: {out_svg}")
         except Exception as exc:
+            logger.exception("SVG export failed for %s", export_svg)
             click.echo(f"⚠️ SVG export failed: {exc}")
 
     if open_in_browser:
@@ -236,12 +240,50 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
             webbrowser.open(output_file)
             click.echo("Opened in default browser")
         except Exception:
-            click.echo("Could not open browser automatically; open the file manually.")
-
-    # provide a helpful hint about attaching the file to release
-    click.echo("Tip: upload the file to your release with: gh release upload v0.4.2 <path> --clobber --repo <owner/repo>")
-
+            logger.exception("Failed to open browser for %s", output_file)
     m.close()
+
+
+def _build_gap_weights(count, yld, trust, recent):
+    """Construct weights dict for GapDetector from optional CLI flags."""
+    out = {}
+    if count is not None:
+        out["count"] = count
+    if yld is not None:
+        out["yield"] = yld
+    if trust is not None:
+        out["trust"] = trust
+    if recent is not None:
+        out["recent"] = recent
+    return out if out else None
+
+
+def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
+    """Return a human-readable multi-line string for gap analysis."""
+
+    if not analysis.get("exists"):
+        missing = ", ".join(analysis.get("missing_types", []))
+        return f"❌ Entity '{entity_name}' not found in map\n   Would need: {missing}"
+
+    lines = []
+    lines.append(f"\n📊 Gap Analysis: {entity_name}")
+    lines.append(f"   Confidence: {analysis.get('confidence', 0.0):.2f}")
+    lines.append(f"   Documents: {analysis.get('has_documents', 0)}")
+
+    if analysis.get("missing_types"):
+        lines.append("\n🔍 Missing Document Types:")
+        for t in analysis.get("missing_types", []):
+            lines.append(f"   • {t}")
+
+    lines.append("\n💡 Suggested Sources:")
+    sd = analysis.get("suggested_domains", []) or []
+    if sd:
+        for d in sd:
+            lines.append(f"   • {d}")
+    else:
+        lines.append("   • (none)")
+
+    return "\n".join(lines)
 
 
 @cli.command()
@@ -264,18 +306,9 @@ def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weigh
 
     m = Map(db)
 
-    # Build weights dict from provided CLI flags (None means use defaults)
-    weights = {}
-    if weight_count is not None:
-        weights['count'] = weight_count
-    if weight_yield is not None:
-        weights['yield'] = weight_yield
-    if weight_trust is not None:
-        weights['trust'] = weight_trust
-    if weight_recent is not None:
-        weights['recent'] = weight_recent
+    weights = _build_gap_weights(weight_count, weight_yield, weight_trust, weight_recent)
 
-    detector = GapDetector(m, weights=weights if weights else None)
+    detector = GapDetector(m, weights=weights)
 
     desired_types = [t.strip() for t in types.split(",") if t.strip()]
     analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
@@ -287,27 +320,7 @@ def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weigh
         m.close()
         return
 
-    if not analysis.get("exists"):
-        click.echo(f"❌ Entity '{entity_name}' not found in map")
-        click.echo(f"   Would need: {', '.join(analysis.get('missing_types', []))}")
-    else:
-        click.echo(f"\n📊 Gap Analysis: {entity_name}")
-        click.echo(f"   Confidence: {analysis.get('confidence', 0.0):.2f}")
-        click.echo(f"   Documents: {analysis.get('has_documents', 0)}")
-
-        if analysis.get("missing_types"):
-            click.echo("\n🔍 Missing Document Types:")
-            for t in analysis.get("missing_types", []):
-                click.echo(f"   • {t}")
-
-        # Always show Suggested Sources section for consistency in CLI output.
-        click.echo("\n💡 Suggested Sources:")
-        sd = analysis.get("suggested_domains", []) or []
-        if sd:
-            for d in sd:
-                click.echo(f"   • {d}")
-        else:
-            click.echo("   • (none)")
+    click.echo(_format_gap_analysis(analysis, entity_name))
 
     m.close()
 
@@ -353,8 +366,8 @@ def fetch_cmd(
             honor_retry_after=(not ignore_retry_after),
         )
     except Exception as exc:
-        click.echo(f"✗ Fetch failed: {exc}")
-        raise
+        logger.exception("Fetch failed for URL: %s", url)
+        raise click.ClickException(f"Fetch failed: {exc}")
 
     if res.get("error"):
         click.echo(f"✗ {res.get('error')}")
@@ -447,9 +460,9 @@ def score(
                 backoff_factor=backoff_factor,
             )
         except Exception as exc:
-            click.echo(f"✗ Fetch failed: {exc}")
+            logger.exception("Fetch failed for scoring URL: %s", url)
             m.close()
-            raise
+            raise click.ClickException(f"Fetch failed: {exc}")
 
         if res.get("error"):
             click.echo(f"✗ {res.get('error')}")
@@ -462,6 +475,7 @@ def score(
                 "probe.crawl.cleaner", fromlist=["clean_html"]
             ).clean_html(res.get("raw_bytes").decode("utf-8", errors="ignore"), url)
         except Exception:
+            logger.exception("clean_html failed for %s", url)
             cleaned = {"text": "", "boilerplate_ratio": 0.0}
 
         page = dict(res)
@@ -567,6 +581,501 @@ def link(entity_name, document_title, document_url, doc_type, doc_hash, relation
 def seeds():
     """Seed related utilities (loader, runners)."""
     pass
+
+
+def _load_blocked_set(bd_flag, cfg):
+    """Load blocked domains from CLI flag or config, returning a set."""
+    bd_path = bd_flag if bd_flag != "" else None
+    if bd_path is None:
+        bd_path = cfg.get("blocked_domains")
+
+    out = set()
+    try:
+        if bd_path:
+            p = Path(bd_path)
+            if p.exists():
+                for line in p.read_text(encoding="utf-8").splitlines():
+                    d = line.strip()
+                    if d:
+                        out.add(d)
+    except Exception:
+        logger.exception("Error loading blocked domains from %s", bd_path)
+        return set()
+    return out
+
+
+def _normalize_concurrency_flag(concurrency, cfg):
+    """Normalize concurrency flag with config precedence."""
+    try:
+        if (
+            concurrency == 1
+            and cfg.get("concurrency")
+            and cfg.get("concurrency") != 1
+        ):
+            return int(cfg.get("concurrency"))
+        return int(concurrency)
+    except Exception:
+        return 1
+
+
+def _normalize_per_domain_delay_flag(per_domain_delay, cfg):
+    """Normalize per-domain delay flag with config precedence."""
+    try:
+        if (
+            per_domain_delay == 0.25
+            and cfg.get("per_domain_delay") is not None
+            and cfg.get("per_domain_delay") != 0.25
+        ):
+            return float(cfg.get("per_domain_delay"))
+        return float(per_domain_delay)
+    except Exception:
+        return 0.0
+
+
+def _normalize_min_delay_flag(min_delay, cfg):
+    """Normalize min delay flag with config precedence."""
+    try:
+        if (
+            min_delay == 0.0
+            and cfg.get("min_delay") is not None
+            and cfg.get("min_delay") != 0.0
+        ):
+            return float(cfg.get("min_delay"))
+        return float(min_delay)
+    except Exception:
+        return 0.0
+
+
+def _apply_sequential_politeness(u, domain_last_time, per_domain_delay, persistent_politeness):
+    """Enforce per-domain politeness including optional persistent politeness state."""
+    try:
+        domain = __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc
+        last = domain_last_time.get(domain, 0)
+        if persistent_politeness and last == 0:
+            try:
+                from probe.crawl.state import get_last_crawled
+
+                last_dt = get_last_crawled(domain)
+                if last_dt:
+                    now_mon = __import__("time").monotonic()
+                    now_epoch = __import__("time").time()
+                    last_epoch = last_dt.timestamp()
+                    last_mon = now_mon - (now_epoch - last_epoch)
+                    last = last_mon
+                    domain_last_time[domain] = last
+            except Exception:
+                logger.debug("Persistent politeness failed for %s", domain, exc_info=True)
+
+        now = __import__("time").monotonic()
+        wait = max(0, per_domain_delay - (now - last))
+        if wait > 0:
+            __import__("time").sleep(wait)
+        domain_last_time[domain] = __import__("time").monotonic()
+    except Exception as exc:
+        logger.debug("Per-domain delay computation failed for %s: %s", u, exc, exc_info=True)
+
+
+def _check_block_and_robots(u, blocked_set, opts, append_failure_log):
+    """Return (skipped: bool, row: dict) when seed should be skipped due to blocklist or robots."""
+    try:
+        from urllib.parse import urlparse
+
+        domain = urlparse(u).netloc
+        if domain in blocked_set:
+            row = {
+                "timestamp": __import__("datetime").datetime.now().isoformat(),
+                "url": u,
+                "domain": domain,
+                "status_code": 0,
+                "success": "False",
+                "error_message": "blocked_by_blocklist",
+                "content_type": "",
+                "content_length": 0,
+                "fetch_duration_ms": 0,
+                "redirect_count": 0,
+                "final_url": "",
+                "link_count": 0,
+                "has_pdf_links": False,
+                "retry_count": 0,
+                "user_agent": "",
+            }
+            if not opts["no_log_failures"]:
+                append_failure_log(
+                    u,
+                    "blocked_by_blocklist",
+                    opts["file"],
+                    f"cli seeds run {opts['file']} --limit {opts['limit']}",
+                )
+            return True, row
+
+        if not opts["ignore_robots"]:
+            try:
+                from probe.crawl.robots import can_fetch
+
+                ua = "probe/0.1"
+                allowed = can_fetch(ua, u)
+                if not allowed:
+                    row = {
+                        "timestamp": __import__("datetime").datetime.now().isoformat(),
+                        "url": u,
+                        "domain": domain,
+                        "status_code": 0,
+                        "success": "False",
+                        "error_message": "blocked_by_robots",
+                        "content_type": "",
+                        "content_length": 0,
+                        "fetch_duration_ms": 0,
+                        "redirect_count": 0,
+                        "final_url": "",
+                        "link_count": 0,
+                        "has_pdf_links": False,
+                        "retry_count": 0,
+                        "user_agent": ua,
+                    }
+                    if not opts["no_log_failures"]:
+                        append_failure_log(
+                            u,
+                            "blocked_by_robots",
+                            opts["file"],
+                            f"cli seeds run {opts['file']} --limit {opts['limit']}",
+                        )
+                    return True, row
+            except Exception:
+                logger.debug("Robots parsing error for %s", u, exc_info=True)
+
+    except Exception:
+        pass
+
+    return False, None
+
+
+def _make_base_row(u_ret, res, success_flag):
+    """Create the minimal result row dict from a fetch result."""
+    return {
+        "timestamp": __import__("datetime").datetime.now().isoformat(),
+        "url": u_ret,
+        "domain": __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u_ret).netloc,
+        "status_code": res.get("status_code") or 0,
+        "success": "True" if success_flag else "False",
+        "error_message": res.get("error") or "",
+        "content_type": res.get("content_type") or "",
+        "content_length": res.get("content_length") or 0,
+        "fetch_duration_ms": res.get("fetch_duration_ms") or 0,
+        "redirect_count": res.get("redirect_count") or 0,
+        "final_url": res.get("final_url") or "",
+        "link_count": res.get("link_count") or 0,
+        "has_pdf_links": res.get("has_pdf_links") or False,
+        "retry_count": res.get("retry_count") or 0,
+        "user_agent": res.get("user_agent") or "",
+        "score": "",
+        "top_component": "",
+        "component_scores": "",
+    }
+
+
+def _perform_fetch(u, opts):
+    """Invoke the fetcher and return (u_ret, res)."""
+    res = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch(
+        u,
+        timeout=opts["timeout"],
+        max_size=opts["max_size"],
+        max_retries=opts["max_retries"],
+        backoff_factor=opts["backoff_factor"],
+        min_delay=opts["min_delay"],
+    )
+    return u, res
+
+
+def _process_fetch_result(u, u_ret, res, opts, m, append_failure_log):
+    """Create the row dict from a fetch result and run scoring/ingest; return (row, success_bool)."""
+    try:
+        sc = int(res.get("status_code") or 0)
+        success_flag = (sc >= 200 and sc < 400) and not bool(res.get("error"))
+    except Exception:
+        success_flag = False
+
+    row = _make_base_row(u_ret, res, success_flag)
+    ok = _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log)
+    return row, bool(ok)
+
+
+def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
+    """Handle logging, scoring and optional ingest for a successful fetch.
+
+    Returns True if the fetch should be considered a success, False if it represents a failure
+    (e.g., network or blocked error).
+    """
+    if res.get("error"):
+        click.echo(f"  ✗ {res.get('error')}")
+        if not opts["no_log_failures"]:
+            append_failure_log(
+                u_ret,
+                res.get("error"),
+                opts["file"],
+                f"cli seeds run {opts['file']} --limit {opts['limit']}",
+            )
+        return False
+
+    click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
+
+    if opts.get("score"):
+        try:
+            cleaned = __import__("probe.crawl.cleaner", fromlist=["clean_html"]).clean_html(
+                res.get("raw_bytes").decode("utf-8", errors="ignore"), u_ret
+            )
+        except Exception:
+            cleaned = {"text": "", "boilerplate_ratio": 0.0}
+
+        page = dict(res)
+        page.update(cleaned)
+
+        kws = []
+        if opts.get("score_keywords"):
+            kws = [k.strip() for k in opts.get("score_keywords").split(",") if k.strip()]
+
+        from probe.crawl.scorer import (
+            RelevanceScorer,
+            KeywordDensityScorer,
+            BoilerplateDetector,
+            LinkDensityScorer,
+            EntityRegexScorer,
+        )
+
+        components = [
+            KeywordDensityScorer(keywords=kws, weight=1.0),
+            BoilerplateDetector(weight=1.0),
+            LinkDensityScorer(weight=1.0),
+        ]
+        if kws:
+            components.append(EntityRegexScorer(patterns=kws, weight=1.0))
+
+        scorer = RelevanceScorer(components=components)
+        comps = scorer.score_components(page)
+        total = scorer.score(page)
+
+        row["score"] = float(total)
+        row["top_component"] = (max(comps.items(), key=lambda kv: kv[1])[0] if comps else "")
+        import json
+
+        row["component_scores"] = json.dumps(comps)
+
+        if opts.get("persist_scores") and m:
+            meta = {"keywords": kws}
+            rpt_id = m.add_scoring_report(None, u_ret, float(total), comps, meta)
+            click.echo(f"    Persisted scoring report id: {rpt_id}")
+
+    if opts.get("ingest") and m:
+        out = __import__("probe.crawl.ingest", fromlist=["ingest_fetch_result"]).ingest_fetch_result(m, res)
+        click.echo(f"    Ingested: {out}")
+
+    return True
+
+
+def _append_exception_row(u, exc, rows, opts, append_failure_log):
+    """Append a row representing an exception during fetching and record the failure."""
+    if not opts["no_log_failures"]:
+        append_failure_log(u, str(exc), opts["file"], f"cli seeds run {opts['file']} --limit {opts['limit']}")
+    rows.append(
+        {
+            "timestamp": __import__("datetime").datetime.now().isoformat(),
+            "url": u,
+            "domain": __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc,
+            "status_code": 0,
+            "success": False,
+            "error_message": str(exc),
+            "content_type": "",
+            "content_length": 0,
+            "fetch_duration_ms": 0,
+            "redirect_count": 0,
+            "final_url": "",
+            "link_count": 0,
+            "has_pdf_links": False,
+            "retry_count": 0,
+            "user_agent": "",
+        }
+    )
+
+
+def _ensure_domain_lock_for(d, domain_lock, domain_locks):
+    """Ensure a per-domain lock exists (thread-safe)."""
+    with domain_lock:
+        if d not in domain_locks:
+            import threading
+
+            domain_locks[d] = threading.Lock()
+
+
+def _maybe_set_last_crawled(d, opts):
+    """Persist last-crawled time for domain if persistent politeness is enabled."""
+    if opts.get("persistent_politeness"):
+        try:
+            from probe.crawl.state import set_last_crawled
+
+            set_last_crawled(d, __import__("datetime").datetime.now())
+        except Exception:
+            pass
+
+
+def _apply_concurrent_politeness(d, domain_last_time, per_domain_delay, persistent_politeness):
+    """Compute and apply per-domain politeness for concurrent worker.
+
+    This mirrors the logic used for sequential politeness but operates on a domain
+    key instead of a URL (avoids re-parsing inside worker)."""
+    try:
+        last = domain_last_time.get(d, 0)
+        if persistent_politeness and last == 0:
+            try:
+                from probe.crawl.state import get_last_crawled
+
+                last_dt = get_last_crawled(d)
+                if last_dt:
+                    now_mon = __import__("time").monotonic()
+                    now_epoch = __import__("time").time()
+                    last_epoch = last_dt.timestamp()
+                    last_mon = now_mon - (now_epoch - last_epoch)
+                    last = last_mon
+                    domain_last_time[d] = last
+            except Exception:
+                pass
+
+        now = __import__("time").monotonic()
+        wait = max(0, per_domain_delay - (now - last))
+        if wait > 0:
+            __import__("time").sleep(wait)
+    except Exception as exc:
+        logger.debug("Per-domain delay computation failed for %s: %s", d, exc, exc_info=True)
+
+
+def _run_sequential_seeds(urls, opts, m, blocked_set, append_failure_log, tqdm, no_progress):
+    """Run seeds sequentially. Returns (rows, successes, failures)."""
+    successes = 0
+    failures = 0
+    rows = []
+
+    domain_last_time = {}
+    seq_iter = urls
+    if not no_progress and tqdm is not None:
+        try:
+            seq_iter = tqdm(urls, desc="Seeds", unit="seed")
+        except Exception:
+            seq_iter = urls
+
+    for u in seq_iter:
+        click.echo(f"Fetching: {u}")
+
+        skipped, row = _check_block_and_robots(u, blocked_set, opts, append_failure_log)
+        if skipped:
+            rows.append(row)
+            failures += 1
+            click.echo(f"  ✗ {row['error_message']}")
+            continue
+
+        _apply_sequential_politeness(u, domain_last_time, opts["per_domain_delay"], opts["persistent_politeness"])
+
+        try:
+            u_ret, res = _perform_fetch(u, opts)
+            row, ok = _process_fetch_result(u, u_ret, res, opts, m, append_failure_log)
+            rows.append(row)
+            if ok:
+                successes += 1
+            else:
+                failures += 1
+        except Exception as exc:
+            logger.exception("Error fetching seed %s", u)
+            click.echo(f"  ✗ Exception: {exc}")
+            failures += 1
+            _append_exception_row(u, exc, rows, opts, append_failure_log)
+
+    return rows, successes, failures
+
+
+def _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log):  # noqa: C901
+    """Run seeds concurrently using ThreadPoolExecutor. Returns (rows, successes, failures)."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+
+    click.echo(f"Running with concurrency={opts['concurrency']}, per_domain_delay={opts['per_domain_delay']}")
+    domain_locks = {}
+    domain_last_time = {}
+    domain_lock = threading.Lock()
+
+    def worker(u):
+        parsed = __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u)
+        d = parsed.netloc
+
+        def _ensure_domain_lock():
+            with domain_lock:
+                if d not in domain_locks:
+                    domain_locks[d] = threading.Lock()
+
+        _ensure_domain_lock_for(d, domain_lock, domain_locks)
+        with domain_locks[d]:
+            _apply_concurrent_politeness(d, domain_last_time, opts["per_domain_delay"], opts["persistent_politeness"])
+
+            # Blocklist check only (robots are handled in sequential mode)
+            if d in blocked_set:
+                res = {"status_code": 0, "error": "blocked_by_blocklist", "content_type": "", "content_length": 0}
+                row = _make_base_row(u, res, False)
+                if not opts["no_log_failures"]:
+                    append_failure_log(u, "blocked_by_blocklist", opts["file"], f"cli seeds run {opts['file']} --limit {opts['limit']}")
+                return row, False
+
+            try:
+                u_ret, res = _perform_fetch(u, opts)
+
+                # mark last fetch time now that we've performed the request
+                domain_last_time[d] = __import__("time").monotonic()
+
+                # persist domain last-crawled if enabled
+                _maybe_set_last_crawled(d, opts)
+
+                row, ok = _process_fetch_result(u, u_ret, res, opts, m, append_failure_log)
+                return row, ok
+            except Exception as exc:
+                logger.exception("Error fetching seed %s", u)
+                if not opts["no_log_failures"]:
+                    append_failure_log(u, str(exc), opts["file"], f"cli seeds run {opts['file']} --limit {opts['limit']}")
+                err_row = {
+                    "timestamp": __import__("datetime").datetime.now().isoformat(),
+                    "url": u,
+                    "domain": __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc,
+                    "status_code": 0,
+                    "success": False,
+                    "error_message": str(exc),
+                    "content_type": "",
+                    "content_length": 0,
+                    "fetch_duration_ms": 0,
+                    "redirect_count": 0,
+                    "final_url": "",
+                    "link_count": 0,
+                    "has_pdf_links": False,
+                    "retry_count": 0,
+                    "user_agent": "",
+                }
+                return err_row, False
+
+    rows = []
+    successes = 0
+    failures = 0
+    with ThreadPoolExecutor(max_workers=opts.get("concurrency", 1)) as ex:
+        futures = {ex.submit(worker, u): u for u in urls}
+        for fut in as_completed(futures):
+            u = futures[fut]
+            try:
+                row, ok = fut.result()
+                rows.append(row)
+                if ok:
+                    successes += 1
+                else:
+                    failures += 1
+            except Exception as exc:
+                click.echo(f"  ✗ Exception: {exc}")
+                failures += 1
+                _append_exception_row(u, exc, rows, opts, append_failure_log)
+
+    return rows, successes, failures
+
+    # End of concurrent helper
 
 
 @seeds.command(name="run")
@@ -684,14 +1193,11 @@ def seeds_run(
     summary_csv,
     no_log_failures,
 ):
+    """Run seeds from a file using the fetcher and optionally ingest into the Map.
+
+    Implementation delegates the sequential and concurrent processing to helpers
+    so the CLI function remains concise and testable.
     """
-    Options:
-    - `--concurrency` number of worker threads
-    - `--per-domain-delay` minimum delay between requests to the same domain
-    - `--ignore-robots` skip robots.txt checks
-    - `--persistent-politeness` (enabled via flag) will store last-crawl timestamps across runs
-    """
-    """Run seeds from a file using the fetcher and optionally ingest into the Map."""
     from probe.crawl.seed_loader import load_file, summarize
     from probe.crawl.reporting import write_csv_report, append_failure_log
 
@@ -703,624 +1209,60 @@ def seeds_run(
     for d, c in s.items():
         click.echo(f"  {d}: {c}")
 
-    successes = 0
-    failures = 0
-    rows = []
-
     m = None
-    # If either ingest or score persistence is requested, open the DB
     if ingest or persist_scores:
         m = Map(db)
 
-    # Load config and optional tqdm progress bar
     from probe.config import load_config
 
     config = load_config()
 
-    # Optional tqdm progress bar (import if available and enabled in config)
-    from typing import TYPE_CHECKING
-    if TYPE_CHECKING:  # pragma: no cover - static analysis only
-        try:
-            from tqdm import tqdm  # type: ignore
-        except Exception:
-            pass
-
     try:
         from tqdm import tqdm
-
         if not config.get("tqdm", True):
             tqdm = None
     except Exception:
         tqdm = None
 
-    # Load blocked domains file if provided (skip if empty string or missing)
-    blocked_set = set()
-    try:
-        # precedence: CLI flag (blocked_domains) overrides config if non-empty; if CLI flag is empty string, disable
-        bd_path = blocked_domains if blocked_domains != "" else None
-        if bd_path is None:
-            bd_path = config.get("blocked_domains")
-        if bd_path:
-            p = Path(bd_path)
-            if p.exists():
-                for line in p.read_text(encoding="utf-8").splitlines():
-                    d = line.strip()
-                    if d:
-                        blocked_set.add(d)
-    except Exception:
-        blocked_set = set()
+    blocked_set = _load_blocked_set(blocked_domains, config)
 
-    # Concurrent fetching: use ThreadPoolExecutor if concurrency > 1
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    import threading
+    concurrency = _normalize_concurrency_flag(concurrency, config)
+    per_domain_delay = _normalize_per_domain_delay_flag(per_domain_delay, config)
+    min_delay = _normalize_min_delay_flag(min_delay, config)
 
-    # use CLI-provided concurrency/per-domain-delay
-    try:
-        # If concurrency equals CLI default (1) and config provides a value, prefer config
-        if (
-            concurrency == 1
-            and config.get("concurrency")
-            and config.get("concurrency") != 1
-        ):
-            concurrency = int(config.get("concurrency"))
-        else:
-            concurrency = int(concurrency)
-    except Exception:
-        concurrency = 1
-    try:
-        # per-domain delay precedence: CLI unless default
-        if (
-            per_domain_delay == 0.25
-            and config.get("per_domain_delay") is not None
-            and config.get("per_domain_delay") != 0.25
-        ):
-            per_domain_delay = float(config.get("per_domain_delay"))
-        else:
-            per_domain_delay = float(per_domain_delay)
-    except Exception:
-        per_domain_delay = 0.0
-
-    # min_delay precedence
-    try:
-        if (
-            min_delay == 0.0
-            and config.get("min_delay") is not None
-            and config.get("min_delay") != 0.0
-        ):
-            min_delay = float(config.get("min_delay"))
-        else:
-            min_delay = float(min_delay)
-    except Exception:
-        min_delay = 0.0
+    opts = {
+        "file": file,
+        "limit": limit,
+        "ingest": ingest,
+        "db": db,
+        "timeout": timeout,
+        "max_size": max_size,
+        "max_retries": max_retries,
+        "backoff_factor": backoff_factor,
+        "concurrency": concurrency,
+        "per_domain_delay": per_domain_delay,
+        "min_delay": min_delay,
+        "ignore_retry_after": ignore_retry_after,
+        "persistent_politeness": persistent_politeness,
+        "ignore_robots": ignore_robots,
+        "score": score,
+        "persist_scores": persist_scores,
+        "score_keywords": score_keywords,
+        "blocked_domains": blocked_domains,
+        "no_progress": no_progress,
+        "summary_dir": summary_dir,
+        "summary_csv": summary_csv,
+        "no_log_failures": no_log_failures,
+    }
 
     if concurrency <= 1:
-        # existing sequential flow
-        domain_last_time = {}
-        # wrap the iterator with tqdm if available and not disabled
-        seq_iter = urls
-        if not no_progress and tqdm is not None:
-            try:
-                seq_iter = tqdm(urls, desc="Seeds", unit="seed")
-            except Exception:
-                seq_iter = urls
-
-        for u in seq_iter:
-            click.echo(f"Fetching: {u}")
-
-            # domain blocklist check
-            try:
-                from urllib.parse import urlparse
-
-                domain = urlparse(u).netloc
-                if domain in blocked_set:
-                    rows.append(
-                        {
-                            "timestamp": __import__("datetime")
-                            .datetime.now()
-                            .isoformat(),
-                            "url": u,
-                            "domain": domain,
-                            "status_code": 0,
-                            "success": "False",
-                            "error_message": "blocked_by_blocklist",
-                            "content_type": "",
-                            "content_length": 0,
-                            "fetch_duration_ms": 0,
-                            "redirect_count": 0,
-                            "final_url": "",
-                            "link_count": 0,
-                            "has_pdf_links": False,
-                            "retry_count": 0,
-                            "user_agent": "",
-                        }
-                    )
-                    if not no_log_failures:
-                        append_failure_log(
-                            u,
-                            "blocked_by_blocklist",
-                            file,
-                            f"cli seeds run {file} --limit {limit}",
-                        )
-                    failures += 1
-                    click.echo("  ✗ blocked_by_blocklist")
-                    continue
-            except Exception:
-                pass
-
-            # robots.txt check (unless ignored)
-            if not ignore_robots:
-                try:
-                    from probe.crawl.robots import can_fetch
-
-                    ua = "probe/0.1"
-                    allowed = can_fetch(ua, u)
-                    if not allowed:
-                        # record as skipped due to robots
-                        rows.append(
-                            {
-                                "timestamp": __import__("datetime")
-                                .datetime.now()
-                                .isoformat(),
-                                "url": u,
-                                "domain": __import__(
-                                    "urllib.parse", fromlist=["urlparse"]
-                                )
-                                .urlparse(u)
-                                .netloc,
-                                "status_code": 0,
-                                "success": "False",
-                                "error_message": "blocked_by_robots",
-                                "content_type": "",
-                                "content_length": 0,
-                                "fetch_duration_ms": 0,
-                                "redirect_count": 0,
-                                "final_url": "",
-                                "link_count": 0,
-                                "has_pdf_links": False,
-                                "retry_count": 0,
-                                "user_agent": ua,
-                            }
-                        )
-                        if not no_log_failures:
-                            append_failure_log(
-                                u,
-                                "blocked_by_robots",
-                                file,
-                                f"cli seeds run {file} --limit {limit}",
-                            )
-                        failures += 1
-                        click.echo("  ✗ blocked_by_robots")
-                        continue
-                except Exception:
-                    # on errors parsing robots, be permissive
-                    pass
-
-
-
-
-            # per-domain / persistent politeness for sequential runs
-            try:
-                domain = (
-                    __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc
-                )
-                last = domain_last_time.get(domain, 0)
-                if persistent_politeness and last == 0:
-                    try:
-                        from probe.crawl.state import get_last_crawled
-
-                        last_dt = get_last_crawled(domain)
-                        if last_dt:
-                            now_mon = __import__("time").monotonic()
-                            now_epoch = __import__("time").time()
-                            last_epoch = last_dt.timestamp()
-                            last_mon = now_mon - (now_epoch - last_epoch)
-                            last = last_mon
-                            domain_last_time[domain] = last
-                    except Exception:
-                        pass
-
-                now = __import__("time").monotonic()
-                wait = max(0, per_domain_delay - (now - last))
-                if wait > 0:
-                    __import__("time").sleep(wait)
-                domain_last_time[domain] = __import__("time").monotonic()
-            except Exception:
-                pass
-
-            try:
-                res = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch(
-                    u,
-                    timeout=timeout,
-                    max_size=max_size,
-                    max_retries=max_retries,
-                    backoff_factor=backoff_factor,
-                    min_delay=min_delay,
-                )
-
-                domain = (
-                    __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u).netloc
-                )
-                # compute success robustly
-                try:
-                    sc = int(res.get("status_code") or 0)
-                    success_flag = (sc >= 200 and sc < 400) and not bool(
-                        res.get("error")
-                    )
-                except Exception:
-                    success_flag = False
-
-                row = {
-                    "timestamp": __import__("datetime").datetime.now().isoformat(),
-                    "url": u,
-                    "domain": domain,
-                    "status_code": res.get("status_code") or 0,
-                    "success": "True" if success_flag else "False",
-                    "error_message": res.get("error") or "",
-                    "content_type": res.get("content_type") or "",
-                    "content_length": res.get("content_length") or 0,
-                    "fetch_duration_ms": res.get("fetch_duration_ms") or 0,
-                    "redirect_count": res.get("redirect_count") or 0,
-                    "final_url": res.get("final_url") or "",
-                    "link_count": res.get("link_count") or 0,
-                    "has_pdf_links": res.get("has_pdf_links") or False,
-                    "retry_count": res.get("retry_count") or 0,
-                    "user_agent": res.get("user_agent") or "",
-                    "score": "",
-                    "top_component": "",
-                    "component_scores": "",
-                }
-
-                rows.append(row)
-
-                if res.get("error"):
-                    click.echo(f"  ✗ {res.get('error')}")
-                    failures += 1
-                    if not no_log_failures:
-                        append_failure_log(
-                            u,
-                            res.get("error"),
-                            file,
-                            f"cli seeds run {file} --limit {limit}",
-                        )
-                else:
-                    click.echo(
-                        f"  ✓ {res.get('status_code')} {res.get('content_type')}"
-                    )
-                    successes += 1
-                    # compute scoring if requested
-                    if score:
-                        try:
-                            cleaned = __import__(
-                                "probe.crawl.cleaner", fromlist=["clean_html"]
-                            ).clean_html(
-                                res.get("raw_bytes").decode("utf-8", errors="ignore"), u
-                            )
-                        except Exception:
-                            cleaned = {"text": "", "boilerplate_ratio": 0.0}
-
-                        page = dict(res)
-                        page.update(cleaned)
-
-                        kws = []
-                        if score_keywords:
-                            kws = [
-                                k.strip()
-                                for k in score_keywords.split(",")
-                                if k.strip()
-                            ]
-
-                        from probe.crawl.scorer import (
-                            RelevanceScorer,
-                            KeywordDensityScorer,
-                            BoilerplateDetector,
-                            LinkDensityScorer,
-                            EntityRegexScorer,
-                        )
-
-                        components = [
-                            KeywordDensityScorer(keywords=kws, weight=1.0),
-                            BoilerplateDetector(weight=1.0),
-                            LinkDensityScorer(weight=1.0),
-                        ]
-                        if kws:
-                            components.append(
-                                EntityRegexScorer(patterns=kws, weight=1.0)
-                            )
-
-                        scorer = RelevanceScorer(components=components)
-                        comps = scorer.score_components(page)
-                        total = scorer.score(page)
-
-                        # attach to row
-                        row["score"] = float(total)
-                        # top component is the highest-scoring component
-                        top = (
-                            max(comps.items(), key=lambda kv: kv[1])[0] if comps else ""
-                        )
-                        row["top_component"] = top
-                        import json
-
-                        row["component_scores"] = json.dumps(comps)
-
-                        # persist if requested
-                        if persist_scores and m:
-                            meta = {"keywords": kws}
-                            rpt_id = m.add_scoring_report(
-                                None, u, float(total), comps, meta
-                            )
-                            click.echo(f"    Persisted scoring report id: {rpt_id}")
-
-                    if ingest and m:
-                        out = __import__(
-                            "probe.crawl.ingest", fromlist=["ingest_fetch_result"]
-                        ).ingest_fetch_result(m, res)
-                        click.echo(f"    Ingested: {out}")
-            except Exception as exc:
-                click.echo(f"  ✗ Exception: {exc}")
-                failures += 1
-                if not no_log_failures:
-                    append_failure_log(
-                        u, str(exc), file, f"cli seeds run {file} --limit {limit}"
-                    )
-                rows.append(
-                    {
-                        "timestamp": __import__("datetime").datetime.now().isoformat(),
-                        "url": u,
-                        "domain": __import__("urllib.parse", fromlist=["urlparse"])
-                        .urlparse(u)
-                        .netloc,
-                        "status_code": 0,
-                        "success": False,
-                        "error_message": str(exc),
-                        "content_type": "",
-                        "content_length": 0,
-                        "fetch_duration_ms": 0,
-                        "redirect_count": 0,
-                        "final_url": "",
-                        "link_count": 0,
-                        "has_pdf_links": False,
-                        "retry_count": 0,
-                        "user_agent": "",
-                    }
-                )
+        rows, successes, failures = _run_sequential_seeds(urls, opts, m, blocked_set, append_failure_log, tqdm, no_progress)
     else:
-        # concurrent mode
-        click.echo(
-            f"Running with concurrency={concurrency}, per_domain_delay={per_domain_delay}"
-        )
-        domain_locks = {}
-        domain_last_time = {}
-        domain_lock = threading.Lock()
-
-        def worker(u):
-            # enforce per-domain delay (including persistent politeness if enabled)
-            parsed = __import__("urllib.parse", fromlist=["urlparse"]).urlparse(u)
-            d = parsed.netloc
-            with domain_lock:
-                if d not in domain_locks:
-                    domain_locks[d] = threading.Lock()
-            with domain_locks[d]:
-                # compute wait based on in-memory last time
-                now = __import__("time").monotonic()
-                last = domain_last_time.get(d, 0)
-
-                # if persistent politeness enabled, consult persistent state for initial baseline
-                if persistent_politeness and last == 0:
-                    try:
-                        from probe.crawl.state import get_last_crawled
-
-                        last_dt = get_last_crawled(d)
-                        if last_dt:
-                            # convert stored epoch-based timestamp into monotonic timescale
-                            now_mon = __import__("time").monotonic()
-                            now_epoch = __import__("time").time()
-                            last_epoch = last_dt.timestamp()
-                            # compute last in monotonic reference: last_mon = now_mon - (now_epoch - last_epoch)
-                            last_mon = now_mon - (now_epoch - last_epoch)
-                            last = last_mon
-                            domain_last_time[d] = last
-                    except Exception:
-                        pass
-
-                wait = max(0, per_domain_delay - (now - last))
-                if wait > 0:
-                    __import__("time").sleep(wait)
-                # update last time
-                domain_last_time[d] = __import__("time").monotonic()
-            # domain blocklist check inside worker
-            if d in blocked_set:
-                # short-circuit with an error-like result; main loop will record the failure and append to log
-                return u, {
-                    "status_code": 0,
-                    "error": "blocked_by_blocklist",
-                    "content_type": "",
-                    "content_length": 0,
-                }
-
-            # perform fetch
-            u_ret, res = u, __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch(
-                u,
-                timeout=timeout,
-                max_size=max_size,
-                max_retries=max_retries,
-                backoff_factor=backoff_factor,
-                min_delay=min_delay,
-            )
-            # persist domain last-crawled if enabled
-            if persistent_politeness:
-                try:
-                    from probe.crawl.state import set_last_crawled
-
-                    set_last_crawled(d, __import__("datetime").datetime.now())
-                except Exception:
-                    pass
-            return u_ret, res
-
-        with ThreadPoolExecutor(max_workers=concurrency) as ex:
-            futures = {ex.submit(worker, u): u for u in urls}
-            for fut in as_completed(futures):
-                u = futures[fut]
-                try:
-                    u_ret, res = fut.result()
-                    domain = (
-                        __import__("urllib.parse", fromlist=["urlparse"])
-                        .urlparse(u_ret)
-                        .netloc
-                    )
-                    try:
-                        sc = int(res.get("status_code") or 0)
-                        success_flag = (sc >= 200 and sc < 400) and not bool(
-                            res.get("error")
-                        )
-                    except Exception:
-                        success_flag = False
-
-                    row = {
-                        "timestamp": __import__("datetime").datetime.now().isoformat(),
-                        "url": u_ret,
-                        "domain": domain,
-                        "status_code": res.get("status_code") or 0,
-                        "success": "True" if success_flag else "False",
-                        "error_message": res.get("error") or "",
-                        "content_type": res.get("content_type") or "",
-                        "content_length": res.get("content_length") or 0,
-                        "fetch_duration_ms": res.get("fetch_duration_ms") or 0,
-                        "redirect_count": res.get("redirect_count") or 0,
-                        "final_url": res.get("final_url") or "",
-                        "link_count": res.get("link_count") or 0,
-                        "has_pdf_links": res.get("has_pdf_links") or False,
-                        "retry_count": res.get("retry_count") or 0,
-                        "user_agent": res.get("user_agent") or "",
-                        "score": "",
-                        "top_component": "",
-                        "component_scores": "",
-                    }
-
-                    rows.append(row)
-
-                    if res.get("error"):
-                        click.echo(f"  ✗ {res.get('error')}")
-                        failures += 1
-                        if not no_log_failures:
-                            append_failure_log(
-                                u_ret,
-                                res.get("error"),
-                                file,
-                                f"cli seeds run {file} --limit {limit}",
-                            )
-                    else:
-                        click.echo(
-                            f"  ✓ {res.get('status_code')} {res.get('content_type')}"
-                        )
-                        successes += 1
-                        # compute scoring if requested
-                        if score:
-                            try:
-                                cleaned = __import__(
-                                    "probe.crawl.cleaner", fromlist=["clean_html"]
-                                ).clean_html(
-                                    res.get("raw_bytes").decode(
-                                        "utf-8", errors="ignore"
-                                    ),
-                                    u_ret,
-                                )
-                            except Exception:
-                                cleaned = {"text": "", "boilerplate_ratio": 0.0}
-
-                            page = dict(res)
-                            page.update(cleaned)
-
-                            kws = []
-                            if score_keywords:
-                                kws = [
-                                    k.strip()
-                                    for k in score_keywords.split(",")
-                                    if k.strip()
-                                ]
-
-                            from probe.crawl.scorer import (
-                                RelevanceScorer,
-                                KeywordDensityScorer,
-                                BoilerplateDetector,
-                                LinkDensityScorer,
-                                EntityRegexScorer,
-                            )
-
-                            components = [
-                                KeywordDensityScorer(keywords=kws, weight=1.0),
-                                BoilerplateDetector(weight=1.0),
-                                LinkDensityScorer(weight=1.0),
-                            ]
-                            if kws:
-                                components.append(
-                                    EntityRegexScorer(patterns=kws, weight=1.0)
-                                )
-
-                            scorer = RelevanceScorer(components=components)
-                            comps = scorer.score_components(page)
-                            total = scorer.score(page)
-
-                            # attach to row
-                            row["score"] = float(total)
-                            # top component is the highest-scoring component
-                            top = (
-                                max(comps.items(), key=lambda kv: kv[1])[0]
-                                if comps
-                                else ""
-                            )
-                            row["top_component"] = top
-                            import json
-
-                            row["component_scores"] = json.dumps(comps)
-
-                            # persist if requested
-                            if persist_scores and m:
-                                meta = {"keywords": kws}
-                                rpt_id = m.add_scoring_report(
-                                    None, u_ret, float(total), comps, meta
-                                )
-                                click.echo(f"    Persisted scoring report id: {rpt_id}")
-
-                        if ingest and m:
-                            out = __import__(
-                                "probe.crawl.ingest", fromlist=["ingest_fetch_result"]
-                            ).ingest_fetch_result(m, res)
-                            click.echo(f"    Ingested: {out}")
-                except Exception as exc:
-                    click.echo(f"  ✗ Exception: {exc}")
-                    failures += 1
-                    if not no_log_failures:
-                        append_failure_log(
-                            u, str(exc), file, f"cli seeds run {file} --limit {limit}"
-                        )
-                    rows.append(
-                        {
-                            "timestamp": __import__("datetime")
-                            .datetime.now()
-                            .isoformat(),
-                            "url": u,
-                            "domain": __import__("urllib.parse", fromlist=["urlparse"])
-                            .urlparse(u)
-                            .netloc,
-                            "status_code": 0,
-                            "success": False,
-                            "error_message": str(exc),
-                            "content_type": "",
-                            "content_length": 0,
-                            "fetch_duration_ms": 0,
-                            "redirect_count": 0,
-                            "final_url": "",
-                            "link_count": 0,
-                            "has_pdf_links": False,
-                            "retry_count": 0,
-                            "user_agent": "",
-                        }
-                    )
+        rows, successes, failures = _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log)
 
     if m:
         m.close()
 
-    # Write CSV summary
     try:
         if summary_csv:
             p = write_csv_report(file, rows, file_path=Path(summary_csv))
@@ -1331,6 +1273,9 @@ def seeds_run(
         click.echo(f"Warning: failed to write CSV summary: {exc}")
 
     click.echo(f"Done. Successes: {successes}. Failures: {failures}.")
+
+
+
 
 
 @seeds.command(name='gen')

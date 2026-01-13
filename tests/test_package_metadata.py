@@ -81,5 +81,5 @@ def test_wheel_metadata_matches_pyproject(tmp_path: Path):
 
     # Check license info present in METADATA
     lic_match = re.search(r"^License: (.+)$", metadata, re.M)
-    classifier_license = any("License ::" in l for l in metadata.splitlines())
+    classifier_license = any("License ::" in line for line in metadata.splitlines())
     assert lic_match or classifier_license, "No license information found in wheel METADATA"

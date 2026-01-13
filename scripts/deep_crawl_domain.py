@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from pathlib import Path
 from typing import List, Set
 
 from probe.core.map import Map
@@ -31,7 +30,7 @@ def get_pages_for_domain(m: Map, domain: str) -> List[dict]:
     return out
 
 
-def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):
+def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):  # noqa: C901 - script helper; scheduled for refactor
     fetcher = __import__("probe.crawl.fetcher", fromlist=["fetch"])  # module
     m = Map(db_path)
 
@@ -61,18 +60,18 @@ def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):
                 break
             try:
                 res = fetcher.fetch(url, timeout=10, max_retries=2, max_size=2000000)
-            except Exception as exc:
+            except Exception:
                 continue
             if res.get("error"):
                 continue
 
-            out = ingest_fetch_result(m, res)
+            ingest_fetch_result(m, res)
             fetched += 1
 
             # extract outgoing_links from result or metadata
             links = res.get("links") or []
-            for l in links:
-                lurl = l.get("url")
+            for link in links:
+                lurl = link.get("url")
                 if not lurl:
                     continue
                 # keep only same domain

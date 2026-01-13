@@ -11,6 +11,6 @@ if hasattr(mod, '_map_get_domains_with_doc_type'):
     Map.get_domains_with_doc_type = mod._map_get_domains_with_doc_type
 print('after:', hasattr(Map, 'get_domains_with_doc_type'))
 # show signature
-import inspect
+import inspect  # noqa: E402
 if hasattr(Map, 'get_domains_with_doc_type'):
     print('sig:', inspect.signature(Map.get_domains_with_doc_type))

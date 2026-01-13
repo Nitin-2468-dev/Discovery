@@ -21,7 +21,7 @@ for node in mod.body:
             for stmt in h.body:
                 if isinstance(stmt, ast.FunctionDef):
                     print('func in except:', stmt.name)
-        
+
 # show the index of _map_get_domains_with_doc_type in body
 for i,stmt in enumerate(mod.body[:380]):
     if isinstance(stmt, ast.FunctionDef) and stmt.name == '_map_get_domains_with_doc_type':

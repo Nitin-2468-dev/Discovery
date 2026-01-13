@@ -1,5 +1,5 @@
-import subprocess, sys
-from pathlib import Path
+import subprocess
+import sys
 import csv
 
 def test_plotly_heatmap_cli(tmp_path):
