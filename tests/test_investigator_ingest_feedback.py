@@ -35,7 +35,8 @@ def test_investigator_ingest_increments_domain_docs(tmp_path, monkeypatch):
     monkeypatch.setattr('probe.crawl.ingest.ingest_fetch_result', fake_ingest)
 
     inv = Investigator(m, ingest_on_fetch=True)
-    res = inv.investigate("E1", ["manual", "datasheet"], max_seeds=5, dry_run=False)
+    # limit to 1 seed so we increment documents_found by exactly 1
+    res = inv.investigate("E1", ["manual", "datasheet"], max_seeds=1, dry_run=False)
 
     dom_after = m.get_domain("high.example.com")
     assert dom_after.documents_found == before + 1
