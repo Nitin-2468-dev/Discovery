@@ -102,7 +102,9 @@ def _expand_row_to_points(row: dict, domain_filter: str | None = None):
             yield (wc, sc, dom)
 
 
-def _collect_scatter_points(input_path: Path, domain: str | None, normalize: str | None):
+def _collect_scatter_points(
+    input_path: Path, domain: str | None, normalize: str | None
+):
     xs = []
     ys = []
     labels = []
@@ -135,7 +137,13 @@ def _find_domain_score_in_row(row: dict, heatmap_domain: str):
     return None
 
 
-def _aggregate_heatmap(input_path: Path, heatmap_domain: str, heatmap_x: str, heatmap_y: str, normalize: str | None):
+def _aggregate_heatmap(
+    input_path: Path,
+    heatmap_domain: str,
+    heatmap_x: str,
+    heatmap_y: str,
+    normalize: str | None,
+):
     """Aggregate points into a grid keyed by (x_val, y_val) returning sorted x, y and the z-grid (list of lists)."""
     from collections import defaultdict
 
@@ -168,7 +176,7 @@ def _aggregate_heatmap(input_path: Path, heatmap_domain: str, heatmap_x: str, he
         row = []
         for xv in xs_sorted:
             vals = agg.get((xv, yv), [])
-            row.append(sum(vals)/len(vals) if vals else float("nan"))
+            row.append(sum(vals) / len(vals) if vals else float("nan"))
         z.append(row)
 
     return xs_sorted, ys_sorted, z
@@ -215,7 +223,9 @@ def main(argv: List[str] | None = None) -> int:
         return 1
 
     if args.mode == "scatter":
-        xs, ys, labels = _collect_scatter_points(input_path, args.domain, args.normalize)
+        xs, ys, labels = _collect_scatter_points(
+            input_path, args.domain, args.normalize
+        )
         if not xs:
             print("No data points to plot")
             return 1
@@ -227,7 +237,13 @@ def main(argv: List[str] | None = None) -> int:
         if args.heatmap_domain is None:
             print("Heatmap mode requires --heatmap-domain")
             return 2
-        xs_sorted, ys_sorted, z = _aggregate_heatmap(input_path, args.heatmap_domain, args.heatmap_x, args.heatmap_y, args.normalize)
+        xs_sorted, ys_sorted, z = _aggregate_heatmap(
+            input_path,
+            args.heatmap_domain,
+            args.heatmap_x,
+            args.heatmap_y,
+            args.normalize,
+        )
         if not z:
             print("No heatmap data found for domain", args.heatmap_domain)
             return 1
