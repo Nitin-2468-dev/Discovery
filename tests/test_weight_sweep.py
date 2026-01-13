@@ -36,8 +36,8 @@ def test_weight_sweep_normalization_prefers_density(tmp_path):
     db = str(tmp_path / "probe.db")
     m = Map(db)
 
-    from datetime import datetime
-    now = datetime.utcnow().isoformat()
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
 
     # Create an entity and link a manual doc so GapDetector sees an existing entity
     from probe.core.map import Entity, Edge

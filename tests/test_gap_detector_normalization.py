@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from probe.core.map import Map, Entity, Document, Edge
 from probe.analysis.gaps import GapDetector
 
@@ -14,7 +14,7 @@ def test_normalization_per_page_prefers_low_pages_high_density(tmp_path):
     m.add_document(d)
     m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=1, relation="has_document"))
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     # Domain A: many docs but many pages => lower per-page density
     m.conn.execute("INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, trust_score, last_crawled_at) VALUES (?,?,?,?,?,?)", ("a.example.com", 200, 100, 0.2, 0.5, now))
     for i in range(100):
@@ -51,7 +51,7 @@ def test_normalization_log_reduces_skew(tmp_path):
     m.add_document(d)
     m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=1, relation="has_document"))
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     # Domain X: huge number of datasheets
     m.conn.execute("INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, trust_score, last_crawled_at) VALUES (?,?,?,?,?,?)", ("x.example.com", 10, 1000, 0.4, 0.4, now))
     for i in range(1000):
