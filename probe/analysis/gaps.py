@@ -62,9 +62,14 @@ class GapDetector:
                 "suggested_domains": [],
             }
 
-        # Use a lightweight query to fetch only document types for efficiency if available
+        # Use a lightweight query to fetch only document types for efficiency if available.
+        # If the lighter-weight method exists but raises, fall back to the full-document query.
         if hasattr(self.map, 'get_entity_document_types'):
-            existing_types = set(self.map.get_entity_document_types(entity_name))
+            try:
+                existing_types = set(self.map.get_entity_document_types(entity_name))
+            except Exception:
+                existing_docs = self.map.get_entity_documents(entity_name)
+                existing_types = {d.doc_type for d in existing_docs}
         else:
             # fallback to loading full documents (older Map versions)
             existing_docs = self.map.get_entity_documents(entity_name)
