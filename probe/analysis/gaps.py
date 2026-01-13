@@ -108,6 +108,7 @@ class GapDetector:
                                 candidates[d.domain_name]["count"] += 1
                         except Exception:
                             continue
+
             else:
                 # Some Map mocks may not accept min_pages kwarg; fall back if needed
                 try:
@@ -115,7 +116,6 @@ class GapDetector:
                 except TypeError:
                     domains = self.map.get_high_yield_domains(limit=20)
                 for d in domains:
-                    # domain objects from get_high_yield_domains include pages_crawled
                     candidates.setdefault(d.domain_name, {'count': 0, 'pages': getattr(d, 'pages_crawled', 0)})
             # If candidates are still empty (e.g., domain helper exists but returned no results),
             # fall back to high-yield domains as a graceful default so we always have suggestions.
@@ -126,6 +126,7 @@ class GapDetector:
                     domains = self.map.get_high_yield_domains(limit=20)
                 for d in domains:
                     candidates.setdefault(d.domain_name, {'count': 0})
+
         # Scoring weights (tunable) - use instance configuration
         w_count = self.w_count
         w_yield = self.w_yield
