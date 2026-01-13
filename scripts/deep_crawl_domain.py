@@ -34,27 +34,70 @@ def get_pages_for_domain(m: Map, domain: str) -> List[dict]:
     return out
 
 
-def run_deep_crawl(
-    db_path: str, domain: str, depth: int = 1, limit: int = 100
-):  # noqa: C901 - script helper; scheduled for refactor
+def _get_seed_urls(m: Map, domain: str) -> List[str]:
+    """Return seed URLs for a domain from DB or the domain root if none found."""
+    pages = get_pages_for_domain(m, domain)
+    out: List[str] = []
+    for p in pages:
+        url = p.get("url") if isinstance(p, dict) else p[1]
+        if url and url not in out:
+            out.append(url)
+
+    if not out:
+        out.append(f"https://{domain}/")
+
+    return out
+
+
+def _fetch_and_ingest(fetcher_module, m: Map, url: str, *, timeout: int = 10) -> dict | None:
+    """Fetch a URL via the fetcher module and ingest it into the Map on success.
+
+    Returns the fetch result dict on success, or None on error.
+    """
+    try:
+        res = fetcher_module.fetch(url, timeout=timeout, max_retries=2, max_size=2000000)
+    except Exception:
+        return None
+
+    if res.get("error"):
+        return None
+
+    ingest_fetch_result(m, res)
+    return res
+
+
+def _extract_same_domain_links(result: dict, domain: str) -> List[str]:
+    """Return a list of same-domain links extracted from a fetch result."""
+    out: List[str] = []
+    links = result.get("links") or []
+    from urllib.parse import urlparse
+
+    for link in links:
+        lurl = link.get("url")
+        if not lurl:
+            continue
+        if lurl.startswith("//"):
+            continue
+        parsed = urlparse(lurl)
+        if parsed.netloc != domain:
+            continue
+        out.append(lurl)
+    return out
+
+
+def run_deep_crawl(db_path: str, domain: str, depth: int = 1, limit: int = 100):
+    """Traverse and ingest pages for a domain up to a specified depth and limit.
+
+    This version decomposes behavior into smaller units for testability and
+    to reduce complexity (Ruff C901).
+    """
     fetcher = __import__("probe.crawl.fetcher", fromlist=["fetch"])  # module
     m = Map(db_path)
 
     seen: Set[str] = set()
-    queue: List[str] = []
-
-    # seed from existing pages for the domain
-    pages = get_pages_for_domain(m, domain)
-    for p in pages:
-        if p["url"] not in seen:
-            queue.append(p["url"])
-            seen.add(p["url"])
-
-    # If no pages present, try to add a root domain URL
-    if not queue:
-        root = f"https://{domain}/"
-        queue.append(root)
-        seen.add(root)
+    queue = _get_seed_urls(m, domain)
+    for u in queue:
+        seen.add(u)
 
     depth_level = 0
     fetched = 0
@@ -64,35 +107,20 @@ def run_deep_crawl(
         for url in queue:
             if fetched >= limit:
                 break
-            try:
-                res = fetcher.fetch(url, timeout=10, max_retries=2, max_size=2000000)
-            except Exception:
-                continue
-            if res.get("error"):
+
+            res = _fetch_and_ingest(fetcher, m, url)
+            if not res:
                 continue
 
-            ingest_fetch_result(m, res)
             fetched += 1
 
-            # extract outgoing_links from result or metadata
-            links = res.get("links") or []
-            for link in links:
-                lurl = link.get("url")
-                if not lurl:
-                    continue
-                # keep only same domain
-                if lurl.startswith("//"):
-                    continue
-                from urllib.parse import urlparse
-
-                parsed = urlparse(lurl)
-                if parsed.netloc != domain:
-                    continue
+            links = _extract_same_domain_links(res, domain)
+            for lurl in links:
                 if lurl not in seen:
                     seen.add(lurl)
                     next_queue.append(lurl)
 
-            # polite sleep
+            # politeness
             time.sleep(0.5)
 
         queue = next_queue
