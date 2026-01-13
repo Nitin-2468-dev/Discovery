@@ -1,51 +1,170 @@
-from typing import List
-from urllib.parse import quote_plus
+from typing import List, Optional
+from urllib.parse import quote_plus, urljoin
+try:
+    import httpx
+except Exception:
+    httpx = None
+import xml.etree.ElementTree as ET
 from probe.core.map import Map
 
 
 class SeedGenerator:
-    """Generate smart seeds based on gaps and high-yield sources."""
+    """Generate smart seeds based on gaps and high-yield sources.
 
-    def __init__(self, map_obj: Map):
+    Heuristics include sitemap discovery and robots.txt parsing (best-effort). These network
+    operations are optional and controlled with `fetch_remote` to avoid unexpected network I/O
+    during unit tests; tests should mock `httpx.get` when exercising remote discovery.
+    """
+
+    def __init__(self, map_obj: Map, *, fetch_remote: bool = False, http_timeout: float = 3.0):
         self.map = map_obj
+        self.fetch_remote = bool(fetch_remote)
+        self.http_timeout = float(http_timeout)
 
-    def generate_seeds(self, entity_name: str, doc_type: str, max_seeds: int = 10) -> List[str]:
+    def _fetch_text(self, url: str) -> Optional[str]:
+        if httpx is None:
+            return None
+        try:
+            r = httpx.get(url, timeout=self.http_timeout)
+            r.raise_for_status()
+            return r.text
+        except Exception:
+            return None
+
+    def discover_sitemap(self, domain: str) -> List[str]:
+        """Attempt to discover sitemap URLs and return a list of sitemap-located URLs.
+
+        This is a lightweight parser that looks for <loc> tags.
         """
-        Generate seed URLs for finding specific document types.
+        if not self.fetch_remote:
+            return []
+        url = f"https://{domain.rstrip('/')}/sitemap.xml"
+        text = self._fetch_text(url)
+        if not text:
+            return []
+        try:
+            root = ET.fromstring(text)
+            urls = [elem.text.strip() for elem in root.findall('.//{*}loc') if elem.text]
+            return urls
+        except Exception:
+            return []
 
-        Strategy:
-        1. Use high-yield domains
-        2. Use related-entity neighborhoods (if any)
-        3. Construct search URLs with sensible query patterns
-        4. Add Google search fallback using filetype:pdf
+    def discover_robots_disallows(self, domain: str) -> List[str]:
+        """Return a list of disallowed path prefixes from robots.txt (basic parse)."""
+        if not self.fetch_remote:
+            return []
+        url = f"https://{domain.rstrip('/')}/robots.txt"
+        txt = self._fetch_text(url)
+        if not txt:
+            return []
+        disallows = []
+        ua = None
+        for line in txt.splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if line.lower().startswith('user-agent:'):
+                ua = line.split(':', 1)[1].strip()
+            if line.lower().startswith('disallow:'):
+                path = line.split(':', 1)[1].strip()
+                if path:
+                    disallows.append(path)
+        return disallows
+
+    def generate_seeds_for_domain(self, domain: str, doc_type: str, limit: int = 5, fetch_remote: Optional[bool] = None) -> List[str]:
+        """Generate up to `limit` seed URLs for a domain and desired doc_type.
+
+        If fetch_remote is True, attempt to consult sitemap/robots for additional URLs and to avoid disallowed paths.
         """
-        seeds: List[str] = []
+        out = []
+        base = f"https://{domain.rstrip('/')}"
+        # always add root
+        out.append(base + "/")
 
-        # Get high-yield domains
-        domains = self.map.get_high_yield_domains(limit=5)
+        # common heuristic paths
+        common_paths = ["/datasheets", "/downloads", "/search?q={q}", "/{q}", "/{q}s", "/products", "/resources"]
 
-        q = quote_plus(f"{entity_name} {doc_type}")
-        for d in domains:
-            # Construct a few plausible query endpoints on the domain
-            seeds.append(f"https://{d.domain_name}/search?q={q}")
-            seeds.append(f"https://{d.domain_name}/?s={q}")
-
-        # Use related entities to diversify queries
-        related = self.map.get_related_entities(entity_name)
-        for r in related:
-            seeds.append(f"https://www.google.com/search?q={quote_plus(r.name + ' ' + doc_type)}")
-
-        # Add Google PDF filetype fallback
-        seeds.append(f"https://www.google.com/search?q={q}+filetype:pdf")
-
-        # Deduplicate while preserving order
-        seen = set()
-        unique_seeds = []
-        for s in seeds:
-            if s not in seen:
-                unique_seeds.append(s)
-                seen.add(s)
-            if len(unique_seeds) >= max_seeds:
+        for path in common_paths:
+            if len(out) >= limit:
                 break
+            p = path.format(q=doc_type)
+            url = base + p
+            if url not in out:
+                out.append(url)
 
-        return unique_seeds
+        # remote discovery
+        fr = self.fetch_remote if fetch_remote is None else bool(fetch_remote)
+        if fr:
+            s_urls = self.discover_sitemap(domain)
+            for u in s_urls:
+                if len(out) >= limit:
+                    break
+                if u not in out:
+                    out.append(u)
+            disallowed = self.discover_robots_disallows(domain)
+            # filter out any entries that match disallowed prefixes
+            if disallowed:
+                out = [u for u in out if not any(u.startswith(base + p) for p in disallowed)]
+
+        return out[:limit]
+
+    def generate_seeds(self, domains_or_entity, doc_types_or_type, per_domain: int = 3, fetch_remote: Optional[bool] = None, max_seeds: Optional[int] = None) -> List[str]:
+        """Generate seed URLs.
+
+        Backwards-compatible behavior:
+        - If called as generate_seeds(domains: List[str], doc_types: List[str], ...), it generates
+          per-domain seeds for each domain/doc_type pair.
+        - If called as generate_seeds(entity_name: str, doc_type: str, max_seeds=int), it uses
+          high-yield domains and related entities to produce up to `max_seeds` seeds (legacy API).
+        """
+        # Legacy call signature: (entity_name: str, doc_type: str, max_seeds=int)
+        if isinstance(domains_or_entity, str) and isinstance(doc_types_or_type, str):
+            entity_name = domains_or_entity
+            doc_type = doc_types_or_type
+            max_s = int(max_seeds) if max_seeds else int(per_domain)
+
+            # prefer high-yield domains
+            try:
+                domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=max_s)]
+            except Exception:
+                domains = []
+
+            seeds = []
+            # distribute per-domain budget across domains to prefer breadth
+            per_domain_budget = max(1, int(max_s // max(1, len(domains)))) if domains else max_s
+            seeds.extend(self.generate_seeds(domains, [doc_type], per_domain=per_domain_budget, fetch_remote=fetch_remote))
+
+            # add google search for the entity and related entities
+            gq = quote_plus(f"{entity_name} {doc_type}")
+            seeds.append(f"https://www.google.com/search?q={gq}")
+            try:
+                rels = self.map.get_related_entities(entity_name)
+                for r in rels:
+                    rq = quote_plus(f"{r.name} {doc_type}")
+                    seeds.append(f"https://www.google.com/search?q={rq}")
+            except Exception:
+                pass
+
+            # deduplicate preserving order and enforce max_s
+            out = []
+            seen = set()
+            for s in seeds:
+                if s not in seen:
+                    out.append(s)
+                    seen.add(s)
+                if len(out) >= max_s:
+                    break
+            return out
+
+        # New-style call: domains list + doc_types list
+        domains = domains_or_entity
+        doc_types = doc_types_or_type
+        seeds = []
+        seen = set()
+        for domain in domains:
+            for dt in doc_types:
+                for url in self.generate_seeds_for_domain(domain, dt, limit=per_domain, fetch_remote=fetch_remote):
+                    if url not in seen:
+                        seeds.append(url)
+                        seen.add(url)
+        return seeds

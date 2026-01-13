@@ -32,8 +32,10 @@ class Investigator:
 
         sg = SeedGenerator(self.map)
         seeds: List[str] = []
+        # For each missing type, generate seeds using suggested domains from the gap detector
         for t in gap.get("missing_types", []):
-            seeds.extend(sg.generate_seeds(entity_name, t, max_seeds=max_seeds))
+            domains = gap.get("suggested_domains", [])
+            seeds.extend(sg.generate_seeds(domains, [t], per_domain=max_seeds))
 
         # enforce overall max
         seeds = seeds[:max_seeds]
