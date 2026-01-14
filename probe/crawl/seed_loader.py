@@ -5,7 +5,7 @@ Utility for loading and managing seed URLs from text files.
 """
 
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 from urllib.parse import urlparse
 
 
