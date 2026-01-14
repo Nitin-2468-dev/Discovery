@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Pattern
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +19,8 @@ class KeywordDensityScorer(Scorer):
     Returns a score in 0.0-1.0 proportional to normalized keyword density.
     """
 
-    def __init__(self, keywords: List[str] = None, weight: float = 1.0):
-        self.keywords = [k.lower() for k in (keywords or [])]
+    def __init__(self, keywords: Optional[List[str]] = None, weight: float = 1.0):
+        self.keywords: List[str] = [k.lower() for k in (keywords or [])]
         self.weight = weight
 
     def score(self, page: Dict[str, Any]) -> float:
@@ -103,8 +103,8 @@ class RelevanceScorer:
         comps = scorer.score_components(page)
     """
 
-    def __init__(self, components: List[Scorer] = None):
-        self.components = components or []
+    def __init__(self, components: Optional[List[Scorer]] = None):
+        self.components: List[Scorer] = components or []
 
     def score_components(self, page: Dict[str, Any]) -> Dict[str, float]:
         out = {}
@@ -138,7 +138,7 @@ class EntityRegexScorer(Scorer):
         import re
 
         self.weight = weight
-        self.patterns = []
+        self.patterns: List[Pattern] = []
         if patterns is None:
             self.patterns = []
         elif isinstance(patterns, dict):
