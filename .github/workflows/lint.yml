@@ -24,6 +24,27 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install ruff mypy pre-commit black==25.12.0 isort==7.0.0
+
+      - name: Run formatters (black + isort)
+        run: |
+          # Run Black and isort with pinned versions to make runner match local formatting
+          black . || true
+          isort . || true
+
+      - name: Commit and push formatting changes (formatters)
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git diff --quiet --exit-code; then
+            git add -A
+            git commit -m "chore: apply Black/isort formatting (auto-commit from CI)"
+            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
+          else
+            echo "No formatting changes"
+          fi
+
       - name: Run pre-commit
         id: precommit
         continue-on-error: true
