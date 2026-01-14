@@ -85,7 +85,9 @@ def add_entity(entity_name, entity_type, confidence, db):
     )
 
     entity_id = m.add_entity(entity)
-    click.echo(f"âœ“ Added entity '{entity_name}' (ID: {entity_id}, Type: {entity_type})")
+    click.echo(
+        f"âœ“ Added entity '{entity_name}' (ID: {entity_id}, Type: {entity_type})"
+    )
 
     m.close()
 
