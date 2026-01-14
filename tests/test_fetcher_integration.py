@@ -7,8 +7,6 @@ from probe.crawl.ingest import Ingestor
 from probe.crawl.seed_loader import SeedLoader
 
 
-
-
 def _make_transport_and_patch(monkeypatch):
     # Simple responses: site1 a and c are HTML, site2 b is PDF
     def handler(request):
