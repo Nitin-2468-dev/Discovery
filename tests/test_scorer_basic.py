@@ -1,4 +1,4 @@
-from probe.crawl.scorer import (BoilerplateDetector, KeywordDensityScorer,
+﻿from probe.crawl.scorer import (BoilerplateDetector, KeywordDensityScorer,
                                 RelevanceScorer)
 
 

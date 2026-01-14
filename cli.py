@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 cli.py
 
@@ -44,7 +44,7 @@ def init(db):
     conn = initialize_schema(db)
 
     if validate_schema(conn):
-        click.echo("✓ Database initialized successfully")
+        click.echo("âœ“ Database initialized successfully")
 
         # Show table count
         cursor = conn.cursor()
@@ -56,9 +56,9 @@ def init(db):
         """
         )
         tables = [row[0] for row in cursor.fetchall()]
-        click.echo(f"✓ Created {len(tables)} tables: {', '.join(tables)}")
+        click.echo(f"âœ“ Created {len(tables)} tables: {', '.join(tables)}")
     else:
-        click.echo("✗ Database initialization failed", err=True)
+        click.echo("âœ— Database initialization failed", err=True)
         sys.exit(1)
 
     conn.close()
@@ -85,7 +85,7 @@ def add_entity(entity_name, entity_type, confidence, db):
     )
 
     entity_id = m.add_entity(entity)
-    click.echo(f"✓ Added entity '{entity_name}' (ID: {entity_id}, Type: {entity_type})")
+    click.echo(f"âœ“ Added entity '{entity_name}' (ID: {entity_id}, Type: {entity_type})")
 
     m.close()
 
@@ -99,13 +99,13 @@ def show(entity_name, db):
 
     entity = m.get_entity(entity_name)
     if not entity:
-        click.echo(f"❌ No knowledge of '{entity_name}' yet.")
+        click.echo(f"âŒ No knowledge of '{entity_name}' yet.")
         click.echo(f'   Try: probe add-entity "{entity_name}"')
         m.close()
         return
 
     # Display entity info
-    click.echo(f"\n📍 Entity: {entity.name}")
+    click.echo(f"\nðŸ“ Entity: {entity.name}")
     click.echo(f"   Type: {entity.type or 'unknown'}")
     click.echo(f"   Confidence: {entity.confidence_score:.2f}")
     click.echo(f"   First seen: {entity.created_at}")
@@ -114,22 +114,22 @@ def show(entity_name, db):
     # Get linked documents
     docs = m.get_entity_documents(entity_name)
     if docs:
-        click.echo(f"\n📄 Documents ({len(docs)}):")
+        click.echo(f"\nðŸ“„ Documents ({len(docs)}):")
         for doc in docs:
-            click.echo(f"   • {doc.title}")
+            click.echo(f"   â€¢ {doc.title}")
             click.echo(f"     Type: {doc.doc_type}")
             click.echo(f"     URL: {doc.url}")
             if doc.publication_date:
                 click.echo(f"     Published: {doc.publication_date}")
     else:
-        click.echo("\n📄 No documents found yet.")
+        click.echo("\nðŸ“„ No documents found yet.")
 
     # Get related entities
     related = m.get_related_entities(entity_name)
     if related:
-        click.echo(f"\n🔗 Related Entities ({len(related)}):")
+        click.echo(f"\nðŸ”— Related Entities ({len(related)}):")
         for rel in related:
-            click.echo(f"   • {rel.name} ({rel.type or 'unknown'})")
+            click.echo(f"   â€¢ {rel.name} ({rel.type or 'unknown'})")
 
     m.close()
 
@@ -149,7 +149,7 @@ def domains(limit, min_pages, db):
         m.close()
         return
 
-    click.echo(f"\n🌐 High-Yield Domains (min {min_pages} pages):\n")
+    click.echo(f"\nðŸŒ High-Yield Domains (min {min_pages} pages):\n")
     for d in domains:
         yield_pct = d.yield_score * 100
         click.echo(f"  {d.domain_name}")
@@ -171,7 +171,7 @@ def summary(db):
     m = Map(db)
     stats = m.get_map_summary()
 
-    click.echo("\n📊 Probe Map Summary:\n")
+    click.echo("\nðŸ“Š Probe Map Summary:\n")
     click.echo(f"  Entities:  {stats['entities']:>6}")
     click.echo(f"  Documents: {stats['documents']:>6}")
     click.echo(f"  Pages:     {stats['pages']:>6}")
@@ -185,7 +185,7 @@ def summary(db):
         click.echo("Top 3 Domains:")
         for d in domains:
             yield_pct = d.yield_score * 100
-            click.echo(f"  • {d.domain_name} ({yield_pct:.0f}% yield)")
+            click.echo(f"  â€¢ {d.domain_name} ({yield_pct:.0f}% yield)")
         click.echo()
 
     m.close()
@@ -222,24 +222,24 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
     click.echo(f"Graph stats: {stats['nodes']} nodes, {stats['edges']} edges")
 
     output_file = viz.plot_interactive(output)
-    click.echo(f"✓ Visualization saved to: {output_file}")
+    click.echo(f"âœ“ Visualization saved to: {output_file}")
 
     # optional image exports
     if export_png:
         try:
             out_png = viz.export_image(export_png)
-            click.echo(f"✓ PNG exported to: {out_png}")
+            click.echo(f"âœ“ PNG exported to: {out_png}")
         except Exception as exc:
             logger.exception("PNG export failed for %s", export_png)
-            click.echo(f"⚠️ PNG export failed: {exc}")
+            click.echo(f"âš ï¸ PNG export failed: {exc}")
 
     if export_svg:
         try:
             out_svg = viz.export_image(export_svg)
-            click.echo(f"✓ SVG exported to: {out_svg}")
+            click.echo(f"âœ“ SVG exported to: {out_svg}")
         except Exception as exc:
             logger.exception("SVG export failed for %s", export_svg)
-            click.echo(f"⚠️ SVG export failed: {exc}")
+            click.echo(f"âš ï¸ SVG export failed: {exc}")
 
     if open_in_browser:
         try:
@@ -271,25 +271,25 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
 
     if not analysis.get("exists"):
         missing = ", ".join(analysis.get("missing_types", []))
-        return f"❌ Entity '{entity_name}' not found in map\n   Would need: {missing}"
+        return f"âŒ Entity '{entity_name}' not found in map\n   Would need: {missing}"
 
     lines = []
-    lines.append(f"\n📊 Gap Analysis: {entity_name}")
+    lines.append(f"\nðŸ“Š Gap Analysis: {entity_name}")
     lines.append(f"   Confidence: {analysis.get('confidence', 0.0):.2f}")
     lines.append(f"   Documents: {analysis.get('has_documents', 0)}")
 
     if analysis.get("missing_types"):
-        lines.append("\n🔍 Missing Document Types:")
+        lines.append("\nðŸ” Missing Document Types:")
         for t in analysis.get("missing_types", []):
-            lines.append(f"   • {t}")
+            lines.append(f"   â€¢ {t}")
 
-    lines.append("\n💡 Suggested Sources:")
+    lines.append("\nðŸ’¡ Suggested Sources:")
     sd = analysis.get("suggested_domains", []) or []
     if sd:
         for d in sd:
-            lines.append(f"   • {d}")
+            lines.append(f"   â€¢ {d}")
     else:
-        lines.append("   • (none)")
+        lines.append("   â€¢ (none)")
 
     return "\n".join(lines)
 
@@ -417,7 +417,7 @@ def fetch_cmd(
         raise click.ClickException(f"Fetch failed: {exc}")
 
     if res.get("error"):
-        click.echo(f"✗ {res.get('error')}")
+        click.echo(f"âœ— {res.get('error')}")
         return
 
     click.echo(f"Status: {res.get('status_code')}, Type: {res.get('content_type')}")
@@ -473,7 +473,7 @@ def score(
     Otherwise `url` must be provided and will be fetched live.
     """
     if from_db is None and not url:
-        click.echo("✗ Provide a URL or use --from-db PAGE_ID")
+        click.echo("âœ— Provide a URL or use --from-db PAGE_ID")
         return
 
     click.echo(f"Scoring: {url or f'page_id={from_db}'}")
@@ -485,7 +485,7 @@ def score(
     if from_db is not None:
         row = m.get_page_by_id(from_db)
         if not row:
-            click.echo(f"✗ No page with id {from_db}")
+            click.echo(f"âœ— No page with id {from_db}")
             m.close()
             return
         fetched_url = row["url"]
@@ -512,7 +512,7 @@ def score(
             raise click.ClickException(f"Fetch failed: {exc}")
 
         if res.get("error"):
-            click.echo(f"✗ {res.get('error')}")
+            click.echo(f"âœ— {res.get('error')}")
             m.close()
             return
 
@@ -613,7 +613,7 @@ def link(entity_name, document_title, document_url, doc_type, doc_hash, relation
     )
     edge_id = m.add_edge(edge)
 
-    click.echo(f"✓ Linked '{entity_name}' → '{document_title}'")
+    click.echo(f"âœ“ Linked '{entity_name}' â†’ '{document_title}'")
     click.echo(f"  Relation: {relation}")
     click.echo(f"  Document ID: {doc_id}")
     click.echo(f"  Edge ID: {edge_id}")
@@ -854,7 +854,7 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
     (e.g., network or blocked error).
     """
     if res.get("error"):
-        click.echo(f"  ✗ {res.get('error')}")
+        click.echo(f"  âœ— {res.get('error')}")
         if not opts["no_log_failures"]:
             append_failure_log(
                 u_ret,
@@ -864,7 +864,7 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
             )
         return False
 
-    click.echo(f"  ✓ {res.get('status_code')} {res.get('content_type')}")
+    click.echo(f"  âœ“ {res.get('status_code')} {res.get('content_type')}")
 
     if opts.get("score"):
         try:
@@ -1030,7 +1030,7 @@ def _run_sequential_seeds(
         if skipped:
             rows.append(row)
             failures += 1
-            click.echo(f"  ✗ {row['error_message']}")
+            click.echo(f"  âœ— {row['error_message']}")
             continue
 
         _apply_sequential_politeness(
@@ -1047,7 +1047,7 @@ def _run_sequential_seeds(
                 failures += 1
         except Exception as exc:
             logger.exception("Error fetching seed %s", u)
-            click.echo(f"  ✗ Exception: {exc}")
+            click.echo(f"  âœ— Exception: {exc}")
             failures += 1
             _append_exception_row(u, exc, rows, opts, append_failure_log)
 
@@ -1160,7 +1160,7 @@ def _run_concurrent_seeds(urls, opts, m, blocked_set, append_failure_log):  # no
                 else:
                     failures += 1
             except Exception as exc:
-                click.echo(f"  ✗ Exception: {exc}")
+                click.echo(f"  âœ— Exception: {exc}")
                 failures += 1
                 _append_exception_row(u, exc, rows, opts, append_failure_log)
 
@@ -1404,7 +1404,7 @@ def seeds_gen(entity_name, doc_type, max_seeds, db, as_json):
     else:
         click.echo(f"Seeds for {entity_name} ({doc_type}):")
         for s in seeds:
-            click.echo(f"  • {s}")
+            click.echo(f"  â€¢ {s}")
 
     m.close()
 
@@ -1471,12 +1471,12 @@ def investigate(entity_name, types, max_seeds, dry_run, db, as_json):
         )
         click.echo(f"  Seeds: {len(res.get('seeds', []))}")
         for s in res.get("seeds", []):
-            click.echo(f"    • {s}")
+            click.echo(f"    â€¢ {s}")
         if not dry_run:
             click.echo("  Seed fetch results:")
             for r in res.get("results", []):
                 click.echo(
-                    f"    • {r.get('seed')} -> {r.get('status_code')} {r.get('error')}"
+                    f"    â€¢ {r.get('seed')} -> {r.get('status_code')} {r.get('error')}"
                 )
 
     m.close()

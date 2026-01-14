@@ -1,4 +1,4 @@
-"""Simple sync fetcher for v0.2.
+﻿"""Simple sync fetcher for v0.2.
 
 Public API:
 - fetch(url, timeout=10, max_size=10_000_000) -> dict with keys:
