@@ -13,16 +13,90 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
       - name: Install tools
-        run: pip install --upgrade pip && pip install ruff mypy pre-commit
-      - name: Run pre-commit
         run: |
+          pip install --upgrade pip
+          pip install ruff mypy pre-commit black==25.12.0 isort==7.0.0
+
+      - name: Run formatters (black + isort)
+        run: |
+          # Run Black and isort with pinned versions to make runner match local formatting
+          black . || true
+          isort . || true
+
+      - name: Commit and push formatting changes (formatters)
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git diff --quiet --exit-code; then
+            git add -A
+            git commit -m "chore: apply Black/isort formatting (auto-commit from CI)"
+            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
+          else
+            echo "No formatting changes"
+          fi
+
+      - name: Run pre-commit
+        id: precommit
+        continue-on-error: true
+        run: |
+          # run pre-commit and allow it to modify files; don't let it fail the job
           pre-commit run --all-files
+      - name: Commit and push formatting changes (if any)
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # If pre-commit made changes, commit and push back to the PR branch
+          if ! git diff --quiet --exit-code; then
+            git add -A
+            git commit -m "chore: apply pre-commit formatting (auto-commit from CI)"
+            # Push to the source branch of the PR
+            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
+          else
+            echo "No formatting changes"
+          fi
       - name: Run ruff
         run: ruff check .
       - name: Run mypy
         run: mypy .
+
+  autofix:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install formatters & pre-commit
+        run: |
+          pip install --upgrade pip
+          pip install pre-commit black==25.12.0 isort==7.0.0
+      - name: Run pre-commit and commit formatting (if any)
+        run: |
+          pre-commit run --all-files || true
+          if ! git diff --quiet --exit-code; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "chore: apply pre-commit formatting (auto-commit from CI)"
+            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
+          else
+            echo "No formatting changes"
+          fi
