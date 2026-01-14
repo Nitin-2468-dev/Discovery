@@ -23,7 +23,7 @@ jobs:
       - name: Install tools
         run: |
           pip install --upgrade pip
-          pip install ruff mypy pre-commit black==25.12.0 isort==7.0.0
+          pip install ruff mypy pre-commit black==25.12.0 isort==7.0.0 types-PyYAML
 
       - name: Run formatters (black + isort)
         run: |
