@@ -9,7 +9,7 @@ def test_investigator_skips_policy_denied_seed(tmp_path, monkeypatch):
     m.add_entity(Entity(id=None, name="TestEnt"))
 
     # Force seed generator to produce a deny-listed domain seed
-    def fake_generate_seeds(domains, types, per_domain=1):
+    def fake_generate_seeds(self, domains, types, per_domain=1):
         return ["http://malicious.example/doc.pdf"]
 
     monkeypatch.setattr(
@@ -38,7 +38,7 @@ def test_investigator_allows_in_educational_with_admin(tmp_path, monkeypatch):
     m = Map(db)
     m.add_entity(Entity(id=None, name="TestEnt"))
 
-    def fake_generate_seeds(domains, types, per_domain=1):
+    def fake_generate_seeds(self, domains, types, per_domain=1):
         return ["http://malicious.example/doc.pdf"]
 
     monkeypatch.setattr(
