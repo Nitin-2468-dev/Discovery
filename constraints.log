@@ -3313,3 +3313,11 @@ Error: blocked_by_robots
 Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_robots_blocks_seed0\s.txt --limit 1
 Outcome: logged by seed-runner
 ---
+
+[2026-01-15 05:10] CI_FIX
+Phase: ci
+Action: Remove leftover submodule & make autofix push tolerant; fix mypy errors
+Status: Complete
+Notes: Removed a leftover gitlink for `tmp_ci_check` from the index and ensured it is ignored; fixed remaining mypy issues (normalized `Map.add_edge` to return an `int` (0 when duplicate), typed scoring query `params`, and silenced `httpx = None` typing); updated `.github/workflows/autofix.yml` to tolerate push failures (so forked PRs won't fail the job when the runner cannot push back); pushed changes to branch `ci/mypy-iter-continue`, ran local mypy (no issues), and retriggered CI; the Autofix job runs pre-commit formatting and will continue even if it cannot push (push failures are now handled gracefully).
+Outcome: Branch updated and CI re-run; monitoring continues.
+---

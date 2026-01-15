@@ -10,8 +10,10 @@ probe/
 ├── DECISIONS.md           # Architectural choices log
 ├── FRAMEWORK.md           # BMad Method documentation
 ├── CORE.md               # BMad Core components
+├── docs/CI.md            # CI matrix, debugging tips, and Autofix workflow
 ├── constraints.log       # Violation and decision tracking
 ├── requirements.txt      # Python dependencies
+├── .github/workflows/    # GitHub Actions workflows (ci.yml, autofix.yml, research-integration.yml)
 ├── cli.py               # Command-line interface
 ├── probe/
 │   ├── __init__.py
