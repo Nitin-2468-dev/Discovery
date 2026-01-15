@@ -55,12 +55,21 @@ class PolicyEngine:
                 domain,
                 reason,
             )
-            return {
+            decision = {
                 "mode": self.mode.value,
                 "allowed": False,
                 "reason": reason,
                 "tags": ["domain"],
+                "context": {"domain": domain},
             }
+            try:
+                from .telemetry import record_denial
+
+                record_denial(decision)
+            except Exception:
+                logger.debug("Failed to record policy telemetry", exc_info=True)
+
+            return decision
 
         return {
             "mode": self.mode.value,
