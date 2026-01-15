@@ -62,7 +62,7 @@
 - [x] Query map for entity knowledge
 - [x] Detect missing document types
 - [x] Identify weak confidence areas
-- [~] Suggest seed sources (partial — `GapDetector` now suggests candidate domains; seed generator and full investigation orchestration remain)
+- [x] Suggest seed sources (implemented — `GapDetector` suggests candidate domains and `SeedGenerator` produces seeds; Investigator supports limited fetch passes and enforces policy; orchestrator and breadth-first crawler remain)
 
 **Progress:** Implemented `GapDetector` (missing-type detection and candidate domain scoring with configurable weights), added Map compatibility helpers (`Map.get_domains_with_doc_type` attached at import time), and introduced normalization modes (`none`, `per_page`, `log`, `per_page_log`). Also added a weight-sweep utility (`scripts/weight_sweep.py`) and plotting helpers (`scripts/plot_sweep.py`), plus unit tests covering fallback behavior, heuristics, normalization, and plotting. See PR #27 for details and the full test results.
 
