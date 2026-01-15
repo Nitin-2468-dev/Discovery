@@ -30,9 +30,17 @@ from probe.visualization.graph_viz import GraphVisualizer  # noqa: E402
 
 
 @click.group()
-def cli():
+@click.option(
+    "--admin-enabled/--no-admin-enabled",
+    default=None,
+    help="Globally enable admin opt-in features (overrides config when set)",
+)
+@click.pass_context
+def cli(ctx, admin_enabled):
     """Probe: A deep research engine for discovering buried information."""
-    pass
+    # Attach admin flag to context so subcommands can access it; None means use config
+    ctx.ensure_object(dict)
+    ctx.obj["admin_enabled_flag"] = admin_enabled
 
 
 @cli.command()
@@ -629,6 +637,45 @@ def seeds():
     pass
 
 
+@cli.group()
+def config():
+    """View and modify Probe configuration (writes to probe.config.json)."""
+    pass
+
+
+@config.command("show")
+def config_show():
+    """Print the effective configuration (merges defaults and file)."""
+    from probe.config import load_config
+
+    cfg = load_config()
+    import json
+
+    click.echo(json.dumps(cfg, indent=2))
+
+
+@config.command("set-admin")
+@click.argument("value", type=click.Choice(["enable", "disable"]))
+def config_set_admin(value):
+    """Enable or disable `admin_enabled` and persist to `probe.config.json`."""
+    from probe.config import load_config
+
+    cfg = load_config()
+    new_val = True if value == "enable" else False
+    cfg["admin_enabled"] = new_val
+
+    import json
+
+    p = Path("probe.config.json")
+    try:
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2)
+        click.echo(f"Updated {p} with admin_enabled={new_val}")
+    except Exception as exc:
+        logger.exception("Failed to write config file: %s", exc)
+        raise click.ClickException(f"Failed to write config: {exc}")
+
+
 def _load_blocked_set(bd_flag, cfg):
     """Load blocked domains from CLI flag or config, returning a set."""
     bd_path = bd_flag if bd_flag != "" else None
@@ -648,6 +695,14 @@ def _load_blocked_set(bd_flag, cfg):
         logger.exception("Error loading blocked domains from %s", bd_path)
         return set()
     return out
+
+
+def _resolve_admin_enabled(ctx_obj, cfg):
+    """Resolve admin_enabled with precedence: CLI flag > config value > default False."""
+    cli_flag = ctx_obj.get("admin_enabled_flag") if ctx_obj else None
+    if cli_flag is not None:
+        return bool(cli_flag)
+    return bool(cfg.get("admin_enabled", False))
 
 
 def _normalize_concurrency_flag(concurrency, cfg):
@@ -1310,6 +1365,11 @@ def seeds_run(
 
     config = load_config()
 
+    # Resolve admin_enabled (CLI flag > config)
+    admin_enabled = _resolve_admin_enabled(
+        getattr(click.get_current_context(), "obj", None), config
+    )
+
     try:
         from tqdm import tqdm
 
@@ -1347,6 +1407,7 @@ def seeds_run(
         "summary_dir": summary_dir,
         "summary_csv": summary_csv,
         "no_log_failures": no_log_failures,
+        "admin_enabled": admin_enabled,
     }
 
     if concurrency <= 1:

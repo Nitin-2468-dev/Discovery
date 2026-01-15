@@ -45,6 +45,22 @@ Every query makes the system smarter. The map compounds over time.
 - **Memory over repetition**: Query the map before crawling the web
 - **Evidence over structure**: PDFs are first-class citizens
 
+## Modes & Policy
+
+Probe supports runtime **modes** that affect risk exposure and output detail. See `POLICY.md` for full policy semantics.
+
+- `public_guarded` — safe-by-default (restricts high-risk categories)
+- `educational_open` — broader visibility for research/learning (with warnings)
+
+Initialize with:
+
+```bash
+probe init --mode public_guarded
+# or
+probe init --mode educational_open
+```
+
+
 ## Current Status
 
 **Phase:** Foundation (v0.1)

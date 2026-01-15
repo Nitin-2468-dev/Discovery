@@ -63,3 +63,15 @@ For a full end-to-end PDF extraction test, an example test uses `reportlab` to g
 - Politeness: robots.txt and crawl-delay handling
 - Async variant or coroutine-based client for higher throughput
 - Add OCR fallback for image-only PDFs (out-of-scope for v0.2)
+
+### Mode-aware defaults (policy integration)
+
+The fetcher will expose conservative, mode-aware defaults when the Policy Engine is active:
+
+| Setting | Guarded | Educational |
+|------|--------:|------------:|
+| Max size | 5 MB | 20 MB |
+| Retries | Low | Moderate |
+| OCR | Off | Optional |
+
+Policy-driven defaults will be applied at runtime; follow-up PRs will implement enforcement and configuration plumbing.
