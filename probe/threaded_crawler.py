@@ -85,6 +85,104 @@ class ThreadedCrawler:
                 now = self.time()
             self._domain_last[domain] = now
 
+    def _make_task(self, url: str, domain: Optional[str]):
+        def task():
+            self._wait_for_domain(domain)
+            try:
+                res = self.fetch(url)
+            except Exception:
+                return {"url": url, "error": "fetch_error"}
+
+            if self.persistent_politeness and domain:
+                try:
+                    from datetime import datetime
+
+                    from probe.crawl.state import set_last_crawled
+
+                    set_last_crawled(domain, datetime.utcnow())
+                except Exception:
+                    pass
+
+            return {"url": url, "res": res}
+
+        return task
+
+    def _enqueue_links(self, res: Dict, visited: Set[str], q: deque):
+        links = res.get("links", []) or []
+        for link in links:
+            href = link if isinstance(link, str) else link.get("url")
+            if href and href not in visited:
+                q.append((href, 0))
+
+    def _is_document(self, url: str, res: Dict) -> bool:
+        ct = res.get("content_type") or ""
+        return "pdf" in ct or (isinstance(url, str) and url.lower().endswith(".pdf"))
+
+    def _process_result(
+        self, r: Dict, visited: Set[str], q: deque, max_depth: int
+    ) -> tuple[int, int]:
+        # returns (pages_increment, docs_increment)
+        if r.get("error"):
+            return 0, 0
+        res = r.get("res") or {}
+        url = r.get("url")
+
+        # scoring & enqueue children
+        try:
+            score = float(self.score(res))
+        except Exception:
+            score = 0.0
+
+        if score >= 0.1:
+            self._enqueue_links(res, visited, q)
+
+        docs_inc = 1 if self._is_document(url, res) else 0
+        return 1, docs_inc
+
+    def _process_futures_loop(
+        self,
+        futures: Set,
+        q: deque,
+        visited: Set[str],
+        pages_fetched: int,
+        docs_found: int,
+        ex: ThreadPoolExecutor,
+        max_depth: int,
+        max_pages: int,
+    ) -> tuple[int, int]:
+        while futures and pages_fetched < max_pages:
+            for fut in as_completed(list(futures)):
+                if pages_fetched >= max_pages:
+                    break
+                try:
+                    r = fut.result()
+                except Exception:
+                    r = {"url": None, "error": "task_error"}
+
+                futures.discard(fut)
+
+                inc_pages, inc_docs = self._process_result(r, visited, q, max_depth)
+                if inc_pages == 0:
+                    continue
+
+                pages_fetched += inc_pages
+                docs_found += inc_docs
+
+                # schedule next items from the queue
+                while (
+                    q and len(futures) < self.concurrency and pages_fetched < max_pages
+                ):
+                    nu, nd = q.popleft()
+                    if nu in visited or nd > max_depth:
+                        continue
+                    visited.add(nu)
+                    if not self._policy_allows(nu):
+                        continue
+                    domain = self._domain_from_url(nu)
+                    futures.add(ex.submit(self._make_task(nu, domain)))
+
+        return pages_fetched, docs_found
+
     def crawl(
         self, seeds: Iterable[str], max_depth: int = 1, max_pages: int = 50
     ) -> Dict[str, int]:
@@ -97,34 +195,10 @@ class ThreadedCrawler:
             futures = set()
 
             def schedule(url, depth):
-                # policy check
                 if not self._policy_allows(url):
                     return
-
                 domain = self._domain_from_url(url)
-
-                def task(u=url, d=depth, dom=domain):
-                    # politeness
-                    self._wait_for_domain(dom)
-                    try:
-                        res = self.fetch(u)
-                    except Exception:
-                        return {"url": u, "error": "fetch_error"}
-
-                    # persist last-crawled time if enabled
-                    try:
-                        from probe.crawl.state import set_last_crawled
-
-                        if dom:
-                            from datetime import datetime
-
-                            set_last_crawled(dom, datetime.utcnow())
-                    except Exception:
-                        pass
-
-                    return {"url": u, "res": res}
-
-                futures.add(ex.submit(task))
+                futures.add(ex.submit(self._make_task(url, domain)))
 
             # seed initial scheduling
             while q and len(futures) < self.concurrency and pages_fetched < max_pages:
@@ -134,51 +208,9 @@ class ThreadedCrawler:
                 visited.add(url)
                 schedule(url, depth)
 
-            while futures and pages_fetched < max_pages:
-                done, _ = as_completed(futures, timeout=None), None
-                for fut in done:
-                    try:
-                        r = fut.result()
-                    except Exception:
-                        r = {"url": None, "error": "task_error"}
-
-                    futures.discard(fut)
-
-                    if r.get("error"):
-                        continue
-
-                    pages_fetched += 1
-                    res = r.get("res") or {}
-                    url = r.get("url")
-
-                    # scoring & enqueue
-                    score = float(self.score(res))
-                    if score >= 0.1:
-                        # enqueue children if within depth
-                        # We assume links are list of urls or dicts with 'url'
-                        links = res.get("links", []) or []
-                        for link in links:
-                            href = link if isinstance(link, str) else link.get("url")
-                            if href and href not in visited:
-                                q.append((href, 0))
-
-                    # detect docs
-                    ct = res.get("content_type") or ""
-                    if "pdf" in ct or (
-                        isinstance(url, str) and url.lower().endswith(".pdf")
-                    ):
-                        docs_found += 1
-
-                    # schedule next from queue if available
-                    while (
-                        q
-                        and len(futures) < self.concurrency
-                        and pages_fetched < max_pages
-                    ):
-                        nu, nd = q.popleft()
-                        if nu in visited or nd > max_depth:
-                            continue
-                        visited.add(nu)
-                        schedule(nu, nd)
+            # process completed fetches, schedule more as capacity becomes available
+            pages_fetched, docs_found = self._process_futures_loop(
+                futures, q, visited, pages_fetched, docs_found, ex, max_depth, max_pages
+            )
 
         return {"pages_fetched": pages_fetched, "documents_found": docs_found}
