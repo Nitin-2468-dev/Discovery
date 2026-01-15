@@ -1,5 +1,8 @@
+import logging
 from enum import Enum
 from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class Mode(str, Enum):
@@ -24,8 +27,10 @@ class PolicyEngine:
     and tests.
     """
 
-    def __init__(self, mode: Mode = Mode.PUBLIC_GUARDED):
+    def __init__(self, mode: Mode = Mode.PUBLIC_GUARDED, admin_enabled: bool = False):
         self.mode = mode
+        # Administrative opt-in required for relaxed modes (like EDUCATIONAL_OPEN)
+        self.admin_enabled = admin_enabled
 
     DEFAULT_DENYLIST = {"malicious.example", "do-not-fetch.example"}
 
@@ -43,10 +48,17 @@ class PolicyEngine:
         domain = context.get("domain")
 
         if domain is not None and not self.domain_allowed(domain):
+            reason = f"domain '{domain}' disallowed in mode '{self.mode.value}'"
+            logger.warning(
+                "Policy decision denied: mode=%s domain=%s reason=%s",
+                self.mode.value,
+                domain,
+                reason,
+            )
             return {
                 "mode": self.mode.value,
                 "allowed": False,
-                "reason": f"domain '{domain}' disallowed in mode '{self.mode.value}'",
+                "reason": reason,
                 "tags": ["domain"],
             }
 
@@ -68,7 +80,15 @@ class PolicyEngine:
         """
         domain = domain.lower().strip()
 
-        if self.mode is Mode.EDUCATIONAL_OPEN:
+        if self.mode is Mode.EDUCATIONAL_OPEN and not getattr(
+            self, "admin_enabled", False
+        ):
+            logger.warning(
+                "Educational mode requested but `admin_enabled` is False; treating as PUBLIC_GUARDED for domain checks"
+            )
+            # Fall through to denylist behavior (i.e., treat like PUBLIC_GUARDED)
+
+        if self.mode is Mode.EDUCATIONAL_OPEN and getattr(self, "admin_enabled", False):
             return True
 
         # PUBLIC_GUARDED (and other future modes) deny known bad domains
