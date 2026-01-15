@@ -1511,16 +1511,36 @@ def health_check(url, timeout, max_retries, backoff_factor):
     default=True,
     help="Perform a limited fetch pass for generated seeds",
 )
+@click.option(
+    "--mode",
+    default="public_guarded",
+    type=click.Choice(["public_guarded", "educational_open"]),
+    help="Policy mode to use for this investigation",
+)
 @click.option("--db", default="probe.db", help="Database file path")
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output JSON")
-def investigate(entity_name, types, max_seeds, dry_run, db, as_json):
+def investigate(entity_name, types, max_seeds, dry_run, mode, db, as_json):
     """Run a short investigator: gap detection -> seed generation -> optional limited fetch."""
     import json as _json
 
     from probe.analysis.investigator import Investigator
+    from probe.config import load_config
+    from probe.policy import Mode, PolicyEngine
 
     m = Map(db)
-    inv = Investigator(m)
+
+    # Resolve admin_enabled and create a PolicyEngine for this run
+    config = load_config()
+    admin_enabled = _resolve_admin_enabled(
+        getattr(click.get_current_context(), "obj", None), config
+    )
+    pol_mode = (
+        Mode.EDUCATIONAL_OPEN if mode == "educational_open" else Mode.PUBLIC_GUARDED
+    )
+    pe = PolicyEngine(mode=pol_mode, admin_enabled=admin_enabled)
+
+    inv = Investigator(m, policy_engine=pe)
+
     desired = [t.strip() for t in types.split(",") if t.strip()]
     res = inv.investigate(entity_name, desired, max_seeds=max_seeds, dry_run=dry_run)
 
