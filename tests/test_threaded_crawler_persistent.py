@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta
 
-
 from probe.crawl import state
 from probe.threaded_crawler import ThreadedCrawler
 
