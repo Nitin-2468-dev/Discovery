@@ -79,7 +79,9 @@ class Investigator:
         seed_results: List[Dict[str, Any]] = []
         for s in seeds_sorted:
             try:
-                r = fetch(s, timeout=int(fetch_timeout), max_retries=1, backoff_factor=0.0)
+                r = fetch(
+                    s, timeout=int(fetch_timeout), max_retries=1, backoff_factor=0.0
+                )
             except Exception as e:
                 seed_results.append({"seed": s, "status_code": None, "error": str(e)})
                 continue

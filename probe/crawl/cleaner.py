@@ -45,7 +45,9 @@ def clean_html(html: str, base_url: str) -> Dict[str, object]:
     md = soup.find("meta", attrs={"name": "description"})
     if md:
         content = md.get("content")
-        meta_desc = content.strip() if isinstance(content, str) else str(content or "").strip()
+        meta_desc = (
+            content.strip() if isinstance(content, str) else str(content or "").strip()
+        )
 
     # Main text: get_text with a space separator then normalize whitespace
     raw_text = soup.get_text(separator=" ", strip=True)

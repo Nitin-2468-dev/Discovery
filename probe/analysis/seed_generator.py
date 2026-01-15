@@ -1,6 +1,6 @@
+import xml.etree.ElementTree as ET
 from typing import List, Optional
 from urllib.parse import quote_plus
-import xml.etree.ElementTree as ET
 
 try:
     import httpx

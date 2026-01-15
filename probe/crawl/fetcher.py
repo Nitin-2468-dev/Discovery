@@ -299,7 +299,8 @@ class Fetcher:
                         result["title"] = title
                         result["link_count"] = len(links)
                         result["has_pdf_links"] = any(
-                            str(link.get("url", "")).lower().endswith(".pdf") for link in links
+                            str(link.get("url", "")).lower().endswith(".pdf")
+                            for link in links
                         )
                         return result
 
@@ -400,7 +401,9 @@ def _clean_html_and_extract_links(
         except Exception:
             pass
 
-    title_tag = str(soup.title.string).strip() if soup.title and soup.title.string else None
+    title_tag = (
+        str(soup.title.string).strip() if soup.title and soup.title.string else None
+    )
     text = soup.get_text(" ", strip=True)
 
     links: List[Dict[str, object]] = []

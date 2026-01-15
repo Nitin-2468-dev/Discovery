@@ -22,7 +22,9 @@ import httpx
 CACHE_TTL = timedelta(hours=24)
 
 _lock = threading.Lock()
-_cache: Dict[str, Tuple[Optional[RobotFileParser], datetime]] = {}  # domain -> (parser, fetched_at)
+_cache: Dict[str, Tuple[Optional[RobotFileParser], datetime]] = (
+    {}
+)  # domain -> (parser, fetched_at)
 
 
 def _robots_url_for(domain: str, scheme: str = "https") -> str:
