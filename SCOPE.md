@@ -82,6 +82,8 @@
 
 **Success Criteria:** Can run full investigation, map accumulates knowledge
 
+> **Note — Educational Openness:** Add support for an **"Educational Openness"** mode (e.g., `Mode.educational_open`) that relaxes some gating for research and educational use-cases to enable broader exploration and transparency. This mode must include clear disclaimers, logging, and opt-in administrative enablement, and **is not intended** as the default for production deployments.
+
 ---
 
 ## v0.6 — Embeddings (Optional for v1)
