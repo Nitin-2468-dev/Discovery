@@ -1,15 +1,11 @@
 from typing import List, Optional
 from urllib.parse import quote_plus
-
-from typing import Any
-
-temp_httpx: Any = None
-try:
-    import httpx as temp_httpx
-except Exception:
-    temp_httpx = None
-httpx = temp_httpx
 import xml.etree.ElementTree as ET
+
+try:
+    import httpx
+except Exception:
+    httpx = None
 
 from probe.core.map import Map
 
