@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Fixed (unreleased)
 
+- Remove leftover `tmp_ci_check` gitlink from repository index to avoid post-checkout submodule errors in GitHub Actions; added `tmp_ci_check` to `.gitignore` and cleaned index. (2026-01-15)
+- Make autofix workflow tolerant of push failures (e.g., read-only GITHUB_TOKEN for forked PRs) — the runner will attempt to push formatting fixes but will continue the job if push is disallowed; documented in `docs/CI.md`. (2026-01-15)
+- Fix remaining mypy issues uncovered by stricter CI checks: normalize `Map.add_edge` to always return `int` (0 for duplicates), type scoring query parameter lists to accept heterogeneous values, and silence optional `httpx = None` assignment typing. (2026-01-15)
 - Replace deprecated `datetime.utcnow()` usages with timezone-aware `datetime.now(timezone.utc)` in tests and helper scripts; removes DeprecationWarnings in test runs and ensures timezone-aware timestamps.
 - Ensure `Map.get_domains_with_doc_type` is attached to `Map` at import time for runtimes that may have loaded an older `Map` class (avoids missing-method runtime failures).
 - Make `GapDetector.analyze_entity_gaps` robust: if domain-specific lookup returns no candidates, fall back to `get_high_yield_domains` so suggested domains are always returned.

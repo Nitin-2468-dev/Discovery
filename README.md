@@ -152,6 +152,22 @@ pip install -e .[ocr]
 
 CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and includes an `ocr` matrix (installs OCR extras when `ocr=true`). The CI now installs the package in editable mode (`pip install -e .`) so optional extras are available while running tests.
 
+Contributing & formatting
+
+- We use `pre-commit` (Black, isort, ruff) to keep formatting consistent across contributors and CI. Run locally before committing:
+
+```bash
+pip install pre-commit mypy
+pre-commit run --all-files
+mypy --config-file mypy.ini
+```
+
+- The repository includes an Autofix workflow (`.github/workflows/autofix.yml`) that runs on pull requests and attempts to apply formatting fixes on the runner and push them back to the PR branch. Note:
+  - The runner will attempt to push commits using the repository token (`GITHUB_TOKEN`) when allowed. The workflow is now tolerant of push failures (common for forked PRs where the token is read-only), so a failed push will no longer fail the job.
+  - If CI reports a submodule-related post-checkout error (e.g., "No url found for submodule path 'tmp_ci_check' in .gitmodules"), follow the steps in `docs/CI.md` to remove the lingering gitlink and add it to `.gitignore`.
+
+- To avoid autofix churn: run `pre-commit run --all-files` and `mypy --config-file mypy.ini` locally; address any failures before opening the PR.
+
 Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 
 ## Running tests
