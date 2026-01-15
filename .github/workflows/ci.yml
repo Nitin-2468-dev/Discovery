@@ -169,9 +169,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install build
-      - name: Build wheel
+      - name: Build wheel (capture logs)
         run: |
-          python -m build --wheel --outdir dist
+          mkdir -p build_logs
+          python -m build --wheel --outdir dist 2>&1 | tee build_logs/build.out || true
       - name: Install wheel and runtime deps
         run: |
           python -m pip install --upgrade pip
@@ -182,6 +183,37 @@ jobs:
           CI: true
         run: |
           pytest -q tests/test_orchestrator.py tests/test_threaded_crawler.py tests/test_policy_enforcement.py -q --maxfail=1
+      - name: Annotate packaging warnings on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const core = require('@actions/core');
+            if (!fs.existsSync('build_logs/build.out')) {
+              core.info('No build log found; skipping annotation');
+              return;
+            }
+            const out = fs.readFileSync('build_logs/build.out','utf8');
+            const warningPattern = /(warning|deprecated|deprecat|error)/i;
+            if (warningPattern.test(out)) {
+              const snippet = out.split('\n').slice(0,200).join('\n');
+              const body = `Packaging warnings detected in wheel build (first 200 lines):\n\n\`\`\`\n${snippet}\n\`\`\``;
+              const pr = context.payload.pull_request ? context.payload.pull_request.number : null;
+              if (pr) {
+                github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr,
+                  body
+                });
+              } else {
+                core.notice('No pull request found; skipping comment creation');
+              }
+            } else {
+              core.info('No packaging warnings detected');
+            }
 
   preflight:
     name: 'Preflight: Packaging validation'
