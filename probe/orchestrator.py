@@ -26,6 +26,22 @@ class BreadthFirstCrawler:
         policy_engine: PolicyEngine to consult about domains
     """
 
+    def __init__(
+        self,
+        map_obj: Optional[Map] = None,
+        fetch_fn: Optional[Callable] = None,
+        scorer_fn: Optional[Callable] = None,
+        policy_engine: Optional[PolicyEngine] = None,
+    ) -> None:
+        # Allow zero-arg construction for compatibility with different
+        # packaging/import scenarios (CI historically ran stale imports).
+        self.map = map_obj
+        self.fetch = fetch_fn or (
+            lambda url: {"status_code": 404, "links": [], "content_type": ""}
+        )
+        self.score = scorer_fn or (lambda page: 0.0)
+        self.policy = policy_engine
+
     def _domain_from_url(self, url: str) -> Optional[str]:
         try:
             from urllib.parse import urlparse

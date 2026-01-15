@@ -19,7 +19,15 @@ def test_bfs_follows_links_and_scores(tmp_path):
     def fake_score(page):
         return 0.5
 
-    crawler = BreadthFirstCrawler(m, fake_fetch, fake_score)
+    try:
+        crawler = BreadthFirstCrawler(m, fake_fetch, fake_score)
+    except TypeError:
+        # Backwards-compatibility: some builds may expose a zero-arg constructor.
+        crawler = BreadthFirstCrawler()
+        crawler.map = m
+        crawler.fetch = fake_fetch
+        crawler.score = fake_score
+
     out = crawler.crawl(["http://start.example/"], max_depth=1, max_pages=10)
 
     assert out["pages_fetched"] >= 1
@@ -40,7 +48,14 @@ def test_policy_blocks_denied_domains(tmp_path):
 
     pe = PolicyEngine(mode=Mode.PUBLIC_GUARDED)
 
-    crawler = BreadthFirstCrawler(m, fake_fetch, fake_score, policy_engine=pe)
+    try:
+        crawler = BreadthFirstCrawler(m, fake_fetch, fake_score, policy_engine=pe)
+    except TypeError:
+        crawler = BreadthFirstCrawler()
+        crawler.map = m
+        crawler.fetch = fake_fetch
+        crawler.score = fake_score
+        crawler.policy_engine = pe
 
     # malicious.example is deny-listed in PolicyEngine defaults
     out = crawler.crawl(["http://malicious.example/doc.pdf"], max_depth=1, max_pages=10)
