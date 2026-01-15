@@ -27,3 +27,4 @@ run_reports/
 .venv/
 .pytest_cache/
 .mypy_cache/
+tmp_ci_check
