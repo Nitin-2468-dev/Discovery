@@ -676,6 +676,26 @@ def config_set_admin(value):
         raise click.ClickException(f"Failed to write config: {exc}")
 
 
+@cli.group()
+def policy():
+    """Policy-related utilities (telemetry/audit etc.)"""
+    pass
+
+
+@policy.command("upload-telemetry")
+@click.argument("bucket")
+@click.option("--key", default=None, help="S3 object key (defaults to filename)")
+@click.option("--profile", default=None, help="AWS profile name to use")
+def policy_upload_telemetry(bucket, key, profile):
+    """Upload the current policy telemetry file to S3 (requires boto3)."""
+    from probe.policy.telemetry import upload_to_s3
+
+    ok = upload_to_s3(bucket, key, profile)
+    if not ok:
+        raise click.ClickException("Upload failed; see logs for details")
+    click.echo("Telemetry uploaded")
+
+
 def _load_blocked_set(bd_flag, cfg):
     """Load blocked domains from CLI flag or config, returning a set."""
     bd_path = bd_flag if bd_flag != "" else None
