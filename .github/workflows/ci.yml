@@ -196,9 +196,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const core = require('@actions/core');
             if (!fs.existsSync('build_logs/build.out')) {
-              core.info('No build log found; skipping annotation');
+              console.info('No build log found; skipping annotation');
               return;
             }
             const out = fs.readFileSync('build_logs/build.out','utf8');
@@ -221,22 +220,22 @@ jobs:
                   body += `\n\nBuild log artifact: ${buildArtifact.archive_download_url}`;
                 }
               } catch (e) {
-                core.warning('Could not fetch artifacts for run: ' + e.message);
+                console.warn('Could not fetch artifacts for run: ' + e.message);
               }
 
               const pr = context.payload.pull_request ? context.payload.pull_request.number : null;
               if (pr) {
-                github.rest.issues.createComment({
+                await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: pr,
                   body
                 });
               } else {
-                core.notice('No pull request found; skipping comment creation');
+                console.info('No pull request found; skipping comment creation');
               }
             } else {
-              core.info('No packaging warnings detected');
+              console.info('No packaging warnings detected');
             }
 
   preflight:
