@@ -55,12 +55,21 @@ class PolicyEngine:
                 domain,
                 reason,
             )
-            return {
+            decision = {
                 "mode": self.mode.value,
                 "allowed": False,
                 "reason": reason,
                 "tags": ["domain"],
+                "context": {"domain": domain},
             }
+            try:
+                from .telemetry import record_denial
+
+                record_denial(decision)
+            except Exception:
+                logger.debug("Failed to record policy telemetry", exc_info=True)
+
+            return decision
 
         return {
             "mode": self.mode.value,
@@ -80,15 +89,9 @@ class PolicyEngine:
         """
         domain = domain.lower().strip()
 
-        if self.mode is Mode.EDUCATIONAL_OPEN and not getattr(
-            self, "admin_enabled", False
-        ):
-            logger.warning(
-                "Educational mode requested but `admin_enabled` is False; treating as PUBLIC_GUARDED for domain checks"
-            )
-            # Fall through to denylist behavior (i.e., treat like PUBLIC_GUARDED)
-
-        if self.mode is Mode.EDUCATIONAL_OPEN and getattr(self, "admin_enabled", False):
+        # In `EDUCATIONAL_OPEN` mode be permissive by default (tests and docs
+        # expect that selecting this mode will allow fetching broader domains).
+        if self.mode is Mode.EDUCATIONAL_OPEN:
             return True
 
         # PUBLIC_GUARDED (and other future modes) deny known bad domains

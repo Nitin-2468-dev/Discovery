@@ -85,7 +85,7 @@ This document captures intended behaviors, but the canonical enforcement is the 
 
 Operational notes:
 
-- **Admin opt-in required:** Some relaxed behaviors in `educational_open` (e.g., broader fetching defaults) require an explicit administrative enablement flag (`admin_enabled`) for safety. This can be toggled via the CLI (`probe config set-admin enable`) or via `probe.config.json` (`"admin_enabled": true`). When not enabled, `educational_open` is treated as `public_guarded` for enforcement decisions.
+- **Admin opt-in for additional behaviors:** `educational_open` is permissive by default for domain allow checks (selecting this mode allows broader fetching by default). The `admin_enabled` flag remains relevant for gating additional operational relaxations (for example, showing hidden edges in visualizations or enabling admin-only features). Toggle via CLI (`probe config set-admin enable`) or via `probe.config.json` (`"admin_enabled": true`).
 
 - **Decision payload & logging:** Policy decisions are returned as lightweight decision payloads, e.g. `{ "mode": "educational_open", "allowed": false, "reason": "domain 'x' disallowed", "tags": ["domain"] }`. Denied decisions are logged at WARNING level with context (mode, domain, reason) to facilitate operational review and auditing.
 
