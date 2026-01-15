@@ -158,6 +158,7 @@ Contributing & formatting
 
 ```bash
 pip install pre-commit mypy
+pre-commit install  # set up Git hooks (recommended)
 pre-commit run --all-files
 mypy --config-file mypy.ini
 ```
