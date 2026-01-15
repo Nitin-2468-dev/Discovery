@@ -66,12 +66,12 @@ For a full end-to-end PDF extraction test, an example test uses `reportlab` to g
 
 ### Mode-aware defaults (policy integration)
 
-The fetcher will expose conservative, mode-aware defaults when the Policy Engine is active:
+The fetcher will expose conservative, mode-aware defaults when the Policy Engine is active. Note that *educational* defaults are applied only when `admin_enabled` is True (admin opt-in):
 
-| Setting | Guarded | Educational |
-|------|--------:|------------:|
+| Setting | Guarded | Educational (requires admin) |
+|------|--------:|----------------------------:|
 | Max size | 5 MB | 20 MB |
 | Retries | Low | Moderate |
 | OCR | Off | Optional |
 
-Policy-driven defaults will be applied at runtime; follow-up PRs will implement enforcement and configuration plumbing.
+Policy-driven defaults are applied at runtime; follow-up PRs will implement enforcement, configuration plumbing, and operator-facing warnings when educational defaults are used.

@@ -79,8 +79,9 @@ Modes **filter categories**, not groups or tabs.
 | Mode | Behavior |
 |-----|---------|
 | `public_guarded` | High-risk categories hidden or summarized |
-| `educational_open` | Full category visibility with warnings |
+| `educational_open` | Full category visibility with warnings (requires explicit admin opt-in to be permissive) |
 
+Note: `educational_open` is *opt-in* — operators must enable `admin_enabled` (via `probe.config.json` or `probe config set-admin enable`) to unlock relaxed behaviors. If not enabled, `educational_open` is treated as `public_guarded` for enforcement and visibility rules.
 ## CLI Mapping (Example)
 
 ```bash

@@ -21,6 +21,10 @@ probe/
 │   │   ├── __init__.py
 │   │   ├── schema.py    # Database schema (DONE)
 │   │   └── map.py       # Knowledge graph interface (DONE)
+│   ├── config.py       # Configuration loader (defaults + YAML/JSON)
+│   ├── policy/         # Policy engine stubs and docs
+│   │   ├── __init__.py
+│   │   └── engine.py
 │   ├── crawl/           # v0.2+
 │   │   ├── __init__.py
 │   │   ├── fetcher.py   # HTTP/PDF fetching

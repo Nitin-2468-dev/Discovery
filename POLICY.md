@@ -81,7 +81,15 @@ Educational mode displays:
 
 ## Rationale & Implementation Notes
 
-This doc captures intended behaviors, but the canonical enforcement is the code in `probe.policy.*`. We follow a structure-first approach: add stubs, update architecture, then implement enforcement.
+This document captures intended behaviors, but the canonical enforcement is the code in `probe.policy.*`. We follow a structure-first approach: add stubs, update architecture, then implement enforcement.
+
+Operational notes:
+
+- **Admin opt-in required:** Some relaxed behaviors in `educational_open` (e.g., broader fetching defaults) require an explicit administrative enablement flag (`admin_enabled`) for safety. This can be toggled via the CLI (`probe config set-admin enable`) or via `probe.config.json` (`"admin_enabled": true`). When not enabled, `educational_open` is treated as `public_guarded` for enforcement decisions.
+
+- **Decision payload & logging:** Policy decisions are returned as lightweight decision payloads, e.g. `{ "mode": "educational_open", "allowed": false, "reason": "domain 'x' disallowed", "tags": ["domain"] }`. Denied decisions are logged at WARNING level with context (mode, domain, reason) to facilitate operational review and auditing.
+
+- **Follow-up work:** Add configurable deny/allow lists, persistent telemetry for denied decisions, and per-mode tuning rules. Follow-up PRs will implement configuration plumbing and richer enforcement semantics.
 
 ---
 
