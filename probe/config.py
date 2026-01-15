@@ -18,6 +18,8 @@ DEFAULTS: Dict[str, Any] = {
     "min_delay": 0.0,
     "blocked_domains": "blocked_domains.txt",
     "tqdm": True,
+    # Admin opt-in flag for relaxed modes (e.g., EDUCATIONAL_OPEN). Default: False
+    "admin_enabled": False,
     "scorer_weights": {
         "keyword_density": 1.0,
         "boilerplate": 1.0,
