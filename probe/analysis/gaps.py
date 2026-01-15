@@ -135,8 +135,8 @@ class GapDetector:
         self, candidates: dict, now: types.SimpleNamespace, include_scores: bool
     ):
         """Compute composite scores and return a sorted scored list and domain_scores list."""
-        scored = []
-        domain_scores = []
+        scored: List[tuple] = []
+        domain_scores: List[Dict[str, Any]] = []
         import math
 
         for domain_name, meta in candidates.items():
@@ -179,9 +179,8 @@ class GapDetector:
         scored.sort(key=lambda kv: kv[1], reverse=True)
         if include_scores:
             domain_scores.sort(key=lambda d: d["composite_score"], reverse=True)
-        else:
-            domain_scores = None
-        return scored, domain_scores
+            return scored, domain_scores
+        return scored, None
 
     def _gather_candidates(self, missing: List[str]) -> dict:
         """Gather candidate domains for the list of missing doc types."""
@@ -224,9 +223,13 @@ class GapDetector:
                 )
         except Exception:
             try:
-                for d in self.map.get_domains_with_doc_type(doc_type, limit=8):
-                    candidates.setdefault(d.domain_name, {"count": 0})
-                    candidates[d.domain_name]["count"] += 1
+                gd = getattr(self.map, "get_domains_with_doc_type", None)
+                if callable(gd):
+                    for d in gd(doc_type, limit=8):
+                        candidates.setdefault(d.domain_name, {"count": 0})
+                        candidates[d.domain_name]["count"] += 1
+                else:
+                    return
             except Exception:
                 return
 

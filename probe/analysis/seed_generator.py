@@ -1,11 +1,11 @@
+import xml.etree.ElementTree as ET
 from typing import List, Optional
 from urllib.parse import quote_plus
 
 try:
     import httpx
 except Exception:
-    httpx = None
-import xml.etree.ElementTree as ET
+    httpx = None  # type: ignore[assignment]
 
 from probe.core.map import Map
 
