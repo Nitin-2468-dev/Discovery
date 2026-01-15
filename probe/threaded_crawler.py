@@ -8,7 +8,7 @@ real sleeping.
 import threading
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, Dict, Iterable, Optional, Set
+from typing import Any, Callable, Dict, Iterable, Optional, Set
 
 from probe.policy import PolicyEngine
 
@@ -119,13 +119,14 @@ class ThreadedCrawler:
         return "pdf" in ct or (isinstance(url, str) and url.lower().endswith(".pdf"))
 
     def _process_result(
-        self, r: Dict, visited: Set[str], q: deque, max_depth: int
+        self, r: Dict[str, Any], visited: Set[str], q: deque, max_depth: int
     ) -> tuple[int, int]:
         # returns (pages_increment, docs_increment)
         if r.get("error"):
             return 0, 0
         res = r.get("res") or {}
-        url = r.get("url")
+        url_val = r.get("url")
+        url = url_val if isinstance(url_val, str) else ""
 
         # scoring & enqueue children
         try:
