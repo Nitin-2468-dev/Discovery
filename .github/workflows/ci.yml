@@ -173,6 +173,12 @@ jobs:
         run: |
           mkdir -p build_logs
           python -m build --wheel --outdir dist 2>&1 | tee build_logs/build.out || true
+      - name: Upload build log artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.python-version }}
+          path: build_logs/build.out
       - name: Install wheel and runtime deps
         run: |
           python -m pip install --upgrade pip
@@ -199,7 +205,25 @@ jobs:
             const warningPattern = /(warning|deprecated|deprecat|error)/i;
             if (warningPattern.test(out)) {
               const snippet = out.split('\n').slice(0,200).join('\n');
-              const body = `Packaging warnings detected in wheel build (first 200 lines):\n\n\`\`\`\n${snippet}\n\`\`\``;
+              let body = `Packaging warnings detected in wheel build (first 200 lines):\n\n\`\`\`\n${snippet}\n\`\`\``;
+
+              // Try to find uploaded build-log artifact for this run and include a link
+              try {
+                const runId = context.runId || context.run_id;
+                const artResp = await github.rest.actions.listWorkflowRunArtifacts({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: runId,
+                });
+                const artifacts = artResp.data && artResp.data.artifacts ? artResp.data.artifacts : [];
+                const buildArtifact = artifacts.find(a => a && a.name && a.name.includes('build-log'));
+                if (buildArtifact && buildArtifact.archive_download_url) {
+                  body += `\n\nBuild log artifact: ${buildArtifact.archive_download_url}`;
+                }
+              } catch (e) {
+                core.warning('Could not fetch artifacts for run: ' + e.message);
+              }
+
               const pr = context.payload.pull_request ? context.payload.pull_request.number : null;
               if (pr) {
                 github.rest.issues.createComment({
