@@ -33,6 +33,8 @@
 - Added an opt-in scheduled/manual real-network integration workflow (`.github/workflows/research-integration.yml`) that runs a single real-network test on master when enabled (`RUN_REAL_NET_TESTS=true`). This helps validate end-to-end crawling behavior without introducing flaky tests into the main PR matrix.
 - Local dev: run `RUN_REAL_NET_TESTS=true pytest -q tests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real` to exercise the same test locally.
 
+- CI maintenance (2026-01-15): removed a lingering `tmp_ci_check` gitlink that caused a post-checkout submodule error in Actions; made the Autofix workflow tolerant of push failures (so forked PRs won't fail the job when the runner cannot push); updated docs (CHANGELOG, `docs/CI.md`, `README.md`) and recorded the change in `constraints.log`.
+
 ---
 
 ## v0.3 — Scoring (IMPLEMENTED)

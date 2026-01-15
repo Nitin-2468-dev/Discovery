@@ -4,6 +4,9 @@ Short (Slack/GitHub):
 
 - Probe v0.4.1 is released — adds an opt-in real-network integration test and a small FetcherAdapter to validate crawling behavior. Artifacts (sdist & wheel) are attached to the release: https://github.com/Nitin-2468-dev/Discovery/releases/tag/v0.4.1
 
+Patch (2026-01-15): CI & docs maintenance — removed lingering `tmp_ci_check` gitlink that caused Actions post-checkout failures, made the Autofix workflow tolerant of push failures for forked PRs, and updated CHANGELOG/docs/constraints.log with the details. (See PR #36)
+
+
 Tweet (short):
 
 - Probe v0.4.1 is out! 🎉 Opt-in real-network integration tests + FetcherAdapter for easier validation. Check release notes & download: https://github.com/Nitin-2468-dev/Discovery/releases/tag/v0.4.1
