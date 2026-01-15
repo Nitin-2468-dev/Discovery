@@ -42,10 +42,10 @@ def get_entity_document_count(
 
 # Attach methods if not present
 if not hasattr(Map, "get_entity_document_types"):
-    Map.get_entity_document_types = get_entity_document_types
+    Map.get_entity_document_types = get_entity_document_types  # type: ignore[attr-defined]
 
 if not hasattr(Map, "get_entity_document_count"):
-    Map.get_entity_document_count = get_entity_document_count
+    Map.get_entity_document_count = get_entity_document_count  # type: ignore[attr-defined]
 
 
 def get_domains_with_doc_type(self, doc_type: str, limit: int = 5):
@@ -69,4 +69,4 @@ def get_domains_with_doc_type(self, doc_type: str, limit: int = 5):
 
 # Attach domain helper if missing
 if not hasattr(Map, "get_domains_with_doc_type"):
-    Map.get_domains_with_doc_type = get_domains_with_doc_type
+    Map.get_domains_with_doc_type = get_domains_with_doc_type  # type: ignore[attr-defined]

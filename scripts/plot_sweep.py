@@ -8,10 +8,11 @@ import argparse
 from pathlib import Path
 from typing import List
 
+from typing import Any
 try:
     import matplotlib.pyplot as plt
 except Exception:
-    plt = None
+    plt = None  # type: ignore[assignment]
 
 import csv
 
@@ -250,6 +251,9 @@ def main(argv: List[str] | None = None) -> int:
         _plot_heatmap(z, xs_sorted, ys_sorted, args, out_path)
         print(f"Saved heatmap to {out_path}")
         return 0
+
+    # Should never reach here due to argparse choices, but make return explicit for typing
+    return 0
 
 
 if __name__ == "__main__":

@@ -24,11 +24,11 @@ class Ingestor:
 
         Returns e.g. {"page_id": 1, "document_id": None, "link_count": 3, "edges_created": 3}
         """
-        url = fetch_result.get("url")
+        url: str = str(fetch_result.get("url") or "")
         parsed = urlparse(url)
-        domain = parsed.netloc
+        domain: str = str(parsed.netloc)
 
-        raw = fetch_result.get("raw_bytes")
+        raw: bytes | None = fetch_result.get("raw_bytes")
 
         if fetch_result.get("is_pdf"):
             return self._ingest_pdf(fetch_result, raw, domain)
@@ -41,7 +41,7 @@ class Ingestor:
             id=None,
             url=url,
             domain=domain,
-            title=fetch_result.get("title"),
+            title=str(fetch_result.get("title") or ""),
             content_hash=content_hash,
             relevance_score=None,
             metadata=fetch_result.get("metadata"),
@@ -68,7 +68,7 @@ class Ingestor:
                 id=None,
                 url=url,
                 domain=domain,
-                title=fetch_result.get("title"),
+                title=str(fetch_result.get("title") or ""),
                 content_hash=content_hash,
                 metadata=metadata,
             )
@@ -84,16 +84,17 @@ class Ingestor:
         }
 
     def _ingest_pdf(
-        self, fetch_result: Dict[str, Any], raw: bytes, domain: str
+        self, fetch_result: Dict[str, Any], raw: bytes | None, domain: str
     ) -> Dict[str, Any]:
         """Create a Document from PDF bytes and update domain stats."""
+        url: str = str(fetch_result.get("url") or "")
         h = sha256(raw or b"").hexdigest()
         doc = Document(
             id=None,
-            title=fetch_result.get("title") or "",
+            title=str(fetch_result.get("title") or ""),
             doc_type="pdf",
             hash=h,
-            url=fetch_result.get("url"),
+            url=url,
             domain=domain,
             file_size=len(raw) if raw else None,
             publication_date=None,
