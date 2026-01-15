@@ -37,7 +37,8 @@ def get_entity_document_count(
         query += " AND d.doc_type = ?"
         params.append(doc_type)
     cursor = self.conn.execute(query, params)
-    return cursor.fetchone()[0]
+    row = cursor.fetchone()
+    return int(row[0]) if row and row[0] is not None else 0
 
 
 # Attach methods if not present

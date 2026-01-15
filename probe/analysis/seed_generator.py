@@ -5,7 +5,7 @@ from urllib.parse import quote_plus
 try:
     import httpx
 except Exception:
-    httpx = None
+    httpx = None  # type: ignore[assignment]
 
 from probe.core.map import Map
 
