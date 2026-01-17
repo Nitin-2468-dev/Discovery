@@ -11,8 +11,16 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def _build_wheel(outdir: Path):
     cmd = [sys.executable, "-m", "build", "--wheel", "--outdir", str(outdir)]
-    completed = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
-    if completed.returncode != 0:
+    # Retry once on transient build backend errors (empirically observed in CI)
+    for attempt in range(2):
+        completed = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
+        if completed.returncode == 0:
+            return
+        if attempt == 0:
+            import time
+
+            time.sleep(1)
+            continue
         raise RuntimeError(
             f"Wheel build failed: {completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
         )
