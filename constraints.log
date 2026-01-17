@@ -3321,3 +3321,87 @@ Status: Complete
 Notes: Removed a leftover gitlink for `tmp_ci_check` from the index and ensured it is ignored; fixed remaining mypy issues (normalized `Map.add_edge` to return an `int` (0 when duplicate), typed scoring query `params`, and silenced `httpx = None` typing); updated `.github/workflows/autofix.yml` to tolerate push failures (so forked PRs won't fail the job when the runner cannot push back); pushed changes to branch `ci/mypy-iter-continue`, ran local mypy (no issues), and retriggered CI; the Autofix job runs pre-commit formatting and will continue even if it cannot push (push failures are now handled gracefully).
 Outcome: Branch updated and CI re-run; monitoring continues.
 ---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:43] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:43] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
