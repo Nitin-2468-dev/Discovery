@@ -1,6 +1,10 @@
 import csv
 import subprocess
 import sys
+<<<<<<< HEAD
+=======
+from pathlib import Path
+>>>>>>> ci/parallel-tests
 
 
 def test_weight_sweep_cli(tmp_path):
@@ -9,6 +13,7 @@ def test_weight_sweep_cli(tmp_path):
     seeds.write_text("TEST-ENT\n")
 
     proc = subprocess.run(
+<<<<<<< HEAD
         [
             sys.executable,
             "scripts/weight_sweep.py",
@@ -29,6 +34,9 @@ def test_weight_sweep_cli(tmp_path):
             "--db",
             str(tmp_path / "sweep.db"),
         ],
+=======
+        [sys.executable, "scripts/weight_sweep.py", "--seeds", str(seeds), "--types", "manual", "--out", str(out), "--weight-count", "1.0", "--weight-yield", "1.0", "--weight-trust", "0.5", "--weight-recent", "0.5", "--db", str(tmp_path / 'sweep.db')],
+>>>>>>> ci/parallel-tests
         check=False,
         capture_output=True,
         text=True,
@@ -37,13 +45,18 @@ def test_weight_sweep_cli(tmp_path):
     assert proc.returncode == 0
     assert out.exists()
 
+<<<<<<< HEAD
     with open(out, newline="", encoding="utf-8") as fh:
+=======
+    with open(out, newline='', encoding='utf-8') as fh:
+>>>>>>> ci/parallel-tests
         r = csv.DictReader(fh)
         rows = list(r)
     assert len(rows) >= 1
     # basic sanity check columns
     assert "entity" in rows[0]
     assert "top_domain" in rows[0]
+<<<<<<< HEAD
 
 
 def test_weight_sweep_normalization_prefers_density(tmp_path):
@@ -142,3 +155,5 @@ def test_weight_sweep_normalization_prefers_density(tmp_path):
     assert norms["per_page"]["top_domain"] == "b.example.com"
 
     m.close()
+=======
+>>>>>>> ci/parallel-tests

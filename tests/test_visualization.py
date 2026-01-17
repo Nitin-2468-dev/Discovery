@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 import os
 
 from click.testing import CliRunner
 
 from cli import cli
 from probe.core.map import Entity, Map
+=======
+from click.testing import CliRunner
+import os
+from cli import cli
+from probe.core.map import Map, Entity
+>>>>>>> ci/parallel-tests
 
 
 def test_cli_visualize_writes_html(tmp_path, monkeypatch):
@@ -38,9 +45,13 @@ def test_cli_visualize_writes_html(tmp_path, monkeypatch):
     monkeypatch.setattr("cli.GraphVisualizer", FakeVisualizer)
 
     out_file = tmp_path / "out.html"
+<<<<<<< HEAD
     res = runner.invoke(
         cli, ["visualize", "--entity", "PT6A-52", "--db", db, "--output", str(out_file)]
     )
+=======
+    res = runner.invoke(cli, ["visualize", "--entity", "PT6A-52", "--db", db, "--output", str(out_file)])
+>>>>>>> ci/parallel-tests
     assert res.exit_code == 0
     assert "Visualization saved to" in res.output
     assert os.path.exists(out_file)

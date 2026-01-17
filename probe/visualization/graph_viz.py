@@ -18,10 +18,9 @@ if TYPE_CHECKING:
         import pydot  # type: ignore  # noqa: F401
     except Exception:
         pass
+
 import json
-
 from probe.core.map import Map
-
 
 class GraphVisualizer:
     """Visualize the Probe knowledge graph using NetworkX + Plotly.
@@ -73,21 +72,13 @@ class GraphVisualizer:
             return
 
         ent_id = f"entity_{entity.id}"
-        self._add_node(
-            ent_id, type="entity", name=entity.name, label=entity.name, color="#FF6B6B"
-        )
+        self._add_node(ent_id, type="entity", name=entity.name, label=entity.name, color="#FF6B6B")
 
         # documents
         docs = self.map.get_entity_documents(entity.name)
         for d in docs:
             doc_id = f"doc_{d.id}"
-            self._add_node(
-                doc_id,
-                type="document",
-                name=d.title,
-                label=f"{d.doc_type}: {d.title[:30]}",
-                color="#4ECDC4",
-            )
+            self._add_node(doc_id, type="document", name=d.title, label=f"{d.doc_type}: {d.title[:30]}", color="#4ECDC4")
             self._add_edge(ent_id, doc_id, relation="has_document")
 
         # related entities
@@ -96,16 +87,12 @@ class GraphVisualizer:
             r_id = f"entity_{r.id}"
             if nx:
                 if r_id not in self.G:
-                    self._add_node(
-                        r_id, type="entity", name=r.name, label=r.name, color="#FF6B6B"
-                    )
+                    self._add_node(r_id, type="entity", name=r.name, label=r.name, color="#FF6B6B")
                     if current_depth < depth:
                         self._add_entity_subgraph(r, depth, current_depth + 1)
             else:
                 if r_id not in self.G["nodes"]:
-                    self._add_node(
-                        r_id, type="entity", name=r.name, label=r.name, color="#FF6B6B"
-                    )
+                    self._add_node(r_id, type="entity", name=r.name, label=r.name, color="#FF6B6B")
                     if current_depth < depth:
                         self._add_entity_subgraph(r, depth, current_depth + 1)
             self._add_edge(ent_id, r_id, relation="related_to")
@@ -115,34 +102,31 @@ class GraphVisualizer:
         cur.execute("SELECT id, name FROM entities")
         for row in cur.fetchall():
             nid = f"entity_{row['id']}"
-            self._add_node(
-                nid, type="entity", name=row["name"], label=row["name"], color="#FF6B6B"
-            )
+            self._add_node(nid, type='entity', name=row['name'], label=row['name'], color="#FF6B6B")
 
         cur.execute("SELECT id, title, doc_type FROM documents")
         for row in cur.fetchall():
             nid = f"doc_{row['id']}"
-            self._add_node(
-                nid,
-                type="document",
-                name=row["title"],
-                label=f"{row['doc_type']}: {row['title'][:30]}",
-                color="#4ECDC4",
-            )
+            self._add_node(nid, type='document', name=row['title'], label=f"{row['doc_type']}: {row['title'][:30]}", color="#4ECDC4")
 
         cur.execute("SELECT * FROM edges")
         for row in cur.fetchall():
             from_id = f"{row['from_type']}_{row['from_id']}"
             to_id = f"{row['to_type']}_{row['to_id']}"
-            self._add_edge(from_id, to_id, relation=row["relation"])
+            self._add_edge(from_id, to_id, relation=row['relation'])
 
-    def _ensure_plotting_libs(self) -> None:
-        """Lazy import plotting libraries (networkx, plotly) if available."""
+    def plot_interactive(self, output_path: str = "graph.html") -> str:
+        """Render an interactive graph to HTML.
+
+        - If `networkx` and `plotly` are available, render a Plotly force-directed graph and save
+          an interactive HTML (also store the figure on `self._last_fig`).
+        - Otherwise, export a simple D3-based interactive HTML that only requires a browser.
+        """
+        # Lazy imports: try to import if they weren't available at module import time
         global nx, go
         try:
             if nx is None:
                 import importlib
-
                 nx = importlib.import_module("networkx")
         except Exception:
             nx = None
@@ -150,10 +134,20 @@ class GraphVisualizer:
         try:
             if go is None:
                 import importlib
-
                 go = importlib.import_module("plotly.graph_objects")
         except Exception:
             go = None
+
+        # If we have upgraded to networkx after a fallback, convert the fallback graph
+        self._convert_fallback_to_nx()
+
+        # When both networkx and plotly are available, build a Plotly figure
+        if nx and go:
+            pos = nx.spring_layout(self.G, k=0.5, iterations=50)
+            fig = self._create_plotly_fig(pos)
+            fig.write_html(output_path)
+            self._last_fig = fig
+            return output_path
 
     def _convert_fallback_to_nx(self) -> None:
         """If we have upgraded to networkx after a fallback, convert the fallback graph."""
@@ -294,15 +288,48 @@ class GraphVisualizer:
         return fig
 
     def plot_interactive(self, output_path: str = "graph.html") -> str:
-        # Lazy import and ensure libs
-        self._ensure_plotting_libs()
+        # Lazy import: if plotting libs weren't available at module import time, try now.
+        global nx, go
+        try:
+            if nx is None:
+                import importlib
+                nx = importlib.import_module("networkx")
+        except Exception:
+            nx = None
+
+        try:
+            if go is None:
+                import importlib
+                go = importlib.import_module("plotly.graph_objects")
+        except Exception:
+            go = None
+
+        # If we have upgraded to networkx after a fallback, convert the fallback graph
         self._convert_fallback_to_nx()
 
-        global nx, go
+        # When both networkx and plotly are available, build a Plotly figure
         if nx and go:
             pos = nx.spring_layout(self.G, k=0.5, iterations=50)
             fig = self._create_plotly_fig(pos)
             fig.write_html(output_path)
+            self._last_fig = fig
+            return output_path
+
+        # Otherwise, fall back to a D3-based HTML export (no python plotting deps required)
+        nodes = []
+        links = []
+        if nx:
+            for n, attr in self.G.nodes(data=True):
+                nodes.append({"id": n, **attr})
+            for a, b, attr in self.G.edges(data=True):
+                links.append({"source": a, "target": b, "relation": attr.get("relation") if isinstance(attr, dict) else attr})
+        else:
+            for nid, attrs in self.G["nodes"].items():
+                nodes.append({"id": nid, **attrs})
+            for a, b, attrs in self.G["edges"]:
+                links.append({"source": a, "target": b, "relation": attrs.get("relation") if isinstance(attrs, dict) else attrs})
+
+        data = {"nodes": nodes, "links": links}
             self._last_fig = fig
             return output_path
 
@@ -313,28 +340,12 @@ class GraphVisualizer:
             for n, attr in self.G.nodes(data=True):
                 nodes.append({"id": n, **attr})
             for a, b, attr in self.G.edges(data=True):
-                links.append(
-                    {
-                        "source": a,
-                        "target": b,
-                        "relation": (
-                            attr.get("relation") if isinstance(attr, dict) else attr
-                        ),
-                    }
-                )
+                links.append({"source": a, "target": b, "relation": attr.get("relation") if isinstance(attr, dict) else attr})
         else:
             for nid, attrs in self.G["nodes"].items():
                 nodes.append({"id": nid, **attrs})
             for a, b, attrs in self.G["edges"]:
-                links.append(
-                    {
-                        "source": a,
-                        "target": b,
-                        "relation": (
-                            attrs.get("relation") if isinstance(attrs, dict) else attrs
-                        ),
-                    }
-                )
+                links.append({"source": a, "target": b, "relation": attrs.get("relation") if isinstance(attrs, dict) else attrs})
 
         data = {"nodes": nodes, "links": links}
 
@@ -445,8 +456,8 @@ class GraphVisualizer:
 </body>
 </html>"""
 
-        d3_html = template.replace("__DATA_JSON__", json.dumps(data))
-        with open(output_path, "w", encoding="utf-8") as fh:
+        d3_html = template.replace('__DATA_JSON__', json.dumps(data))
+        with open(output_path, 'w', encoding='utf-8') as fh:
             fh.write(d3_html)
 
         # store a simple flag that this is a d3 export
@@ -461,31 +472,26 @@ class GraphVisualizer:
 
     def export_dot(self, output_path: str = "graph.dot") -> str:
         if not nx:
-            # fallback: write a minimal DOT
-            with open(output_path, "w", encoding="utf-8") as fh:
-                fh.write("digraph G {\n")
-                for n in self.G["nodes"].keys() if not nx else self.G.nodes():
+            with open(output_path, 'w', encoding='utf-8') as fh:
+                fh.write('digraph G {\n')
+                for n in (self.G["nodes"].keys() if not nx else self.G.nodes()):
                     fh.write(f'"{n}";\n')
-                # edges: in networkx Graph, use G.edges(); in fallback, edges may be stored as tuples
-                for e in self.G.get("edges", []) if not nx else self.G.edges():
-                    try:
-                        a, b = e[0], e[1]
-                    except Exception:
-                        continue
+                for a, b in (self.G["edges"] if not nx else self.G.edges()):
                     fh.write(f'"{a}" -> "{b}";\n')
-                fh.write("}\n")
+                fh.write('}\n')
             return output_path
         try:
+            import pydot
             nx.drawing.nx_pydot.write_dot(self.G, output_path)
         except Exception:
             # fallback: write a minimal DOT
-            with open(output_path, "w", encoding="utf-8") as fh:
-                fh.write("digraph G {\n")
+            with open(output_path, 'w', encoding='utf-8') as fh:
+                fh.write('digraph G {\n')
                 for n in self.G.nodes():
                     fh.write(f'"{n}";\n')
                 for a, b in self.G.edges():
                     fh.write(f'"{a}" -> "{b}";\n')
-                fh.write("}\n")
+                fh.write('}\n')
         return output_path
 
     def export_image(self, output_path: str = "graph.png") -> str:
@@ -496,21 +502,20 @@ class GraphVisualizer:
         """
         # If we were not able to import plotly at module load, we don't strictly need it
         # here as long as a _last_fig object with write_image() exists (tests may mock it).
-        if not hasattr(self, "_last_fig") or self._last_fig is None:
+        if not hasattr(self, '_last_fig') or self._last_fig is None:
             # create a transient HTML/fig
             self._last_fig = None
             # Attempt to build a figure into _last_fig by calling plot_interactive to set it
             # Use a temp path so we don't overwrite user files
-            tmp = "./.tmp_graph.html"
+            tmp = './.tmp_graph.html'
             self.plot_interactive(tmp)
             try:
                 import os
-
                 os.remove(tmp)
             except Exception:
                 pass
 
-        if not hasattr(self, "_last_fig") or self._last_fig is None:
+        if not hasattr(self, '_last_fig') or self._last_fig is None:
             raise RuntimeError("No figure available to export")
 
         # Check for kaleido availability
@@ -519,7 +524,10 @@ class GraphVisualizer:
         except Exception:
             raise RuntimeError(
                 "To export images you must install 'kaleido' (pip install kaleido)"
-            )
+            )            import kaleido  # noqa: F401
+        except Exception:
+            raise RuntimeError("To export images you must install 'kaleido' (pip install kaleido)")
+>>>>>>> ci/parallel-tests
 
         # Write the image
         self._last_fig.write_image(output_path)
@@ -527,20 +535,10 @@ class GraphVisualizer:
 
     def get_stats(self):
         if nx:
-            return {
-                "nodes": self.G.number_of_nodes(),
-                "edges": self.G.number_of_edges(),
-                "density": nx.density(self.G),
-                "components": nx.number_weakly_connected_components(self.G),
-            }
+            return {'nodes': self.G.number_of_nodes(), 'edges': self.G.number_of_edges(), 'density': nx.density(self.G), 'components': nx.number_weakly_connected_components(self.G)}
         else:
             n_nodes = len(self.G["nodes"])
             n_edges = len(self.G["edges"])
             density = (n_edges / (n_nodes * (n_nodes - 1))) if n_nodes > 1 else 0
             components = 1 if n_nodes > 0 else 0
-            return {
-                "nodes": n_nodes,
-                "edges": n_edges,
-                "density": density,
-                "components": components,
-            }
+            return {'nodes': n_nodes, 'edges': n_edges, 'density': density, 'components': components}

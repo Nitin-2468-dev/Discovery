@@ -21,30 +21,17 @@ def main(argv: List[str] | None = None) -> int:
     input_path = Path(args.input)
     output_path = Path(args.output)
 
-    with (
-        input_path.open(newline="", encoding="utf-8") as fh_in,
-        output_path.open("w", newline="", encoding="utf-8") as fh_out,
-    ):
+    with input_path.open(newline='', encoding='utf-8') as fh_in, output_path.open('w', newline='', encoding='utf-8') as fh_out:
         reader = csv.DictReader(fh_in)
         fieldnames = [
-            "entity",
-            "types",
-            "weight_count",
-            "weight_yield",
-            "weight_trust",
-            "weight_recent",
-            "domain",
-            "composite_score",
-            "count",
-            "yield_score",
-            "trust_score",
-            "recent_score",
+            'entity','types','weight_count','weight_yield','weight_trust','weight_recent',
+            'domain','composite_score','count','yield_score','trust_score','recent_score'
         ]
         writer = csv.DictWriter(fh_out, fieldnames=fieldnames)
         writer.writeheader()
 
         for row in reader:
-            ds_json = row.get("domain_scores_json")
+            ds_json = row.get('domain_scores_json')
             if not ds_json:
                 continue
             try:
@@ -53,18 +40,18 @@ def main(argv: List[str] | None = None) -> int:
                 continue
             for d in ds:
                 out = {
-                    "entity": row.get("entity"),
-                    "types": row.get("types"),
-                    "weight_count": row.get("weight_count"),
-                    "weight_yield": row.get("weight_yield"),
-                    "weight_trust": row.get("weight_trust"),
-                    "weight_recent": row.get("weight_recent"),
-                    "domain": d.get("domain"),
-                    "composite_score": d.get("composite_score"),
-                    "count": d.get("count"),
-                    "yield_score": d.get("yield_score"),
-                    "trust_score": d.get("trust_score"),
-                    "recent_score": d.get("recent_score"),
+                    'entity': row.get('entity'),
+                    'types': row.get('types'),
+                    'weight_count': row.get('weight_count'),
+                    'weight_yield': row.get('weight_yield'),
+                    'weight_trust': row.get('weight_trust'),
+                    'weight_recent': row.get('weight_recent'),
+                    'domain': d.get('domain'),
+                    'composite_score': d.get('composite_score'),
+                    'count': d.get('count'),
+                    'yield_score': d.get('yield_score'),
+                    'trust_score': d.get('trust_score'),
+                    'recent_score': d.get('recent_score'),
                 }
                 writer.writerow(out)
 
@@ -72,5 +59,5 @@ def main(argv: List[str] | None = None) -> int:
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from probe.core.map import Document, Edge, Entity, Map
+=======
+from probe.core.map import Map, Entity, Document, Page, Edge
+>>>>>>> ci/parallel-tests
 
 
 def test_get_entity_document_types_and_count(tmp_path):
@@ -8,6 +12,7 @@ def test_get_entity_document_types_and_count(tmp_path):
     e = Entity(id=None, name="PT6A-52", type="engine")
     e_id = m.add_entity(e)
 
+<<<<<<< HEAD
     d1 = Document(
         id=None,
         title="Manual",
@@ -24,10 +29,15 @@ def test_get_entity_document_types_and_count(tmp_path):
         url="https://ex/b.pdf",
         domain="ex.com",
     )
+=======
+    d1 = Document(id=None, title="Manual", doc_type="manual", hash="h1", url="https://ex/a.pdf", domain="ex.com")
+    d2 = Document(id=None, title="Spec", doc_type="spec", hash="h2", url="https://ex/b.pdf", domain="ex.com")
+>>>>>>> ci/parallel-tests
     id1 = m.add_document(d1)
     id2 = m.add_document(d2)
 
     # Link documents to entity
+<<<<<<< HEAD
     m.add_edge(
         Edge(
             id=None,
@@ -48,6 +58,10 @@ def test_get_entity_document_types_and_count(tmp_path):
             relation="has_document",
         )
     )
+=======
+    m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=id1, relation="has_document"))
+    m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=id2, relation="has_document"))
+>>>>>>> ci/parallel-tests
 
     types = m.get_entity_document_types("PT6A-52")
     assert set(types) == {"manual", "spec"}
