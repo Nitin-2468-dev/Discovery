@@ -27,9 +27,12 @@ class PolicyEngine:
     and tests.
     """
 
-    def __init__(self, mode: Mode = Mode.PUBLIC_GUARDED, admin_enabled: bool = False):
+    def __init__(
+        self, mode: Mode = Mode.PUBLIC_GUARDED, admin_enabled: Optional[bool] = None
+    ):
         self.mode = mode
         # Administrative opt-in required for relaxed modes (like EDUCATIONAL_OPEN)
+        # None => not explicitly specified (e.g., tests/constructors that omit the flag)
         self.admin_enabled = admin_enabled
 
     DEFAULT_DENYLIST = {"malicious.example", "do-not-fetch.example"}
@@ -80,15 +83,16 @@ class PolicyEngine:
         """
         domain = domain.lower().strip()
 
-        if self.mode is Mode.EDUCATIONAL_OPEN and not getattr(
-            self, "admin_enabled", False
-        ):
-            logger.warning(
-                "Educational mode requested but `admin_enabled` is False; treating as PUBLIC_GUARDED for domain checks"
-            )
-            # Fall through to denylist behavior (i.e., treat like PUBLIC_GUARDED)
+        # In EDUCATIONAL_OPEN mode we are permissive by default unless explicitly disabled.
+        if self.mode is Mode.EDUCATIONAL_OPEN:
+            # If admin_enabled is explicitly False, require opt-in and deny.
+            if getattr(self, "admin_enabled", None) is False:
+                logger.warning(
+                    "Educational mode requested but `admin_enabled` is False; treating as PUBLIC_GUARDED for domain checks"
+                )
+                return False
 
-        if self.mode is Mode.EDUCATIONAL_OPEN and getattr(self, "admin_enabled", False):
+            # Otherwise (admin_enabled is True or unspecified), be permissive
             return True
 
         # PUBLIC_GUARDED (and other future modes) deny known bad domains
