@@ -263,49 +263,38 @@ def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weigh
     from probe.analysis.gaps import GapDetector
 
     m = Map(db)
+    try:
+        weights = _build_gap_weights(
+            weight_count, weight_yield, weight_trust, weight_recent
+        )
 
-    # Build weights dict from provided CLI flags (None means use defaults)
-    weights = {}
-    if weight_count is not None:
-        weights['count'] = weight_count
-    if weight_yield is not None:
-        weights['yield'] = weight_yield
-    if weight_trust is not None:
-        weights['trust'] = weight_trust
-    if weight_recent is not None:
-        weights['recent'] = weight_recent
+        detector = GapDetector(m, weights=weights)
 
-    detector = GapDetector(m, weights=weights if weights else None)
+        desired_types = [t.strip() for t in types.split(",") if t.strip()]
+        analysis = detector.analyze_entity_gaps(
+            entity_name, desired_types, include_scores=metrics
+        )
 
-    desired_types = [t.strip() for t in types.split(",") if t.strip()]
-    analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
+        if as_json:
+            import json
 
-    if as_json:
-        import json
+            click.echo(json.dumps(analysis, indent=2))
+            return
 
-        click.echo(json.dumps(analysis, indent=2))
+        # Human-readable output
+        click.echo(_format_gap_analysis(analysis, entity_name))
+
+        # If metrics requested and present, show domain scoring breakdown
+        if metrics and analysis.get("domain_scores"):
+            click.echo("\nDomain Scores:")
+            for ds in analysis.get("domain_scores", []):
+                score = ds.get("score", 0.0) if ds.get("score") is not None else 0.0
+                y = ds.get("yield")
+                t = ds.get("trust")
+                r = ds.get("recency")
+                click.echo(f"  - {ds.get('domain')}: score={score:.3f} (yield={y}, trust={t}, recency={r})")
+    finally:
         m.close()
-        return
-
-    if not analysis.get("exists"):
-        click.echo(f"❌ Entity '{entity_name}' not found in map")
-        click.echo(f"   Would need: {', '.join(analysis.get('missing_types', []))}")
-    else:
-        click.echo(f"\n📊 Gap Analysis: {entity_name}")
-        click.echo(f"   Confidence: {analysis.get('confidence', 0.0):.2f}")
-        click.echo(f"   Documents: {analysis.get('has_documents', 0)}")
-
-        if analysis.get("missing_types"):
-            click.echo("\n🔍 Missing Document Types:")
-            for t in analysis.get("missing_types", []):
-                click.echo(f"   • {t}")
-
-        if analysis.get("suggested_domains"):
-            click.echo("\n💡 Suggested Sources:")
-            for d in analysis.get("suggested_domains", []):
-                click.echo(f"   • {d}")
-
-    m.close()
 
 
 @cli.command()

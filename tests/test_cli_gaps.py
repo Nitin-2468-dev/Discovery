@@ -1,7 +1,5 @@
-from click.testing import CliRunner
 import json
-
-import pytest
+from click.testing import CliRunner
 
 from cli import cli
 
@@ -33,6 +31,7 @@ class FakeMapForCLI:
         return self._doc_count
 
     def close(self):
+        # CLI expects a map-like object that can be closed
         return None
 
 
