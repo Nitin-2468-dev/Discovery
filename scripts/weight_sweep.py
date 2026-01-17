@@ -18,10 +18,11 @@ import csv
 import itertools
 import json
 import os
+import sys
 from typing import List
 
-from probe.analysis.gaps import GapDetector
 from probe.core.map import Map
+from probe.analysis.gaps import GapDetector
 
 
 def parse_args(argv: List[str] | None = None):
@@ -30,35 +31,14 @@ def parse_args(argv: List[str] | None = None):
     g.add_argument("--seeds", help="File with one entity name per line")
     g.add_argument("--entity", help="Single entity name to test")
 
-    p.add_argument(
-        "--types", required=True, help="Comma-separated desired document types"
-    )
-    p.add_argument(
-        "--db", default="probe.db", help="Path to DB file (default: probe.db)"
-    )
+    p.add_argument("--types", required=True, help="Comma-separated desired document types")
+    p.add_argument("--db", default="probe.db", help="Path to DB file (default: probe.db)")
     p.add_argument("--out", default="weight_sweep.csv", help="Output CSV file")
 
-    p.add_argument(
-        "--weight-count",
-        help="Comma-separated weight values for count (default: 0.5,1.0,2.0,4.0)",
-    )
-    p.add_argument(
-        "--weight-yield",
-        help="Comma-separated weight values for yield (default: 0.0,1.0)",
-    )
-    p.add_argument(
-        "--weight-trust",
-        help="Comma-separated weight values for trust (default: 0.0,0.5,1.0)",
-    )
-    p.add_argument(
-        "--weight-recent",
-        help="Comma-separated weight values for recent (default: 0.0,0.5,1.0)",
-    )
-    p.add_argument(
-        "--normalize",
-        help="Comma-separated normalization modes (none,per_page,log,per_page_log). Default: none",
-        default="none",
-    )
+    p.add_argument("--weight-count", help="Comma-separated weight values for count (default: 0.5,1.0,2.0,4.0)")
+    p.add_argument("--weight-yield", help="Comma-separated weight values for yield (default: 0.0,1.0)")
+    p.add_argument("--weight-trust", help="Comma-separated weight values for trust (default: 0.0,0.5,1.0)")
+    p.add_argument("--weight-recent", help="Comma-separated weight values for recent (default: 0.0,0.5,1.0)")
 
     return p.parse_args(argv)
 
@@ -74,17 +54,7 @@ def read_entities_from_file(path: str) -> List[str]:
         return [line.strip() for line in fh if line.strip()]
 
 
-def run_sweep(
-    entities: List[str],
-    types: List[str],
-    db_path: str,
-    out_csv: str,
-    counts,
-    yields,
-    trusts,
-    recents,
-    normalizes,
-):
+def run_sweep(entities: List[str], types: List[str], db_path: str, out_csv: str, counts, yields, trusts, recents):
     # ensure output directory exists
     out_dir = os.path.dirname(out_csv)
     if out_dir:
@@ -100,7 +70,6 @@ def run_sweep(
                 "weight_yield",
                 "weight_trust",
                 "weight_recent",
-                "normalize",
                 "top_domain",
                 "top_score",
                 "suggested_domains",
@@ -111,21 +80,11 @@ def run_sweep(
 
         total = 0
         for entity in entities:
-            for wc, wy, wt, wr, norm in itertools.product(
-                counts, yields, trusts, recents, normalizes
-            ):
+            for wc, wy, wt, wr in itertools.product(counts, yields, trusts, recents):
                 m = Map(db_path)
-                try:
-                    detector = GapDetector(
-                        m,
-                        weights={"count": wc, "yield": wy, "trust": wt, "recent": wr},
-                        normalize=norm,
-                    )
-                    analysis = detector.analyze_entity_gaps(
-                        entity, types, include_scores=True
-                    )
-                finally:
-                    m.close()
+                detector = GapDetector(m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr})
+                analysis = detector.analyze_entity_gaps(entity, types, include_scores=True)
+                m.close()
 
                 ds = analysis.get("domain_scores") or []
                 top_domain = ds[0]["domain"] if ds else ""
@@ -139,7 +98,6 @@ def run_sweep(
                     "weight_yield": wy,
                     "weight_trust": wt,
                     "weight_recent": wr,
-                    "normalize": norm,
                     "top_domain": top_domain,
                     "top_score": top_score,
                     "suggested_domains": suggested,
@@ -166,11 +124,8 @@ def main(argv: List[str] | None = None) -> int:
     yields = parse_list_arg(args.weight_yield, [0.0, 1.0])
     trusts = parse_list_arg(args.weight_trust, [0.0, 0.5, 1.0])
     recents = parse_list_arg(args.weight_recent, [0.0, 0.5, 1.0])
-    normalizes = [n.strip() for n in args.normalize.split(",") if n.strip()]
 
-    return run_sweep(
-        entities, types, args.db, args.out, counts, yields, trusts, recents, normalizes
-    )
+    return run_sweep(entities, types, args.db, args.out, counts, yields, trusts, recents)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,7 @@
-import os
 import shutil
-
+import os
 import pytest
-
-from probe.core.map import Document, Edge, Entity, Map, Page
+from probe.core.map import Map, Entity, Document, Page, Edge
 
 
 @pytest.fixture(scope="session")
@@ -20,42 +18,12 @@ def sample_db(tmp_path_factory):
     # add minimal sample data
     e = Entity(id=None, name="PT6A-52", type="engine")
     e_id = m.add_entity(e)
-    d1 = Document(
-        id=None,
-        title="PT6A-52 Maintenance Manual",
-        doc_type="manual",
-        hash="h1",
-        url="https://example.com/manual.pdf",
-        domain="example.com",
-    )
+    d1 = Document(id=None, title="PT6A-52 Maintenance Manual", doc_type="manual", hash="h1", url="https://example.com/manual.pdf", domain="example.com")
     d_id = m.add_document(d1)
-    p = Page(
-        id=None,
-        url="https://example.com/manual.html",
-        domain="example.com",
-        title="Manual page",
-    )
+    p = Page(id=None, url="https://example.com/manual.html", domain="example.com", title="Manual page")
     p_id = m.add_page(p)
-    m.add_edge(
-        Edge(
-            id=None,
-            from_type="entity",
-            from_id=e_id,
-            to_type="document",
-            to_id=d_id,
-            relation="has_document",
-        )
-    )
-    m.add_edge(
-        Edge(
-            id=None,
-            from_type="page",
-            from_id=p_id,
-            to_type="entity",
-            to_id=e_id,
-            relation="mentions",
-        )
-    )
+    m.add_edge(Edge(id=None, from_type="entity", from_id=e_id, to_type="document", to_id=d_id, relation="has_document"))
+    m.add_edge(Edge(id=None, from_type="page", from_id=p_id, to_type="entity", to_id=e_id, relation="mentions"))
     m.update_domain_stats("example.com", found_document=True)
     m.close()
 

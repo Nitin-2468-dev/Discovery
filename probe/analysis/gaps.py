@@ -89,14 +89,24 @@ class GapDetector:
 
         missing = [t for t in desired_doc_types if t not in existing_types]
 
-        # Heuristic: if specific types are missing, prefer domains that contain those types
-        # Extended scoring: weight by count matches, domain yield_score, trust_score, and recency
         # Gather candidate domains for missing types using a helper to keep this method small
         candidates = self._gather_candidates(missing) if missing else {}
 
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
 
+<<<<<<< HEAD
+        now.dt = datetime.now(timezone.utc)
+
+        # Compute scores for candidate domains
+        scored, domain_scores = self._compute_domain_scores(
+            candidates, now, include_scores
+        )
+        # Create suggested domain objects from sorted scored list
+        suggested_domains_objs = [
+            types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]
+        ]
+=======
         now.dt = datetime.now(timezone.utc)
 
         # Compute scores for candidate domains
@@ -130,6 +140,7 @@ class GapDetector:
             result["domain_scores"] = domain_scores
 
         return result
+<<<<<<< HEAD
 
     def _compute_domain_scores(
         self, candidates: dict, now: types.SimpleNamespace, include_scores: bool
@@ -272,3 +283,5 @@ class GapDetector:
             except Exception:
                 pass
         return yield_score, trust_score, recent_score
+=======
+>>>>>>> ci/parallel-tests

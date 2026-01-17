@@ -26,4 +26,8 @@
     "url": "https://www.backcountrypilot.org/forum/",
     "error": "http_403"
   }
+<<<<<<< HEAD
 ]
+=======
+]
+>>>>>>> ci/parallel-tests
