@@ -25,3 +25,13 @@ def test_evaluate_query_respects_domain():
     )
     assert decision_edu["allowed"] is True
     assert decision_edu["mode"] == "educational_open"
+
+
+def test_educational_mode_admin_flag_no_effect_on_domain_allowed():
+    # `EDUCATIONAL_OPEN` is permissive by default; `admin_enabled` currently
+    # gates additional operational relaxations but does not influence domain checks.
+    edu_no_admin = PolicyEngine(mode=Mode.educational_open, admin_enabled=False)
+    assert edu_no_admin.domain_allowed("malicious.example") is True
+
+    edu_admin = PolicyEngine(mode=Mode.educational_open, admin_enabled=True)
+    assert edu_admin.domain_allowed("malicious.example") is True
