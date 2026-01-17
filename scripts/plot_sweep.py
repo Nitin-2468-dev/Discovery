@@ -37,29 +37,29 @@ def main(argv: List[str] | None = None) -> int:
     ys = []
     labels = []
 
-    with input_path.open(newline='', encoding='utf-8') as fh:
+    with input_path.open(newline="", encoding="utf-8") as fh:
         r = csv.DictReader(fh)
         for row in r:
-            if args.domain and row['domain'] != args.domain:
+            if args.domain and row["domain"] != args.domain:
                 continue
             try:
-                wc = float(row['weight_count'])
-                score = float(row['composite_score'])
+                wc = float(row["weight_count"])
+                score = float(row["composite_score"])
             except Exception:
                 continue
             xs.append(wc)
             ys.append(score)
-            labels.append(row['domain'])
+            labels.append(row["domain"])
 
     if not xs:
         print("No data points to plot")
         return 1
 
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6, 4))
     plt.scatter(xs, ys)
-    plt.xlabel('weight_count')
-    plt.ylabel('composite_score')
-    plt.title('Sweep: composite_score vs weight_count')
+    plt.xlabel("weight_count")
+    plt.ylabel("composite_score")
+    plt.title("Sweep: composite_score vs weight_count")
     plt.grid(True)
     plt.tight_layout()
     plt.savefig(out_path)
@@ -67,5 +67,5 @@ def main(argv: List[str] | None = None) -> int:
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raise SystemExit(main())

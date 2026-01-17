@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 from typing import List
 
-from probe.core.map import Map, Entity, Edge, Document
+from probe.core.map import Document, Edge, Entity, Map
 from probe.crawl.ingest import ingest_fetch_result
 
 
@@ -66,7 +66,14 @@ def fetch_and_ingest(seeds: List[str], db_path: str, entity_name: str):
         # link created document to entity if any
         if out.get("document_id"):
             doc_id = out.get("document_id")
-            edge = Edge(id=None, from_type="entity", from_id=eid, to_type="document", to_id=doc_id, relation="has_document")
+            edge = Edge(
+                id=None,
+                from_type="entity",
+                from_id=eid,
+                to_type="document",
+                to_id=doc_id,
+                relation="has_document",
+            )
             m.add_edge(edge)
         results.append({"url": url, "summary": out})
 
@@ -108,7 +115,9 @@ def run_analysis(db_path: str, entity_name: str, types: List[str], out_prefix: s
     spec.loader.exec_module(ws)
 
     csv_out = str(out_dir / "sweep.csv")
-    ws.run_sweep([entity_name], types, db_path, csv_out, counts, yields, trusts, recents)
+    ws.run_sweep(
+        [entity_name], types, db_path, csv_out, counts, yields, trusts, recents
+    )
 
     return analysis, csv_out
 
@@ -135,7 +144,12 @@ def main(argv: List[str] | None = None) -> int:
     with open(out_prefix + "-fetch.json", "w", encoding="utf-8") as fh:
         json.dump(fetch_results, fh, indent=2)
 
-    analysis, csv_out = run_analysis(db_path, entity_name, [t.strip() for t in args.types.split(",") if t.strip()], out_prefix)
+    analysis, csv_out = run_analysis(
+        db_path,
+        entity_name,
+        [t.strip() for t in args.types.split(",") if t.strip()],
+        out_prefix,
+    )
 
     print(f"Analysis written to {out_prefix}/analysis.json and sweep to {csv_out}")
     return 0

@@ -5,9 +5,9 @@ import sys
 import pytest
 from click.testing import CliRunner
 
-from probe.visualization.graph_viz import GraphVisualizer
-from probe.core.map import Map
 from cli import cli
+from probe.core.map import Map
+from probe.visualization.graph_viz import GraphVisualizer
 
 
 def test_plot_interactive_creates_html(tmp_path, sample_db):

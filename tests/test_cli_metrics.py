@@ -2,9 +2,12 @@
 import json
 
 from click.testing import CliRunner
+
 =======
-from click.testing import CliRunner
 import json
+
+from click.testing import CliRunner
+
 >>>>>>> ci/parallel-tests
 
 from cli import cli

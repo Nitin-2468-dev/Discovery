@@ -20,7 +20,9 @@ if TYPE_CHECKING:
         pass
 
 import json
+
 from probe.core.map import Map
+
 
 class GraphVisualizer:
     """Visualize the Probe knowledge graph using NetworkX + Plotly.

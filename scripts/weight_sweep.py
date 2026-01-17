@@ -21,8 +21,8 @@ import os
 import sys
 from typing import List
 
-from probe.core.map import Map
 from probe.analysis.gaps import GapDetector
+from probe.core.map import Map
 
 
 def parse_args(argv: List[str] | None = None):
@@ -31,14 +31,30 @@ def parse_args(argv: List[str] | None = None):
     g.add_argument("--seeds", help="File with one entity name per line")
     g.add_argument("--entity", help="Single entity name to test")
 
-    p.add_argument("--types", required=True, help="Comma-separated desired document types")
-    p.add_argument("--db", default="probe.db", help="Path to DB file (default: probe.db)")
+    p.add_argument(
+        "--types", required=True, help="Comma-separated desired document types"
+    )
+    p.add_argument(
+        "--db", default="probe.db", help="Path to DB file (default: probe.db)"
+    )
     p.add_argument("--out", default="weight_sweep.csv", help="Output CSV file")
 
-    p.add_argument("--weight-count", help="Comma-separated weight values for count (default: 0.5,1.0,2.0,4.0)")
-    p.add_argument("--weight-yield", help="Comma-separated weight values for yield (default: 0.0,1.0)")
-    p.add_argument("--weight-trust", help="Comma-separated weight values for trust (default: 0.0,0.5,1.0)")
-    p.add_argument("--weight-recent", help="Comma-separated weight values for recent (default: 0.0,0.5,1.0)")
+    p.add_argument(
+        "--weight-count",
+        help="Comma-separated weight values for count (default: 0.5,1.0,2.0,4.0)",
+    )
+    p.add_argument(
+        "--weight-yield",
+        help="Comma-separated weight values for yield (default: 0.0,1.0)",
+    )
+    p.add_argument(
+        "--weight-trust",
+        help="Comma-separated weight values for trust (default: 0.0,0.5,1.0)",
+    )
+    p.add_argument(
+        "--weight-recent",
+        help="Comma-separated weight values for recent (default: 0.0,0.5,1.0)",
+    )
 
     return p.parse_args(argv)
 
@@ -54,7 +70,16 @@ def read_entities_from_file(path: str) -> List[str]:
         return [line.strip() for line in fh if line.strip()]
 
 
-def run_sweep(entities: List[str], types: List[str], db_path: str, out_csv: str, counts, yields, trusts, recents):
+def run_sweep(
+    entities: List[str],
+    types: List[str],
+    db_path: str,
+    out_csv: str,
+    counts,
+    yields,
+    trusts,
+    recents,
+):
     # ensure output directory exists
     out_dir = os.path.dirname(out_csv)
     if out_dir:
@@ -82,8 +107,12 @@ def run_sweep(entities: List[str], types: List[str], db_path: str, out_csv: str,
         for entity in entities:
             for wc, wy, wt, wr in itertools.product(counts, yields, trusts, recents):
                 m = Map(db_path)
-                detector = GapDetector(m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr})
-                analysis = detector.analyze_entity_gaps(entity, types, include_scores=True)
+                detector = GapDetector(
+                    m, weights={"count": wc, "yield": wy, "trust": wt, "recent": wr}
+                )
+                analysis = detector.analyze_entity_gaps(
+                    entity, types, include_scores=True
+                )
                 m.close()
 
                 ds = analysis.get("domain_scores") or []
@@ -125,7 +154,9 @@ def main(argv: List[str] | None = None) -> int:
     trusts = parse_list_arg(args.weight_trust, [0.0, 0.5, 1.0])
     recents = parse_list_arg(args.weight_recent, [0.0, 0.5, 1.0])
 
-    return run_sweep(entities, types, args.db, args.out, counts, yields, trusts, recents)
+    return run_sweep(
+        entities, types, args.db, args.out, counts, yields, trusts, recents
+    )
 
 
 if __name__ == "__main__":

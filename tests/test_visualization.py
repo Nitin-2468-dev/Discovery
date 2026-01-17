@@ -5,11 +5,15 @@ from click.testing import CliRunner
 
 from cli import cli
 from probe.core.map import Entity, Map
+
 =======
-from click.testing import CliRunner
 import os
+
+from click.testing import CliRunner
+
 from cli import cli
-from probe.core.map import Map, Entity
+from probe.core.map import Entity, Map
+
 >>>>>>> ci/parallel-tests
 
 

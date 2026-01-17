@@ -5,10 +5,11 @@ from probe.core.map import Document, Edge, Entity, Map, Page
 
 out_dir = "results/visualization-sample"
 =======
-from probe.core.map import Map, Entity, Document, Page, Edge
+from probe.core.map import Document, Edge, Entity, Map, Page
 
 out_dir = "results/visualization-sample"
 import os
+
 >>>>>>> ci/parallel-tests
 os.makedirs(out_dir, exist_ok=True)
 
@@ -72,6 +73,7 @@ edge2 = Edge(
 )
 =======
 from datetime import datetime
+
 edge1 = Edge(id=None, from_type="entity", from_id=ent_id, to_type="document", to_id=doc_id, relation="has_document")
 edge2 = Edge(id=None, from_type="page", from_id=page_id, to_type="entity", to_id=ent_id, relation="mentions")
 >>>>>>> ci/parallel-tests

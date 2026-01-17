@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 # Add probe package to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+from probe.core.map import Document, Edge, Entity, Map
 from probe.core.schema import initialize_schema, validate_schema
-from probe.core.map import Map, Entity, Document, Edge
 # Expose GraphVisualizer at module-level for tests and simple patches
 from probe.visualization.graph_viz import GraphVisualizer
 
@@ -202,13 +202,19 @@ def summary(db):
 
 
 @cli.command()
-@click.option('--entity', default=None, help='Focus on specific entity')
-@click.option('--depth', default=2, type=int, help='Depth for entity subgraph')
-@click.option('--output', default='graph.html', help='Output HTML file')
-@click.option('--export-png', default=None, help='Export a PNG snapshot (path)')
-@click.option('--export-svg', default=None, help='Export an SVG snapshot (path)')
-@click.option('--open', 'open_in_browser', is_flag=True, default=False, help='Open the generated HTML in the default web browser')
-@click.option('--db', default='probe.db')
+@click.option("--entity", default=None, help="Focus on specific entity")
+@click.option("--depth", default=2, type=int, help="Depth for entity subgraph")
+@click.option("--output", default="graph.html", help="Output HTML file")
+@click.option("--export-png", default=None, help="Export a PNG snapshot (path)")
+@click.option("--export-svg", default=None, help="Export an SVG snapshot (path)")
+@click.option(
+    "--open",
+    "open_in_browser",
+    is_flag=True,
+    default=False,
+    help="Open the generated HTML in the default web browser",
+)
+@click.option("--db", default="probe.db")
 def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
     """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
     from probe.visualization.graph_viz import GraphVisualizer
@@ -247,13 +253,16 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
     if open_in_browser:
         try:
             import webbrowser
+
             webbrowser.open(output_file)
             click.echo("Opened in default browser")
         except Exception:
             click.echo("Could not open browser automatically; open the file manually.")
 
     # provide a helpful hint about attaching the file to release
-    click.echo("Tip: upload the file to your release with: gh release upload v0.4.2 <path> --clobber --repo <owner/repo>")
+    click.echo(
+        "Tip: upload the file to your release with: gh release upload v0.4.2 <path> --clobber --repo <owner/repo>"
+    )
 
     m.close()
 
@@ -299,6 +308,7 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
 
     return "\n".join(lines)
 
+
 @cli.command()
 @click.argument("entity_name")
 @click.option(
@@ -306,14 +316,60 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
     default="manual,bulletin,spec",
     help="Comma-separated desired document types",
 )
-@click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
-@click.option("--metrics", "metrics", is_flag=True, default=False, help="Include domain scores in JSON output")
-@click.option("--weight-count", "weight_count", default=None, type=float, help="Weight for count component")
-@click.option("--weight-yield", "weight_yield", default=None, type=float, help="Weight for yield component")
-@click.option("--weight-trust", "weight_trust", default=None, type=float, help="Weight for trust component")
-@click.option("--weight-recent", "weight_recent", default=None, type=float, help="Weight for recentness component")
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
+    help="Output machine-readable JSON",
+)
+@click.option(
+    "--metrics",
+    "metrics",
+    is_flag=True,
+    default=False,
+    help="Include domain scores in JSON output",
+)
+@click.option(
+    "--weight-count",
+    "weight_count",
+    default=None,
+    type=float,
+    help="Weight for count component",
+)
+@click.option(
+    "--weight-yield",
+    "weight_yield",
+    default=None,
+    type=float,
+    help="Weight for yield component",
+)
+@click.option(
+    "--weight-trust",
+    "weight_trust",
+    default=None,
+    type=float,
+    help="Weight for trust component",
+)
+@click.option(
+    "--weight-recent",
+    "weight_recent",
+    default=None,
+    type=float,
+    help="Weight for recentness component",
+)
 @click.option("--db", default="probe.db")
-def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weight_trust, weight_recent, db):
+def gaps(
+    entity_name,
+    types,
+    as_json,
+    metrics,
+    weight_count,
+    weight_yield,
+    weight_trust,
+    weight_recent,
+    db,
+):
     """Analyze knowledge gaps for an entity."""
     from probe.analysis.gaps import GapDetector
 
@@ -347,7 +403,9 @@ def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weigh
                 y = ds.get("yield")
                 t = ds.get("trust")
                 r = ds.get("recency")
-                click.echo(f"  - {ds.get('domain')}: score={score:.3f} (yield={y}, trust={t}, recency={r})")
+                click.echo(
+                    f"  - {ds.get('domain')}: score={score:.3f} (yield={y}, trust={t}, recency={r})"
+                )
     finally:
         m.close()
 

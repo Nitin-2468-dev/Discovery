@@ -1,7 +1,9 @@
 <<<<<<< HEAD
 from probe.core.map import Document, Edge, Entity, Map
+
 =======
-from probe.core.map import Map, Entity, Document, Page, Edge
+from probe.core.map import Document, Edge, Entity, Map, Page
+
 >>>>>>> ci/parallel-tests
 
 
