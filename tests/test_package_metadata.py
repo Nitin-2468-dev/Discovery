@@ -1,8 +1,8 @@
-import sys
+import re
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
-import re
 
 import pytest
 
@@ -50,7 +50,9 @@ def test_pyproject_metadata_has_required_fields():
     assert license_entry, "[project].license is missing"
     # Check classifiers include license classifier if present
     classifiers = project.get("classifiers", [])
-    assert any("License ::" in c for c in classifiers), "No license classifier found in [project].classifiers"
+    assert any(
+        "License ::" in c for c in classifiers
+    ), "No license classifier found in [project].classifiers"
 
 
 def test_wheel_metadata_matches_pyproject(tmp_path: Path):
@@ -76,10 +78,16 @@ def test_wheel_metadata_matches_pyproject(tmp_path: Path):
     # Strip whitespace/newlines robustly (some wheel generators put CRLF)
     wheel_name = name_match.group(1).strip()
     wheel_ver = ver_match.group(1).strip()
-    assert wheel_name.lower() == name.lower(), f"Wheel name {wheel_name} does not match pyproject name {name}"
-    assert wheel_ver == version, f"Wheel version {wheel_ver} does not match pyproject version {version}"
+    assert (
+        wheel_name.lower() == name.lower()
+    ), f"Wheel name {wheel_name} does not match pyproject name {name}"
+    assert (
+        wheel_ver == version
+    ), f"Wheel version {wheel_ver} does not match pyproject version {version}"
 
     # Check license info present in METADATA
     lic_match = re.search(r"^License: (.+)$", metadata, re.M)
-    classifier_license = any("License ::" in l for l in metadata.splitlines())
-    assert lic_match or classifier_license, "No license information found in wheel METADATA"
+    classifier_license = any("License ::" in line for line in metadata.splitlines())
+    assert (
+        lic_match or classifier_license
+    ), "No license information found in wheel METADATA"

@@ -1,7 +1,9 @@
-from click.testing import CliRunner
-import httpx
-from cli import cli
 import csv
+
+import httpx
+from click.testing import CliRunner
+
+from cli import cli
 
 
 def test_seeds_retry_updates_retry_count(monkeypatch, tmp_path):

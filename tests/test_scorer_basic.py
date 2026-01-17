@@ -1,8 +1,5 @@
-from probe.crawl.scorer import (
-    RelevanceScorer,
-    KeywordDensityScorer,
-    BoilerplateDetector,
-)
+﻿from probe.crawl.scorer import (BoilerplateDetector, KeywordDensityScorer,
+                                RelevanceScorer)
 
 
 def test_keyword_density_and_boilerplate_combination():

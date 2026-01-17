@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
-import probe.crawl.robots as robots
 from urllib.robotparser import RobotFileParser
+
+import probe.crawl.robots as robots
 
 
 def test_robots_cache_timestamps_are_timezone_aware(monkeypatch):

@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://www.pwc.ca/en/products-and-services/products/pt6a-engine",
+    "error": "http_403"
+  },
+  {
+    "url": "https://www.pwc.ca/en/support/maintenance-overhaul",
+    "error": "http_403"
+  },
+  {
+    "url": "https://flybusiness.com/aircraft-maintenance/pratt-whitney-canada-pt6a-turboprop-engine-manual/",
+    "error": "http_error: [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1077)"
+  },
+  {
+    "url": "https://www.pprune.org/archive/index.php/f-16.html",
+    "summary": {
+      "page_id": 1,
+      "document_id": null,
+      "link_count": 0,
+      "edges_created": 0,
+      "outgoing_links": [],
+      "external_links": []
+    }
+  },
+  {
+    "url": "https://www.backcountrypilot.org/forum/",
+    "error": "http_403"
+  }
+]

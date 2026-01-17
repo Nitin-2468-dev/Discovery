@@ -1,7 +1,9 @@
-from click.testing import CliRunner
-import httpx
-from cli import cli
 from pathlib import Path
+
+import httpx
+from click.testing import CliRunner
+
+from cli import cli
 
 
 def test_blocklist_sequential(monkeypatch, tmp_path):

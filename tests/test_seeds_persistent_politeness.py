@@ -1,9 +1,11 @@
 import time
-from click.testing import CliRunner
-import httpx
-from cli import cli
 from datetime import datetime
+
+import httpx
+from click.testing import CliRunner
+
 import probe.crawl.state as state
+from cli import cli
 
 
 def test_seeds_persistent_politeness_respects_stored_last_crawled(

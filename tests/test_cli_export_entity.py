@@ -1,6 +1,7 @@
 from click.testing import CliRunner
+
 from cli import cli
-from probe.core.map import Map, Document, Edge, Entity
+from probe.core.map import Document, Edge, Entity, Map
 
 
 def test_export_entity_md_and_csv(tmp_path):

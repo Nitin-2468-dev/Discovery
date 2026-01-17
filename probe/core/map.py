@@ -11,12 +11,11 @@ Design Principles:
 - Handles all SQL internally (no leaky abstractions)
 """
 
-import sqlite3
 import json
-from datetime import datetime
-from typing import List, Dict, Optional
+import sqlite3
 from dataclasses import dataclass
-
+from datetime import datetime
+from typing import Dict, List, Optional
 
 # ============================================================
 # DATA MODELS
@@ -207,7 +206,7 @@ class Map:
 
         cursor = self.conn.execute(
             """
-            INSERT INTO documents (title, doc_type, hash, url, domain, 
+            INSERT INTO documents (title, doc_type, hash, url, domain,
                                    file_size, publication_date, metadata)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(hash) DO UPDATE SET
@@ -248,7 +247,7 @@ class Map:
 
         cursor = self.conn.execute(
             """
-            INSERT INTO pages (url, domain, title, content_hash, 
+            INSERT INTO pages (url, domain, title, content_hash,
                                relevance_score, metadata, last_crawled_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(url) DO UPDATE SET
@@ -286,9 +285,9 @@ class Map:
         """
         cursor = self.conn.execute(
             """
-            SELECT * FROM domains 
+            SELECT * FROM domains
             WHERE pages_crawled >= ?
-            ORDER BY yield_score DESC 
+            ORDER BY yield_score DESC
             LIMIT ?
             """,
             (min_pages, limit),
@@ -327,12 +326,14 @@ class Map:
         # Ensure domain row exists
         cursor = self.conn.execute(
             "INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score)\n            VALUES (?, 0, ?, 0.0)\n            ON CONFLICT(domain_name) DO UPDATE SET documents_found = documents_found + ?\n            RETURNING id, pages_crawled, documents_found",
-            (domain_name, max(0, delta), delta)
+            (domain_name, max(0, delta), delta),
         )
-        row = cursor.fetchone()
         # Recalculate yield_score if pages_crawled > 0
         try:
-            cursor = self.conn.execute("SELECT pages_crawled, documents_found FROM domains WHERE domain_name = ?", (domain_name,))
+            cursor = self.conn.execute(
+                "SELECT pages_crawled, documents_found FROM domains WHERE domain_name = ?",
+                (domain_name,),
+            )
             pr = cursor.fetchone()
             pages = pr[0] or 0
             docs = pr[1] or 0
@@ -340,10 +341,14 @@ class Map:
                 ys = float(docs) / pages
             else:
                 ys = float(docs)
-            self.conn.execute("UPDATE domains SET yield_score = ? WHERE domain_name = ?", (ys, domain_name))
+            self.conn.execute(
+                "UPDATE domains SET yield_score = ? WHERE domain_name = ?",
+                (ys, domain_name),
+            )
             self.conn.commit()
         except Exception:
-            self.conn.commit()    
+            self.conn.commit()
+
     def get_domain(self, domain_name: str) -> Optional[Domain]:
         """Retrieve a domain by name."""
         cursor = self.conn.execute(
@@ -365,8 +370,8 @@ class Map:
 
         cursor = self.conn.execute(
             """
-            INSERT OR IGNORE INTO edges 
-            (from_type, from_id, to_type, to_id, relation, confidence, 
+            INSERT OR IGNORE INTO edges
+            (from_type, from_id, to_type, to_id, relation, confidence,
              metadata, source_page_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -383,7 +388,8 @@ class Map:
         )
         edge_id = cursor.lastrowid
         self.conn.commit()
-        return edge_id if edge_id != 0 else None
+        # Normalize to integer return value (0 indicates no new row inserted)
+        return int(edge_id) if edge_id and edge_id != 0 else 0  # type: ignore[return-value]
 
     def get_edges_from(
         self, from_type: str, from_id: int, relation: Optional[str] = None
@@ -499,7 +505,7 @@ class Map:
         """
         query = "SELECT * FROM scoring_reports"
         conditions = []
-        params = []
+        params: list[object] = []
         if url:
             conditions.append("url = ?")
             params.append(url)

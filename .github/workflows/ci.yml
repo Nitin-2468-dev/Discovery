@@ -41,18 +41,52 @@ jobs:
           if [ "${{ matrix.ocr }}" = "true" ]; then
             pip install -r requirements-ocr.txt || pip install -e .[ocr]
           fi
-      - name: Run tests
+      - name: Run fast tests (parallel)
         env:
           CI: true
         run: |
           mkdir -p reports
-          pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
+          # Run only non-slow tests in parallel using pytest-xdist
+          pytest -q -n auto -m "not slow" --maxfail=1 --disable-warnings --junitxml=reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
       - name: Upload JUnit report
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: junit-${{ matrix.python-version }}-${{ matrix.ocr }}
           path: reports/junit-${{ matrix.python-version }}-${{ matrix.ocr }}.xml
+
+  slow-tests:
+    name: Slow tests (manual/dispatch)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11']
+        ocr: [false]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+      - name: Run slow tests
+        env:
+          CI: true
+        run: |
+          mkdir -p reports
+          pytest -q -m slow -n 2 --maxfail=1 --disable-warnings --junitxml=reports/junit-slow.xml
+      - name: Upload Slow JUnit report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-slow
+          path: reports/junit-slow.xml
 
   packaging:
     name: Packaging & editable install verification
@@ -118,6 +152,103 @@ jobs:
               echo "::notice::$line"
             done
           fi
+
+  wheel-install:
+    name: Wheel install verification
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build wheel (capture logs)
+        run: |
+          mkdir -p build_logs
+          python -m build --wheel --outdir dist 2>&1 | tee build_logs/build.out || true
+      - name: Upload build log artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.python-version }}
+          path: build_logs/build.out
+      - name: Install wheel and runtime deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m pip install dist/*.whl
+      - name: Run packaging smoke tests
+        env:
+          CI: true
+        run: |
+          pytest -q tests/test_orchestrator.py tests/test_threaded_crawler.py tests/test_policy_enforcement.py -q --maxfail=1
+      - name: Annotate packaging warnings on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('build_logs/build.out')) {
+              console.info('No build log found; skipping annotation');
+              return;
+            }
+            const out = fs.readFileSync('build_logs/build.out','utf8');
+            const warningPattern = /(warning|deprecated|deprecat|error)/i;
+            if (warningPattern.test(out)) {
+              const snippet = out.split('\n').slice(0,200).join('\n');
+              let body = `Packaging warnings detected in wheel build (first 200 lines):\n\n\`\`\`\n${snippet}\n\`\`\``;
+
+              // Try to find uploaded build-log artifact for this run and include a link
+              try {
+                const runId = context.runId || context.run_id;
+                const artResp = await github.rest.actions.listWorkflowRunArtifacts({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: runId,
+                });
+                const artifacts = artResp.data && artResp.data.artifacts ? artResp.data.artifacts : [];
+                const buildArtifact = artifacts.find(a => a && a.name && a.name.includes('build-log'));
+                if (buildArtifact && buildArtifact.archive_download_url) {
+                  body += `\n\nBuild log artifact: ${buildArtifact.archive_download_url}`;
+                }
+              } catch (e) {
+                console.warn('Could not fetch artifacts for run: ' + e.message);
+              }
+
+              const pr = context.payload.pull_request ? context.payload.pull_request.number : null;
+              const isFork = context.payload.pull_request && context.payload.pull_request.head && context.payload.pull_request.head.repo && context.payload.pull_request.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`;
+
+              if (isFork) {
+                console.info('Pull request originates from a fork; skipping annotation because GITHUB_TOKEN may lack permissions to post comments');
+                // Optionally upload the build log artifact is already done earlier; we don't post a comment for forked PRs.
+                return;
+              }
+
+              if (pr) {
+                try {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr,
+                    body
+                  });
+                } catch (e) {
+                  console.warn('Failed to create PR comment (permissions or API error): ' + (e.message || e));
+                }
+              } else {
+                console.info('No pull request found; skipping comment creation');
+              }
+            } else {
+              console.info('No packaging warnings detected');
+            }
 
   preflight:
     name: 'Preflight: Packaging validation'

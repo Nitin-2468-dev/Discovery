@@ -1,8 +1,10 @@
 import csv
 from pathlib import Path
-from click.testing import CliRunner
-from cli import cli
+
 import httpx
+from click.testing import CliRunner
+
+from cli import cli
 
 
 def test_seed_run_writes_csv_and_logs(monkeypatch, tmp_path):

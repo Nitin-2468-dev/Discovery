@@ -10,12 +10,13 @@ Returns dict with keys:
 - links: list[dict] with keys 'url' and 'text'
 """
 
-from bs4 import BeautifulSoup
+from typing import Dict, List
 from urllib.parse import urljoin, urlparse
-from typing import List, Dict
+
+from bs4 import BeautifulSoup
 
 
-def clean_html(html: str, base_url: str) -> Dict:
+def clean_html(html: str, base_url: str) -> Dict[str, object]:
     """Clean HTML and extract title, normalized text, and absolute links.
 
     Args:
@@ -42,17 +43,20 @@ def clean_html(html: str, base_url: str) -> Dict:
     # Meta description
     meta_desc = ""
     md = soup.find("meta", attrs={"name": "description"})
-    if md and md.get("content"):
-        meta_desc = md.get("content").strip()
+    if md:
+        content = md.get("content")
+        meta_desc = (
+            content.strip() if isinstance(content, str) else str(content or "").strip()
+        )
 
     # Main text: get_text with a space separator then normalize whitespace
     raw_text = soup.get_text(separator=" ", strip=True)
     text = " ".join(raw_text.split())
 
     # Extract links and resolve relative URLs, ignore mailto: javascript: and fragments
-    links: List[Dict[str, str]] = []
+    links: List[Dict[str, object]] = []
     for a in soup.find_all("a", href=True):
-        href = a["href"].strip()
+        href = str(a["href"]).strip()
         if not href or href.startswith(("#", "javascript:", "mailto:")):
             continue
         abs_url = urljoin(base_url, href)

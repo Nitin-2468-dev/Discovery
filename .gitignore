@@ -19,9 +19,12 @@ env/
 
 # OS
 .DS_Store
-Thumbs.dbbuild/
+Thumbs.db
+build/
 dist/
+run_reports/
 *.pyc
 .venv/
 .pytest_cache/
 .mypy_cache/
+tmp_ci_check

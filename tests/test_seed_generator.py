@@ -1,5 +1,5 @@
-from probe.core.map import Map
 from probe.analysis.seed_generator import SeedGenerator
+from probe.core.map import Map
 
 
 def test_generate_seeds_high_yield_domains(tmp_path):
@@ -31,12 +31,20 @@ def test_generate_seeds_related_entities_and_dedup(tmp_path):
     m = Map(db)
 
     # Add entity and a related entity via edges
-    from probe.core.map import Entity, Edge
+    from probe.core.map import Edge, Entity
+
     e1_id = m.add_entity(Entity(id=None, name="E1"))
     e2_id = m.add_entity(Entity(id=None, name="E2"))
 
     # Create an entity-to-entity edge (relation 'related')
-    edge = Edge(id=None, from_type='entity', from_id=e1_id, to_type='entity', to_id=e2_id, relation='related')
+    edge = Edge(
+        id=None,
+        from_type="entity",
+        from_id=e1_id,
+        to_type="entity",
+        to_id=e2_id,
+        relation="related",
+    )
     m.add_edge(edge)
 
     sg = SeedGenerator(m)

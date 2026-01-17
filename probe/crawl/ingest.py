@@ -7,10 +7,10 @@ Provides an Ingestor class with richer features than the legacy helper.
 """
 
 from hashlib import sha256
+from typing import Any, Dict
 from urllib.parse import urlparse
-from typing import Dict, Any
 
-from probe.core.map import Map, Page, Document, Edge
+from probe.core.map import Document, Edge, Map, Page
 
 
 class Ingestor:
@@ -24,50 +24,24 @@ class Ingestor:
 
         Returns e.g. {"page_id": 1, "document_id": None, "link_count": 3, "edges_created": 3}
         """
-        url = fetch_result.get("url")
+        url: str = str(fetch_result.get("url") or "")
         parsed = urlparse(url)
-        domain = parsed.netloc
+        domain: str = str(parsed.netloc)
 
-        raw = fetch_result.get("raw_bytes")
+        raw: bytes | None = fetch_result.get("raw_bytes")
 
         if fetch_result.get("is_pdf"):
-            # Create Document
-            h = sha256(raw or b"").hexdigest()
-            doc = Document(
-                id=None,
-                title=fetch_result.get("title") or "",
-                doc_type="pdf",
-                hash=h,
-                url=url,
-                domain=domain,
-                file_size=len(raw) if raw else None,
-                publication_date=None,
-                metadata=fetch_result.get("metadata"),
-            )
-            doc_id = self.map.add_document(doc)
-            self.map.update_domain_stats(domain, found_document=True)
-            return {
-                "page_id": None,
-                "document_id": doc_id,
-                "link_count": 0,
-                "edges_created": 0,
-            }
+            return self._ingest_pdf(fetch_result, raw, domain)
 
         # Otherwise ingest as a page
         raw_text = fetch_result.get("text")
-        # Prefer cleaned text for content hashing; fall back to raw bytes
-        if raw_text:
-            content_hash = sha256(raw_text.encode("utf-8")).hexdigest()
-        elif isinstance(raw, (bytes, bytearray)):
-            content_hash = sha256(raw).hexdigest()
-        else:
-            content_hash = sha256(b"").hexdigest()
+        content_hash = self._compute_content_hash(raw_text, raw)
 
         page = Page(
             id=None,
             url=url,
             domain=domain,
-            title=fetch_result.get("title"),
+            title=str(fetch_result.get("title") or ""),
             content_hash=content_hash,
             relevance_score=None,
             metadata=fetch_result.get("metadata"),
@@ -75,8 +49,76 @@ class Ingestor:
         page_id = self.map.add_page(page)
         self.map.update_domain_stats(domain, found_document=False)
 
-        # Process links: separate internal (same-domain) and external links.
         links = fetch_result.get("links") or []
+        edges_created, outgoing_links, external_links = self._process_links(
+            links, domain, url, page_id
+        )
+
+        # Update metadata if any outgoing/external links were discovered
+        metadata = fetch_result.get("metadata") or {}
+        if outgoing_links:
+            metadata = dict(metadata)
+            metadata["outgoing_links"] = outgoing_links
+        if external_links:
+            metadata = dict(metadata)
+            metadata["external_links"] = external_links
+        if metadata:
+            # Re-apply page record to persist metadata
+            updated_page = Page(
+                id=None,
+                url=url,
+                domain=domain,
+                title=str(fetch_result.get("title") or ""),
+                content_hash=content_hash,
+                metadata=metadata,
+            )
+            self.map.add_page(updated_page)
+
+        return {
+            "page_id": page_id,
+            "document_id": None,
+            "link_count": len(links),
+            "edges_created": edges_created,
+            "outgoing_links": outgoing_links,
+            "external_links": external_links,
+        }
+
+    def _ingest_pdf(
+        self, fetch_result: Dict[str, Any], raw: bytes | None, domain: str
+    ) -> Dict[str, Any]:
+        """Create a Document from PDF bytes and update domain stats."""
+        url: str = str(fetch_result.get("url") or "")
+        h = sha256(raw or b"").hexdigest()
+        doc = Document(
+            id=None,
+            title=str(fetch_result.get("title") or ""),
+            doc_type="pdf",
+            hash=h,
+            url=url,
+            domain=domain,
+            file_size=len(raw) if raw else None,
+            publication_date=None,
+            metadata=fetch_result.get("metadata"),
+        )
+        doc_id = self.map.add_document(doc)
+        self.map.update_domain_stats(domain, found_document=True)
+        return {
+            "page_id": None,
+            "document_id": doc_id,
+            "link_count": 0,
+            "edges_created": 0,
+        }
+
+    def _compute_content_hash(self, raw_text: str | None, raw: bytes | None) -> str:
+        """Compute a content hash preferring cleaned text when available."""
+        if raw_text:
+            return sha256(raw_text.encode("utf-8")).hexdigest()
+        if isinstance(raw, (bytes, bytearray)):
+            return sha256(raw).hexdigest()
+        return sha256(b"").hexdigest()
+
+    def _process_links(self, links: list, domain: str, url: str, page_id: int):
+        """Process discovered links and create page->page edges for internal links."""
         edges_created = 0
         outgoing_links = []
         external_links = []
@@ -115,34 +157,7 @@ class Ingestor:
             else:
                 external_links.append(link_url)
 
-        # Update the page metadata with outgoing and external links for follow-up
-        metadata = fetch_result.get("metadata") or {}
-        if outgoing_links:
-            metadata = dict(metadata)  # copy
-            metadata["outgoing_links"] = outgoing_links
-        if external_links:
-            metadata = dict(metadata)
-            metadata["external_links"] = external_links
-        if metadata:
-            # Re-apply page record to persist metadata
-            updated_page = Page(
-                id=None,
-                url=url,
-                domain=domain,
-                title=fetch_result.get("title"),
-                content_hash=content_hash,
-                metadata=metadata,
-            )
-            self.map.add_page(updated_page)
-
-        return {
-            "page_id": page_id,
-            "document_id": None,
-            "link_count": len(links),
-            "edges_created": edges_created,
-            "outgoing_links": outgoing_links,
-            "external_links": external_links,
-        }
+        return edges_created, outgoing_links, external_links
 
 
 # Backwards-compatible helper

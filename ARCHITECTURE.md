@@ -7,6 +7,19 @@ Query → Map Query → Gap Detection → Seed Generation → Crawler → Map Up
 Answer ←────────────────── Synthesize ←──────────────────────────┘
 ```
 
+**Policy Engine (new):** a global gatekeeper that evaluates queries and seeds
+before they reach the Orchestrator. It enforces the active mode (`public_guarded`
+or `educational_open`) and annotates or restricts actions when necessary.
+
+**High-level flow with Policy:**
+```
+User / Chat / MCP
+        ↓
+   Policy Engine
+        ↓
+Orchestrator / Investigator
+```
+
 ## Components
 
 ### 1. The Map (Knowledge Graph)
@@ -46,7 +59,7 @@ Answer ←────────────────── Synthesize ←�
 3. Detect gaps (missing document types, weak confidence, old dates)
 4. Generate seeds from:
    - High-yield domains
-   - Known entity neighborhoods  
+   - Known entity neighborhoods
    - External sources (search APIs)
 5. Hand seeds to crawler with stop conditions
 
@@ -80,7 +93,7 @@ Answer ←────────────────── Synthesize ←�
 
 **Formula (v1):**
 ```
-score = 
+score =
   0.4 * embedding_similarity +
   0.3 * keyword_density +
   0.2 * entity_regex_hits -

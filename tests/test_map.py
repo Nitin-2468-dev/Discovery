@@ -1,4 +1,4 @@
-from probe.core.map import Map, Entity
+from probe.core.map import Entity, Map
 
 
 def test_add_and_get_entity(tmp_path):

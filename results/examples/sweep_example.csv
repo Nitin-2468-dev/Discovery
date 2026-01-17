@@ -1,0 +1,2 @@
+entity,types,weight_count,weight_yield,weight_trust,weight_recent,normalize,top_domain,top_score,suggested_domains,domain_scores_json
+ACME-PT6A,datasheet,1.0,0.0,0.0,0.0,none,a.example.com,3.5,a.example.com; b.example.com,"[{""domain"": ""a.example.com"", ""composite_score"": 3.5, ""domain"": ""b.example.com"", ""composite_score"": 2.1}]"

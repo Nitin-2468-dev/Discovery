@@ -1626,3 +1626,1782 @@ Error: blocked_by_robots
 Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-121\test_robots_blocks_seed0\s.txt --limit 1
 Outcome: logged by seed-runner
 ---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-11 23:36] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-133\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:07] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-142\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:08] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:09] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-143\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:56] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:57] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:57] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-150\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 16:59] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-154\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:17] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:18] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:18] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-156\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-158\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-159\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 17:40] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-162\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:19] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-171\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:33] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:34] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 19:34] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-174\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-183\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 22:50] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-186\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://a.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://b.example/
+Error: client_error: maximum recursion depth exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_config_concurrency_preced0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-12 23:58] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-187\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-188\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-188\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-188\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-188\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-188\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:15] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-188\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-189\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-189\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-189\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-189\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-189\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 12:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-189\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 15:53] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-193\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 15:53] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-193\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 15:53] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-193\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 15:53] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-193\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 15:54] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-193\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 15:54] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-193\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-196\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-196\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-196\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-196\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:24] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-196\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:24] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-196\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:32] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-199\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:32] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-199\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:32] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-199\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:32] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-199\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:32] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-199\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:32] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-199\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-202\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-202\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-202\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-202\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:47] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-202\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 16:47] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-202\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 17:37] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-203\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 17:37] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-203\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 17:37] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-203\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 17:37] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-203\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 17:38] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-203\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 17:38] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-203\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:13] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-204\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:13] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-204\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:13] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-204\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:13] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-204\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:13] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-204\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:13] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-204\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:14] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-205\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:14] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-205\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:14] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-205\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:14] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-205\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:14] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-205\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 19:14] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-205\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-206\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-206\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-206\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:23] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-206\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:24] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-206\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:24] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-206\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:26] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-207\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:26] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-207\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:27] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run tmp_seeds.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:27] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run tmp_seeds.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:28] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run tmp_seeds.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:28] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run tmp_seeds.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:28] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-208\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:28] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-208\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:29] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-212\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:29] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-212\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:29] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-212\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:29] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-212\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:29] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-212\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 20:29] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-212\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:02] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-216\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:02] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-216\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:04] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-217\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:04] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-218\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:04] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-218\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:04] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-218\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:04] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-218\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:05] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-218\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:05] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-218\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-219\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-219\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-219\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:25] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-219\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:26] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-219\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 21:26] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-219\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-224\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-224\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-224\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:20] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-224\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:21] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-224\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:21] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-224\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:30] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:30] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:30] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:30] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:31] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-13 23:31] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-226\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+
+[2026-01-15 05:10] CI_FIX
+Phase: ci
+Action: Remove leftover submodule & make autofix push tolerant; fix mypy errors
+Status: Complete
+Notes: Removed a leftover gitlink for `tmp_ci_check` from the index and ensured it is ignored; fixed remaining mypy issues (normalized `Map.add_edge` to return an `int` (0 when duplicate), typed scoring query `params`, and silenced `httpx = None` typing); updated `.github/workflows/autofix.yml` to tolerate push failures (so forked PRs won't fail the job when the runner cannot push back); pushed changes to branch `ci/mypy-iter-continue`, ran local mypy (no issues), and retriggered CI; the Autofix job runs pre-commit formatting and will continue even if it cannot push (push failures are now handled gracefully).
+Outcome: Branch updated and CI re-run; monitoring continues.
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:42] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:43] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:43] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-227\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_blocklist_sequential0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://blocked.example/page2
+Error: blocked_by_blocklist
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_blocklist_concurrent0\s2.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/large
+Error: max_size_exceeded
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_seeds_run_max_size_record0\s.txt --limit 1
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/fail
+Error: http_500
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_seed_run_writes_csv_and_l0\s.txt --limit 2
+Outcome: logged by seed-runner
+---
+[2026-01-15 16:46] FETCHER_FAILURE
+Phase: v0.2
+URL: https://example.com/page
+Error: blocked_by_robots
+Command: cli seeds run C:\Users\Nitin\AppData\Local\Temp\pytest-of-Nitin\pytest-228\test_robots_blocks_seed0\s.txt --limit 1
+Outcome: logged by seed-runner
+---

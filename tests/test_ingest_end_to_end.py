@@ -1,5 +1,5 @@
-from probe.crawl.ingest import Ingestor
 from probe.core.map import Map
+from probe.crawl.ingest import Ingestor
 
 
 def test_ingestor_creates_link_pages_and_edges(tmp_path):
