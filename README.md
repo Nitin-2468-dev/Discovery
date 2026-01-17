@@ -50,7 +50,7 @@ Every query makes the system smarter. The map compounds over time.
 Probe supports runtime **modes** that affect risk exposure and output detail. See `POLICY.md` for full policy semantics.
 
 - `public_guarded` — safe-by-default (restricts high-risk categories)
-- `educational_open` — broader visibility for research/learning (with warnings)
+- `educational_open` — broader visibility for research/learning (with warnings). Note: `educational_open` requires **admin opt-in** to be permissive.
 
 Initialize with:
 
@@ -60,6 +60,21 @@ probe init --mode public_guarded
 probe init --mode educational_open
 ```
 
+Admin opt-in and CLI configuration
+
+- To enable the admin opt-in (allow `educational_open` to be permissive):
+
+```bash
+# Persist a config file enabling admin features
+probe config set-admin enable
+
+# Or override per-run with a CLI flag
+probe --admin-enabled seeds run seeds.txt --limit 10
+```
+
+Policy decisions and logs
+
+Policy decisions return lightweight decision payloads (e.g., `{"mode":"public_guarded","allowed":false,"reason":"domain 'x' disallowed","tags":["domain"]}`) and denied decisions are logged at WARNING level for auditing.
 
 ## Current Status
 

@@ -20,8 +20,9 @@ The Investigator is intentionally conservative in v0.4 — it focuses on produci
 
 ## Policy Hooks
 
-Before generating seeds or fetching, the Investigator will (in future implementations) consult the Policy Engine:
+Before generating seeds or fetching, the Investigator consults the Policy Engine and uses an **admin_enabled** flag resolved from CLI or config:
 
-- Check domain allowance and per-mode restrictions
-- Enforce depth, size and rate limits per mode
-- Tag suggested seeds and results with risk metadata for operator review
+- Resolve `admin_enabled` (CLI `--admin-enabled` flag > `probe.config.json` value > default False) and instantiate `PolicyEngine(mode=..., admin_enabled=...)`.
+- Check domain allowance and per-mode restrictions (denylist/allowlist rules).
+- Enforce depth, size and rate limits per mode.
+- Tag suggested seeds and results with risk metadata and include policy decision payloads for operator review and auditing.
