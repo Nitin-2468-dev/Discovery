@@ -27,6 +27,20 @@ Every investigation system needs five components:
 
 ---
 
+## Policy (The Gatekeeper) (NEW)
+**Purpose:** Centralized policy evaluation and enforcement
+
+**In Probe:**
+- Interprets active `mode` (e.g., `public_guarded`, `educational_open`)
+- Evaluates query intent and seed/domain safety
+- Annotates or vetoes actions (fetch, seed generation, visualization)
+
+**Key Property:** Centralized, auditable safety decisions (scoped and testable stubs exist in `probe.policy`)
+
+---
+
+---
+
 ## 3. Executor (The Worker)
 **Purpose:** Doing the actual work
 
