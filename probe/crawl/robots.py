@@ -11,19 +11,20 @@ Behavior:
 - On errors fetching/parsing, treats as permissive (returns True) and logs nothing
 """
 
+import threading
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
-from datetime import datetime, timedelta, timezone
-from typing import Optional
-import threading
 
 import httpx
-
 
 CACHE_TTL = timedelta(hours=24)
 
 _lock = threading.Lock()
-_cache = {}  # domain -> (parser, fetched_at)
+_cache: Dict[str, Tuple[Optional[RobotFileParser], datetime]] = (
+    {}
+)  # domain -> (parser, fetched_at)
 
 
 def _robots_url_for(domain: str, scheme: str = "https") -> str:
@@ -92,6 +93,15 @@ def crawl_delay(user_agent: str, url: str) -> Optional[float]:
         rp = _get_parser(domain)
         if rp is None:
             return None
-        return rp.crawl_delay(user_agent)
+        delay = rp.crawl_delay(user_agent)
+        if delay is None:
+            return None
+        # Normalize potential string return values defensively
+        if isinstance(delay, (int, float)):
+            return float(delay)
+        try:
+            return float(delay)
+        except Exception:
+            return None
     except Exception:
         return None

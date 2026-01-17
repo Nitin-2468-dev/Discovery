@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
-files = ['README.md','SCOPE.md','docs/fetcher.md','docs/seeds.md']
+
+files = ["README.md", "SCOPE.md", "docs/fetcher.md", "docs/seeds.md"]
 for f in files:
     p = Path(f)
     s = p.read_text()
@@ -8,6 +9,6 @@ for f in files:
     new = re.sub(r"\n{3,}", "\n\n", s)
     if new != s:
         p.write_text(new)
-        print(f'normalized {f}')
+        print(f"normalized {f}")
     else:
-        print(f'no change {f}')
+        print(f"no change {f}")

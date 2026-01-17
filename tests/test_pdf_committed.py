@@ -1,6 +1,8 @@
-import httpx
-from probe.crawl.fetcher import fetch
 from pathlib import Path
+
+import httpx
+
+from probe.crawl.fetcher import fetch
 
 
 def test_committed_pdf_fixture_works():

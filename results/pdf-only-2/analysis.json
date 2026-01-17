@@ -1,0 +1,30 @@
+{
+  "entity": "seed-run-pdf_only-2",
+  "exists": true,
+  "confidence": 0.5,
+  "missing_types": [],
+  "has_documents": 2,
+  "weak_confidence": true,
+  "suggested_domains": [
+    "www.w3.org",
+    "www.adobe.com"
+  ],
+  "domain_scores": [
+    {
+      "domain": "www.w3.org",
+      "count": 0,
+      "yield_score": 1.0,
+      "trust_score": 0.5,
+      "recent_score": 0.0,
+      "composite_score": 1.25
+    },
+    {
+      "domain": "www.adobe.com",
+      "count": 0,
+      "yield_score": 1.0,
+      "trust_score": 0.5,
+      "recent_score": 0.0,
+      "composite_score": 1.25
+    }
+  ]
+}

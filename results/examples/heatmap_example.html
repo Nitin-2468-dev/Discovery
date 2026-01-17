@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <title>Weight Sweep Heatmap Example</title>
+</head>
+<body>
+  <div id="plot" style="width:800px;height:600px;"></div>
+  <script>
+    const xs = [0.5, 1.0, 2.0, 4.0];
+    const ys = [0.0, 1.0];
+    const z = [
+      [1.0, 2.0, 3.0, 4.0],
+      [1.5, 2.5, 2.0, 3.5]
+    ];
+    const data = [{ z: z, x: xs, y: ys, type: 'heatmap', colorscale:'Viridis' }];
+    Plotly.newPlot('plot', data, {title: 'Example Heatmap (a.example.com)'});
+  </script>
+</body>
+</html>

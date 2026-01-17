@@ -1,4 +1,4 @@
-"""Simple sync fetcher for v0.2.
+﻿"""Simple sync fetcher for v0.2.
 
 Public API:
 - fetch(url, timeout=10, max_size=10_000_000) -> dict with keys:
@@ -7,18 +7,19 @@ Public API:
 This is an initial, test-driven implementation focusing on HTML cleaning and link extraction.
 """
 
-from typing import Tuple, List, Dict, Any
+import threading
+from typing import Any, Dict, List, Tuple
 from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
-import threading
+
 from probe.observability import get_logger
 
 logger = get_logger("fetcher")
 
 # In-memory per-domain politeness tracker (monotonic timestamps)
-_last_fetch = {}
+_last_fetch: Dict[str, float] = {}
 _last_fetch_lock = threading.Lock()
 
 
@@ -51,7 +52,7 @@ class Fetcher:
         self._last_fetch = {}
         self._last_fetch_lock = threading.Lock()
 
-    def fetch(
+    def fetch(  # noqa: C901 - complex fetch/retry logic, will refactor in follow-up
         self,
         url: str,
         timeout: int = DEFAULT_TIMEOUT,
@@ -160,8 +161,9 @@ class Fetcher:
                                 except Exception:
                                     # Then try HTTP-date formats (RFC-1123 etc.)
                                     try:
-                                        from email.utils import parsedate_to_datetime
                                         from datetime import datetime, timezone
+                                        from email.utils import \
+                                            parsedate_to_datetime
 
                                         dt = parsedate_to_datetime(ra)
                                         if dt.tzinfo is None:
@@ -199,9 +201,10 @@ class Fetcher:
                             # metrics: record retry/backoff wait
                             try:
                                 self.metrics.increment("fetch_retries")
-                                self.metrics.observe(
-                                    "fetch_backoff_seconds", float(delay)
-                                )
+                                if delay is not None:
+                                    self.metrics.observe(
+                                        "fetch_backoff_seconds", float(delay)
+                                    )
                             except Exception:
                                 pass
 
@@ -247,7 +250,8 @@ class Fetcher:
                         try:
                             result["user_agent"] = client.headers.get("User-Agent")
                         except Exception:
-                            result["user_agent"] = self.user_agent
+                            # Use selected UA as fallback
+                            result["user_agent"] = ua
 
                         # metrics: observe duration
                         try:
@@ -263,8 +267,9 @@ class Fetcher:
                         ):
                             result["is_pdf"] = True
                             try:
-                                import pdfplumber
                                 from io import BytesIO
+
+                                import pdfplumber
 
                                 with pdfplumber.open(BytesIO(content)) as pdf:
                                     pages = [p.extract_text() or "" for p in pdf.pages]
@@ -294,7 +299,8 @@ class Fetcher:
                         result["title"] = title
                         result["link_count"] = len(links)
                         result["has_pdf_links"] = any(
-                            link["url"].lower().endswith(".pdf") for link in links
+                            str(link.get("url", "")).lower().endswith(".pdf")
+                            for link in links
                         )
                         return result
 
@@ -322,6 +328,9 @@ class Fetcher:
             result["error"] = f"client_error: {exc}"
             return result
 
+        # Ensure we always return a result (mypy can't always prove loop returns)
+        return result
+
 
 def _ocr_pdf(pdf_bytes: bytes) -> str:
     """OCR fallback: attempts to convert PDF bytes to images and run Tesseract.
@@ -330,8 +339,8 @@ def _ocr_pdf(pdf_bytes: bytes) -> str:
     This function is best-effort and may be slow; callers should guard by size/timeout.
     """
     try:
-        from pdf2image import convert_from_bytes
         import pytesseract
+        from pdf2image import convert_from_bytes
     except Exception as exc:
         raise ImportError("OCR dependencies not available") from exc
 
@@ -371,11 +380,11 @@ def fetch(
 
 def _clean_html_and_extract_links(
     html: str, base_url: str
-) -> Tuple[str, List[Dict[str, str]], str]:
+) -> Tuple[str, List[Dict[str, object]], str]:
     """Return (cleaned_text, links, title).
 
-    Links are normalized absolute HTTP(s) URLs with anchor text. Title is taken
-    from the `<title>` tag when present.
+    Links are normalized absolute HTTP(s) URLs with anchor text and metadata. Title
+    is taken from the `<title>` tag when present.
     """
     soup = BeautifulSoup(html, "lxml")
 
@@ -392,12 +401,14 @@ def _clean_html_and_extract_links(
         except Exception:
             pass
 
-    title_tag = soup.title.string.strip() if soup.title and soup.title.string else None
+    title_tag = (
+        str(soup.title.string).strip() if soup.title and soup.title.string else None
+    )
     text = soup.get_text(" ", strip=True)
 
-    links: List[Dict[str, str]] = []
+    links: List[Dict[str, object]] = []
     for a in soup.find_all("a", href=True):
-        raw = a["href"].strip()
+        raw = str(a["href"]).strip()
         if not raw:
             continue
         abs_url = urljoin(base_url, raw)

@@ -1,0 +1,23 @@
+{
+  "entity": "seed-run-seeds_aviation-5",
+  "exists": true,
+  "confidence": 0.5,
+  "missing_types": [
+    "manual"
+  ],
+  "has_documents": 0,
+  "weak_confidence": true,
+  "suggested_domains": [
+    "www.pprune.org"
+  ],
+  "domain_scores": [
+    {
+      "domain": "www.pprune.org",
+      "count": 0,
+      "yield_score": 0.0,
+      "trust_score": 0.5,
+      "recent_score": 0.0,
+      "composite_score": 0.25
+    }
+  ]
+}

@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import httpx
 from click.testing import CliRunner
+
 from cli import cli
-from pathlib import Path
 
 
 def test_robots_blocks_seed(monkeypatch, tmp_path):

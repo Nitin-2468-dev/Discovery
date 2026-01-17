@@ -1,0 +1,2 @@
+https://blocked.example/
+https://blocked.example/page2

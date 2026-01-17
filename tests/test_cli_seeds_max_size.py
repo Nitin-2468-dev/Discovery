@@ -1,8 +1,10 @@
-from click.testing import CliRunner
-import httpx
-from cli import cli
-from pathlib import Path
 import csv
+from pathlib import Path
+
+import httpx
+from click.testing import CliRunner
+
+from cli import cli
 
 
 def test_seeds_run_max_size_records_failure(monkeypatch, tmp_path):

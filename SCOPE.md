@@ -33,6 +33,8 @@
 - Added an opt-in scheduled/manual real-network integration workflow (`.github/workflows/research-integration.yml`) that runs a single real-network test on master when enabled (`RUN_REAL_NET_TESTS=true`). This helps validate end-to-end crawling behavior without introducing flaky tests into the main PR matrix.
 - Local dev: run `RUN_REAL_NET_TESTS=true pytest -q tests/test_crawler_integration.py::test_end_to_end_crawl_index_and_search_real` to exercise the same test locally.
 
+- CI maintenance (2026-01-15): removed a lingering `tmp_ci_check` gitlink that caused a post-checkout submodule error in Actions; made the Autofix workflow tolerant of push failures (so forked PRs won't fail the job when the runner cannot push); updated docs (CHANGELOG, `docs/CI.md`, `README.md`) and recorded the change in `constraints.log`.
+
 ---
 
 ## v0.3 — Scoring (IMPLEMENTED)
@@ -57,12 +59,16 @@
 ## v0.4 — Gap Detection (in progress)
 **Goal:** Identify what's missing
 
-- [ ] Query map for entity knowledge
-- [ ] Detect missing document types
-- [ ] Identify weak confidence areas
-- [ ] Suggest seed sources
+- [x] Query map for entity knowledge
+- [x] Detect missing document types
+- [x] Identify weak confidence areas
+- [x] Suggest seed sources (implemented — `GapDetector` suggests candidate domains and `SeedGenerator` produces seeds; Investigator supports limited fetch passes and enforces policy; orchestrator and breadth-first crawler remain)
 
-**Success Criteria:** Given entity + desired doc type, returns gap analysis
+**Progress:** Implemented `GapDetector` (missing-type detection and candidate domain scoring with configurable weights), added Map compatibility helpers (`Map.get_domains_with_doc_type` attached at import time), and introduced normalization modes (`none`, `per_page`, `log`, `per_page_log`). Also added a weight-sweep utility (`scripts/weight_sweep.py`) and plotting helpers (`scripts/plot_sweep.py`), plus unit tests covering fallback behavior, heuristics, normalization, and plotting. See PR #27 for details and the full test results.
+
+**Policy summary:** We introduced `Mode.educational_open` for broader exploration; it is permissive by default for domain allow checks but some operational relaxations (e.g., visualization details, auto-telemetry uploader) are gated by `admin_enabled`. Policy denials are recorded to `policy_denials.jsonl` and a CLI command `probe policy upload-telemetry` exists to upload telemetry to S3. The automatic telemetry uploader (rotate-and-upload) is planned for v0.5.
+
+**Success Criteria:** Given entity + desired doc type, returns gap analysis including missing types, suggested domains, and optional per-domain component scores; supports weight tuning and normalization for seed-suggestion heuristics.
 
 ---
 
@@ -77,6 +83,8 @@
 - [ ] CLI: `probe investigate <query>`
 
 **Success Criteria:** Can run full investigation, map accumulates knowledge
+
+> **Note — Educational Openness:** Add support for an **"Educational Openness"** mode (e.g., `Mode.educational_open`) that relaxes some gating for research and educational use-cases to enable broader exploration and transparency. This mode must include clear disclaimers, logging, and opt-in administrative enablement, and **is not intended** as the default for production deployments.
 
 ---
 

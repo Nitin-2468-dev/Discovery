@@ -1,7 +1,8 @@
 import json
+from pathlib import Path
+
 from probe.core.map import Map
 from probe.crawl.reporting import write_scoring_export
-from pathlib import Path
 
 
 def test_write_scoring_export_csv_and_md(tmp_path):

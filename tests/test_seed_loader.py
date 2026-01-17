@@ -1,4 +1,4 @@
-from probe.crawl.seed_loader import load_file, filter_by_domain, summarize
+from probe.crawl.seed_loader import filter_by_domain, load_file, summarize
 
 
 def test_load_file(tmp_path):

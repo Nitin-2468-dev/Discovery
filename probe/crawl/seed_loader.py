@@ -4,8 +4,8 @@ probe/crawl/seed_loader.py
 Utility for loading and managing seed URLs from text files.
 """
 
-from typing import List
 from pathlib import Path
+from typing import Dict, List
 from urllib.parse import urlparse
 
 
@@ -105,9 +105,9 @@ class SeedLoader:
 
         return filtered
 
-    def group_by_domain(self, urls: List[str]) -> dict:
+    def group_by_domain(self, urls: List[str]) -> Dict[str, List[str]]:
         """Group URLs by their domain."""
-        groups = {}
+        groups: Dict[str, List[str]] = {}
 
         for url in urls:
             domain = self._extract_domain(url)
@@ -143,7 +143,7 @@ def filter_by_domain(urls, domains):
 
 
 def summarize(urls):
-    groups = SeedLoader().group_by_domain(urls)
+    groups: Dict[str, List[str]] = SeedLoader().group_by_domain(urls)
     return {k: len(v) for k, v in groups.items()}
 
 

@@ -1,7 +1,8 @@
+import httpx
+
+from probe.core.map import Map
 from probe.crawl.fetcher import fetch
 from probe.crawl.ingest import ingest_fetch_result
-from probe.core.map import Map
-import httpx
 
 
 def test_ingest_html_adds_page(monkeypatch, tmp_path):

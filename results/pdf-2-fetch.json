@@ -1,0 +1,10 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Aircraft_engine",
+    "error": "http_403"
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Maintenance_manual",
+    "error": "timeout"
+  }
+]

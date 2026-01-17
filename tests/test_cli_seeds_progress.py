@@ -1,7 +1,9 @@
-from click.testing import CliRunner
-import httpx
-from cli import cli
 import types
+
+import httpx
+from click.testing import CliRunner
+
+from cli import cli
 
 
 def test_seeds_run_no_progress(monkeypatch, tmp_path):

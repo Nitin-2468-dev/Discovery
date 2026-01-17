@@ -1,0 +1,42 @@
+name: Autofix Formatting
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'results/**'
+      - 'run_reports/**'
+
+# Allow this workflow to write back to the PR branch using GITHUB_TOKEN
+permissions:
+  contents: write
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install formatters & pre-commit
+        run: |
+          pip install --upgrade pip
+          pip install pre-commit black==25.12.0 isort==7.0.0
+      - name: Run pre-commit and commit formatting (if any)
+        run: |
+          pre-commit run --all-files || true
+          if ! git diff --quiet --exit-code; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "chore: apply pre-commit formatting (auto-commit from CI)"
+            # Attempt to push back; tolerate failures (e.g., read-only token on forked PRs)
+            git push origin "HEAD:refs/heads/${{ github.head_ref }}" || echo "Push failed (likely read-only token); continuing."
+          else
+            echo "No formatting changes"
+          fi
