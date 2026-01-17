@@ -12,7 +12,8 @@ class Mode(str, Enum):
 
 # Backwards- and docs-friendly alias: allow `Mode.educational_open` (lowercase) in code/docs/tests
 # This does not create a new enum member; it points the attribute to the existing member.
-Mode.educational_open = Mode.EDUCATIONAL_OPEN
+# Use setattr to avoid mypy attr-defined errors when assigning to the Enum class
+setattr(Mode, "educational_open", Mode.EDUCATIONAL_OPEN)  # type: ignore[attr-defined]
 
 
 class PolicyEngine:

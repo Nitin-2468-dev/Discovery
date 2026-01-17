@@ -66,6 +66,8 @@
 
 **Progress:** Implemented `GapDetector` (missing-type detection and candidate domain scoring with configurable weights), added Map compatibility helpers (`Map.get_domains_with_doc_type` attached at import time), and introduced normalization modes (`none`, `per_page`, `log`, `per_page_log`). Also added a weight-sweep utility (`scripts/weight_sweep.py`) and plotting helpers (`scripts/plot_sweep.py`), plus unit tests covering fallback behavior, heuristics, normalization, and plotting. See PR #27 for details and the full test results.
 
+**Policy summary:** We introduced `Mode.educational_open` for broader exploration; it is permissive by default for domain allow checks but some operational relaxations (e.g., visualization details, auto-telemetry uploader) are gated by `admin_enabled`. Policy denials are recorded to `policy_denials.jsonl` and a CLI command `probe policy upload-telemetry` exists to upload telemetry to S3. The automatic telemetry uploader (rotate-and-upload) is planned for v0.5.
+
 **Success Criteria:** Given entity + desired doc type, returns gap analysis including missing types, suggested domains, and optional per-domain component scores; supports weight tuning and normalization for seed-suggestion heuristics.
 
 ---
