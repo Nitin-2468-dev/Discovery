@@ -252,8 +252,13 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
     help="Comma-separated desired document types",
 )
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
+@click.option("--metrics", "metrics", is_flag=True, default=False, help="Include domain scores in JSON output")
+@click.option("--weight-count", "weight_count", default=None, type=float, help="Weight for count component")
+@click.option("--weight-yield", "weight_yield", default=None, type=float, help="Weight for yield component")
+@click.option("--weight-trust", "weight_trust", default=None, type=float, help="Weight for trust component")
+@click.option("--weight-recent", "weight_recent", default=None, type=float, help="Weight for recentness component")
 @click.option("--db", default="probe.db")
-def gaps(entity_name, types, as_json, db):
+def gaps(entity_name, types, as_json, metrics, weight_count, weight_yield, weight_trust, weight_recent, db):
     """Analyze knowledge gaps for an entity."""
     from probe.analysis.gaps import GapDetector
 
@@ -274,13 +279,6 @@ def gaps(entity_name, types, as_json, db):
 
     desired_types = [t.strip() for t in types.split(",") if t.strip()]
     analysis = detector.analyze_entity_gaps(entity_name, desired_types, include_scores=metrics)
-
-    if as_json:
-        import json
-
-        click.echo(json.dumps(analysis, indent=2))
-        m.close()
-        return
 
     if as_json:
         import json

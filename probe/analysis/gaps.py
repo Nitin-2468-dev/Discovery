@@ -72,6 +72,14 @@ class GapDetector:
                             candidates[d.domain_name]['count'] += 1
                     except Exception:
                         continue
+                # If no domains found for the missing types, fall back to high-yield domains
+                if not candidates:
+                    try:
+                        domains = self.map.get_high_yield_domains(limit=20, min_pages=1)
+                    except TypeError:
+                        domains = self.map.get_high_yield_domains(limit=20)
+                    for d in domains:
+                        candidates.setdefault(d.domain_name, {'count': 0})
             else:
                 # Some Map mocks may not accept min_pages kwarg; fall back if needed
                 try:
@@ -99,6 +107,7 @@ class GapDetector:
         now.dt = datetime.utcnow()
 
         scored = []
+        domain_scores = []
         for domain_name, meta in candidates.items():
             count = meta.get('count', 0)
             yield_score = 0.0
@@ -124,6 +133,16 @@ class GapDetector:
 
             score = w_count * float(count) + w_yield * float(yield_score) + w_trust * float(trust_score) + w_recent * float(recent_score)
             scored.append((domain_name, score))
+
+            # Record component scores for optional metrics output
+            domain_scores.append({
+                'domain': domain_name,
+                'count': int(count),
+                'yield_score': float(yield_score),
+                'trust_score': float(trust_score),
+                'recent_score': float(recent_score),
+                'combined_score': float(score),
+            })
 
         scored.sort(key=lambda kv: kv[1], reverse=True)
         suggested_domains_objs = [types.SimpleNamespace(domain_name=name) for name, _ in scored[:5]]
