@@ -31,10 +31,13 @@ def _build_wheel(outdir: Path):
         try:
             build_logs = outdir / "build_logs"
             build_logs.mkdir(parents=True, exist_ok=True)
-            (build_logs / "build.out").write_text((completed.stdout or "") + "\n\n" + (completed.stderr or ""))
+            (build_logs / "build.out").write_text(
+                (completed.stdout or "") + "\n\n" + (completed.stderr or "")
+            )
         except Exception:
             # best effort write; ignore errors here
             pass
+
 
 EXPECTED_FILES = [
     "probe/analysis/gaps.py",
