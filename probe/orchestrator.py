@@ -271,3 +271,59 @@ class Orchestrator:
             pass
 
         return out
+
+    def orchestrate_gap_seed(
+        self,
+        entity_name: str,
+        desired_doc_types: List[str],
+        gap_detector: object | None = None,
+        seed_generator: object | None = None,
+        max_seeds: int = 20,
+        max_depth: int = 2,
+        max_pages: int = 50,
+    ) -> Dict[str, object]:
+        """Orchestrate a simple gap→seed→crawl flow.
+
+        Steps:
+        1. Use GapDetector to analyze gaps for an entity and produce suggested domains.
+        2. Use SeedGenerator to generate seeds for suggested domains and desired types.
+        3. Run the BreadthFirstCrawler over the generated seeds and return results.
+
+        Returns a dict with keys: `seeds`, `suggested_domains`, and `crawl_result`.
+        """
+        if gap_detector is None or seed_generator is None:
+            raise ValueError("gap_detector and seed_generator are required for orchestration")
+
+        # Analyze gaps to produce suggested domains
+        try:
+            gd = gap_detector.analyze_entity_gaps(entity_name, desired_doc_types)
+            suggested_domains = gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+        except Exception:
+            suggested_domains = []
+
+        # Fallback: try to use map to get high-yield domains
+        if not suggested_domains and self.map:
+            try:
+                suggested_domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=5)]
+            except Exception:
+                suggested_domains = []
+
+        # Generate seeds
+        seeds = []
+        try:
+            if suggested_domains:
+                seeds = seed_generator.generate_seeds(suggested_domains, desired_doc_types, per_domain=3, max_seeds=max_seeds)
+            else:
+                # If seed generator supports legacy entity API, attempt that
+                seeds = seed_generator.generate_seeds(entity_name, desired_doc_types[0] if desired_doc_types else "", max_seeds=max_seeds)
+        except Exception:
+            seeds = []
+
+        # Run crawl
+        crawl_result = self.run(seeds, max_depth=max_depth, max_pages=max_pages)
+
+        return {
+            "seeds": seeds,
+            "suggested_domains": suggested_domains,
+            "crawl_result": crawl_result,
+        }
