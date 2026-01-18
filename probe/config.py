@@ -31,7 +31,7 @@ DEFAULTS: Dict[str, Any] = {
 
 def _load_yaml(path: Path) -> Dict[str, Any]:
     try:
-        import yaml
+        import yaml  # type: ignore
     except Exception:
         raise RuntimeError("PyYAML not available to load YAML config")
     with open(path, "r", encoding="utf-8") as f:

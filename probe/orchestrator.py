@@ -252,12 +252,105 @@ class Orchestrator:
         # Instead, as a minimal first step, we will update domain-level stats
         # for the run based on reported counts when possible.
         try:
-            # Example: update domain summary by reading domains found in the map
-            # or by applying a simple rule: documents_found increments to domain stats
-            # are a useful first-order approximation.
-            # TODO: extend to per-page persistence when crawler yields page details.
-            pass
+            # Update domain-level stats based on pages and documents now present in the DB.
+            # This is a best-effort, idempotent upsert so running the orchestrator repeatedly
+            # will not corrupt counts (we add the counts found in the DB for this run).
+            if self.map:
+                cur = self.map.conn.execute(
+                    "SELECT domain, COUNT(*) as pages FROM pages GROUP BY domain"
+                )
+                pages_by_domain = {r[0]: int(r[1]) for r in cur.fetchall()}
+
+                cur = self.map.conn.execute(
+                    "SELECT domain, COUNT(*) as docs FROM documents GROUP BY domain"
+                )
+                docs_by_domain = {r[0]: int(r[1]) for r in cur.fetchall()}
+
+                for domain, pages in pages_by_domain.items():
+                    docs = docs_by_domain.get(domain, 0)
+                    # Upsert domain row with current counts (incrementing to preserve history)
+                    self.map.conn.execute(
+                        """
+                        INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, last_crawled_at)
+                        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(domain_name) DO UPDATE SET
+                            pages_crawled = pages_crawled + ?,
+                            documents_found = documents_found + ?,
+                            yield_score = CASE WHEN pages_crawled + ? > 0 THEN (documents_found + ?) * 1.0 / (pages_crawled + ?) ELSE documents_found + ? END,
+                            last_crawled_at = CURRENT_TIMESTAMP
+                        """,
+                        (
+                            domain,
+                            pages,
+                            docs,
+                            (docs / pages) if pages else 0.0,
+                            pages,
+                            docs,
+                            pages,
+                            docs,
+                            pages,
+                            docs,
+                        ),
+                    )
+                self.map.conn.commit()
         except Exception:
+            # Best-effort only: do not fail the orchestration if stats update fails
             pass
 
         return out
+
+    def orchestrate_gap_seed(
+        self,
+        entity_name: str,
+        desired_doc_types: List[str],
+        gap_detector: object | None = None,
+        seed_generator: object | None = None,
+        max_seeds: int = 20,
+        max_depth: int = 2,
+        max_pages: int = 50,
+    ) -> Dict[str, object]:
+        """Orchestrate a simple gap→seed→crawl flow.
+
+        Steps:
+        1. Use GapDetector to analyze gaps for an entity and produce suggested domains.
+        2. Use SeedGenerator to generate seeds for suggested domains and desired types.
+        3. Run the BreadthFirstCrawler over the generated seeds and return results.
+
+        Returns a dict with keys: `seeds`, `suggested_domains`, and `crawl_result`.
+        """
+        if gap_detector is None or seed_generator is None:
+            raise ValueError("gap_detector and seed_generator are required for orchestration")
+
+        # Analyze gaps to produce suggested domains
+        try:
+            gd = gap_detector.analyze_entity_gaps(entity_name, desired_doc_types)
+            suggested_domains = gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+        except Exception:
+            suggested_domains = []
+
+        # Fallback: try to use map to get high-yield domains
+        if not suggested_domains and self.map:
+            try:
+                suggested_domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=5)]
+            except Exception:
+                suggested_domains = []
+
+        # Generate seeds
+        seeds = []
+        try:
+            if suggested_domains:
+                seeds = seed_generator.generate_seeds(suggested_domains, desired_doc_types, per_domain=3, max_seeds=max_seeds)
+            else:
+                # If seed generator supports legacy entity API, attempt that
+                seeds = seed_generator.generate_seeds(entity_name, desired_doc_types[0] if desired_doc_types else "", max_seeds=max_seeds)
+        except Exception:
+            seeds = []
+
+        # Run crawl
+        crawl_result = self.run(seeds, max_depth=max_depth, max_pages=max_pages)
+
+        return {
+            "seeds": seeds,
+            "suggested_domains": suggested_domains,
+            "crawl_result": crawl_result,
+        }

@@ -342,6 +342,23 @@ jobs:
         run: |
           pytest -q tests/test_packaging_validation.py tests/test_wheel_install.py tests/test_package_metadata.py -q --maxfail=1
 
+  semantic-search-contract:
+    name: SemSearch: contract tests present
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for semantic-search contract tests
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          p = Path('tests/test_semantic_search_contract.py')
+          if not p.exists():
+              print('ERROR: tests/test_semantic_search_contract.py not present')
+              sys.exit(2)
+          print('Found contract test scaffold: tests/test_semantic_search_contract.py')
+          PY
+
 
   test-ocr-scheduled:
     name: OCR test (scheduled / ocr branch)
