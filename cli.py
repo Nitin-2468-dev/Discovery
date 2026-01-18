@@ -417,6 +417,120 @@ def gaps(
 
 
 @cli.command()
+@click.argument("query")
+@click.option("--types", default="driver", help="Comma-separated desired document types")
+@click.option("--max-seeds", default=20, type=int, help="Maximum seeds to generate")
+@click.option("--max-depth", default=2, type=int, help="Max crawl depth")
+@click.option("--max-pages", default=50, type=int, help="Max pages to fetch")
+@click.option("--fetch-remote/--no-fetch-remote", default=False, help="Allow SeedGenerator remote discovery")
+@click.option("--no-dry-run/--dry-run", default=True, help="Dry-run by default; use --no-dry-run to perform a limited fetch pass")
+@click.option("--json", "as_json", is_flag=True, default=False, help="Output machine-readable JSON")
+@click.option("--resolve/--no-resolve", default=True, help="Attempt to resolve query to an existing entity via substring match")
+@click.option("--db", default="probe.db")
+def investigate(query, types, max_seeds, max_depth, max_pages, fetch_remote, dry_run, as_json, resolve, db):
+    """Investigate a query: resolve entity, suggest domains, generate seeds, and optionally orchestrate a crawl."""
+    import json
+
+    m = Map(db)
+
+    # Resolve entity (if requested)
+    entity_name = query
+    resolved = None
+    if resolve:
+        try:
+            ent = m.get_entity(query)
+            if ent:
+                resolved = ent.name
+                entity_name = ent.name
+            else:
+                r = m.conn.execute("SELECT name FROM entities WHERE lower(name) LIKE ? LIMIT 1", (f"%{query.lower()}%",)).fetchone()
+                if r:
+                    resolved = r[0]
+                    entity_name = resolved
+        except Exception:
+            resolved = None
+
+    types_list = [t.strip() for t in types.split(",") if t.strip()]
+
+    # Gap analysis
+    from probe.analysis.gaps import GapDetector
+
+    gd = GapDetector(m)
+    analysis = gd.analyze_entity_gaps(entity_name, types_list, include_scores=True)
+
+    suggested_domains = analysis.get("suggested_domains", []) or []
+
+    # Generate seeds
+    sg = SeedGenerator(m, fetch_remote=fetch_remote)
+    seeds = []
+    try:
+        if suggested_domains:
+            seeds = sg.generate_seeds(suggested_domains, types_list, per_domain=3, max_seeds=max_seeds)
+        else:
+            seeds = sg.generate_seeds(entity_name, types_list[0] if types_list else "", max_seeds=max_seeds)
+    except Exception:
+        seeds = []
+
+    if dry_run:
+        out = {
+            "query": query,
+            "resolved_entity": resolved,
+            "suggested_domains": suggested_domains,
+            "seeds": seeds,
+            "analysis": analysis,
+            "dry_run": True,
+        }
+        if as_json:
+            click.echo(json.dumps(out, indent=2))
+        else:
+            click.echo(f"Query: {query}")
+            if resolved:
+                click.echo(f"Resolved to entity: {resolved}")
+            click.echo(f"Suggested domains: {suggested_domains}")
+            click.echo(f"Seeds ({len(seeds)}):")
+            for s in seeds:
+                click.echo(f"  - {s}")
+        m.close()
+        return
+
+    # Run the orchestrator for real
+    from probe.orchestrator import Orchestrator
+
+    # Pick a fetcher (try live fetcher; fall back to a simple in-process fetcher)
+    try:
+        fetch_fn = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch
+    except Exception:
+        fetch_fn = lambda u: {"url": u, "status_code": 200, "text": "page", "links": [], "content_type": "text/html"}
+
+    orc = Orchestrator(map_obj=m, fetch_fn=fetch_fn, scorer_fn=lambda r: 1.0)
+
+    res = orc.orchestrate_gap_seed(entity_name=entity_name, desired_doc_types=types_list, gap_detector=gd, seed_generator=sg, max_seeds=max_seeds, max_depth=max_depth, max_pages=max_pages)
+
+    out = {
+        "query": query,
+        "resolved_entity": resolved,
+        "suggested_domains": res.get("suggested_domains"),
+        "seeds": res.get("seeds"),
+        "crawl_result": res.get("crawl_result"),
+        "analysis": analysis,
+    }
+
+    if as_json:
+        click.echo(json.dumps(out, indent=2))
+    else:
+        click.echo(f"Query: {query}")
+        if resolved:
+            click.echo(f"Resolved to entity: {resolved}")
+        click.echo(f"Suggested domains: {out['suggested_domains']}")
+        click.echo(f"Seeds ({len(out['seeds'] or [])}):")
+        for s in out.get("seeds", []) or []:
+            click.echo(f"  - {s}")
+        click.echo(f"Crawl pages fetched: {out.get('crawl_result', {}).get('pages_fetched')}")
+
+    m.close()
+
+
+@cli.command()
 @click.argument("url")
 @click.option(
     "--ingest/--no-ingest", default=False, help="Persist fetched content into the Map"
@@ -1565,6 +1679,11 @@ def health_check(url, timeout, max_retries, backoff_factor):
     default=True,
     help="Perform a limited fetch pass for generated seeds",
 )
+@click.option("--no-resolve/--resolve", default=True, help="Attempt to resolve query to an existing entity via substring match")
+@click.option("--max-depth", default=2, type=int, help="Max crawl depth when running orchestrator")
+@click.option("--max-pages", default=50, type=int, help="Max pages to fetch when running orchestrator")
+@click.option("--fetch-remote/--no-fetch-remote", default=False, help="Allow SeedGenerator remote discovery when generating seeds for orchestrator")
+@click.option("--run-orchestrator", is_flag=True, default=False, help="Run the full orchestrator (gap->seed->crawl) instead of an optional limited seed fetch")
 @click.option(
     "--mode",
     default="public_guarded",
@@ -1573,7 +1692,7 @@ def health_check(url, timeout, max_retries, backoff_factor):
 )
 @click.option("--db", default="probe.db", help="Database file path")
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output JSON")
-def investigate(entity_name, types, max_seeds, dry_run, mode, db, as_json):
+def investigate(entity_name, types, max_seeds, dry_run, no_resolve, max_depth, max_pages, fetch_remote, run_orchestrator, mode, db, as_json):
     """Run a short investigator: gap detection -> seed generation -> optional limited fetch."""
     import json as _json
 
@@ -1594,6 +1713,60 @@ def investigate(entity_name, types, max_seeds, dry_run, mode, db, as_json):
     pe = PolicyEngine(mode=pol_mode, admin_enabled=admin_enabled)
 
     inv = Investigator(m, policy_engine=pe)
+
+    # Optionally resolve the query to an existing entity
+    resolved = None
+    if no_resolve:
+        try:
+            e = m.get_entity(entity_name)
+            if e:
+                resolved = e.name
+                entity_name = e.name
+            else:
+                r = m.conn.execute("SELECT name FROM entities WHERE lower(name) LIKE ? LIMIT 1", (f"%{entity_name.lower()}%",)).fetchone()
+                if r:
+                    resolved = r[0]
+                    entity_name = resolved
+        except Exception:
+            resolved = None
+
+    desired_types = [t.strip() for t in types.split(",") if t.strip()]
+
+    # If the user requested a full orchestrator run use Orchestrator
+    if run_orchestrator:
+        from probe.analysis.gaps import GapDetector
+        from probe.analysis.seed_generator import SeedGenerator
+        from probe.orchestrator import Orchestrator
+
+        gd = GapDetector(m)
+        sg = SeedGenerator(m, fetch_remote=fetch_remote)
+
+        # Try to use live fetcher when possible; fallback to a no-op fetcher
+        try:
+            fetch_fn = __import__("probe.crawl.fetcher", fromlist=["fetch"]).fetch
+        except Exception:
+            fetch_fn = lambda u: {"url": u, "status_code": 200, "text": "page", "links": [], "content_type": "text/html"}
+
+        orc = Orchestrator(map_obj=m, fetch_fn=fetch_fn, scorer_fn=lambda r: 1.0)
+        out = orc.orchestrate_gap_seed(entity_name=entity_name, desired_doc_types=desired_types, gap_detector=gd, seed_generator=sg, max_seeds=max_seeds, max_depth=max_depth, max_pages=max_pages)
+
+        if as_json:
+            import json as _json
+
+            _json_out = {"entity": entity_name, "resolved": resolved, "orchestrator": out}
+            click.echo(_json.dumps(_json_out, indent=2))
+            m.close()
+            return
+
+        click.echo(f"Entity: {entity_name}")
+        if resolved:
+            click.echo(f"Resolved to entity: {resolved}")
+        click.echo(f"Suggested domains: {out.get('suggested_domains')}")
+        click.echo(f"Seeds: {out.get('seeds')}")
+        click.echo(f"Crawl pages fetched: {out.get('crawl_result', {}).get('pages_fetched')}")
+
+        m.close()
+        return
 
     desired = [t.strip() for t in types.split(",") if t.strip()]
     res = inv.investigate(entity_name, desired, max_seeds=max_seeds, dry_run=dry_run)

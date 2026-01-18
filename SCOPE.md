@@ -78,11 +78,14 @@
 
 **Goal:** End-to-end query → answer
 
-- [ ] Orchestrator (ties components together)
-- [ ] Seed generator
-- [ ] Breadth-first crawler with scoring
-- [ ] Map ingest (add findings to graph)
-- [ ] CLI: `probe investigate <query>`
+- [x] Orchestrator (ties components together) ✅
+- [x] Seed generator ✅
+- [x] Breadth-first crawler with scoring ✅
+- [x] Map ingest (add findings to graph) ✅
+- [x] CLI: `probe orchestrate run` (orchestrator CLI) ✅
+- [x] CLI: `probe investigate <query>` (implemented; integrates orchestration with query layer) ✅
+
+**Progress:** The Orchestrator is implemented: `Orchestrator.orchestrate_gap_seed` composes `GapDetector` → `SeedGenerator` → `BreadthFirstCrawler`, pages/documents are persisted to the `Map`, domain stats are updated after runs, and an integration test (`tests/test_orchestrator_integration.py`) verifies the end-to-end flow. A short CLI `probe orchestrate run` and documentation (`docs/orchestrator.md`) were added to exercise and document the orchestration flow.
 
 **v0.5 Add-on — Link Signals (Context-Aware Crawling):** See `docs/LINK_SIGNALS.md` for the conservative v0.5 contract for local context extraction and link-context signals (signal-only, no edges, no entities, no embeddings).
 

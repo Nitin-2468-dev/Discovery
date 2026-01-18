@@ -64,6 +64,9 @@ class GapDetector:
         """
         entity = self.map.get_entity(entity_name)
         if not entity:
+            # No explicit entity record; still attempt to suggest domains based on desired types
+            candidates = self._gather_candidates(desired_doc_types)
+            suggested_domains = list(candidates.keys())[:5] if candidates else []
             return {
                 "entity": entity_name,
                 "exists": False,
@@ -71,7 +74,7 @@ class GapDetector:
                 "missing_types": desired_doc_types,
                 "has_documents": 0,
                 "weak_confidence": True,
-                "suggested_domains": [],
+                "suggested_domains": suggested_domains,
             }
 
         # Use a lightweight query to fetch only document types for efficiency if available.
