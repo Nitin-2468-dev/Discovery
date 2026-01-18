@@ -120,9 +120,16 @@ jobs:
           if [ "${{ matrix.ocr }}" = "true" ]; then
             pip install -e .[ocr]
           fi
-      - name: Build sdist & wheels
+      - name: Build sdist & wheels (capture logs)
         run: |
-          python -m build --sdist --wheel --outdir dist
+          mkdir -p build_logs
+          python -m build --sdist --wheel --outdir dist 2>&1 | tee build_logs/build.out || true
+      - name: Upload build log artifact
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ matrix.python-version }}-${{ matrix.ocr }}
+          path: build_logs/build.out
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -266,6 +273,43 @@ jobs:
             } else {
               console.info('No packaging warnings detected');
             }
+
+  packaging-smoke:
+    name: Packaging smoke (wheel build retries)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Attempt wheel build up to 3 times
+        run: |
+          mkdir -p build_logs
+          attempts=0
+          max_attempts=3
+          until [ $attempts -ge $max_attempts ]; do
+            python -m build --wheel --outdir dist 2>&1 | tee build_logs/build.out && break
+            attempts=$((attempts+1))
+            echo "Wheel build attempt $attempts failed"
+            sleep 1
+          done
+          if [ $attempts -ge $max_attempts ]; then
+            echo "Wheel build failed after $attempts attempts"
+            exit 1
+          fi
+      - name: Upload build log artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-smoke-build-log-${{ matrix.python-version }}
+          path: build_logs/build.out
 
   preflight:
     name: 'Preflight: Packaging validation'
