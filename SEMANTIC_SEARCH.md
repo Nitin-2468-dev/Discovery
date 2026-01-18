@@ -1,9 +1,9 @@
 # Semantic Search Integration (Probe)
 
-**Status:** Stable  
-**Scope:** V1 (Design Locked)  
-**Audience:** Core developers / contributors  
-**Last Updated:** 2026-01-17  
+**Status:** Stable
+**Scope:** V1 (Design Locked)
+**Audience:** Core developers / contributors
+**Last Updated:** 2026-01-17
 
 ---
 
@@ -11,7 +11,7 @@
 
 This document defines **how semantic search is integrated into Probe** and the **rules that govern its use**.
 
-It is not an overview of embeddings or AI.  
+It is not an overview of embeddings or AI.
 It is a **contract** that ensures:
 
 - No hallucinated relationships
@@ -85,7 +85,7 @@ This prevents semantic collisions (e.g. fish ≠ diamond).
 
 ## Embedding Containment Rule
 
-**Rule:**  
+**Rule:**
 Embeddings may operate *only* inside their bucket and may never generate edges.
 
 **Enforced By:**
@@ -101,9 +101,9 @@ Violations are considered **critical bugs**.
 
 All relationships must be:
 
-1. **Explicit** – stored in the `edges` table  
-2. **Evidenced** – backed by `relationship_evidence`  
-3. **Auditable** – source URL + confidence required  
+1. **Explicit** – stored in the `edges` table
+2. **Evidenced** – backed by `relationship_evidence`
+3. **Auditable** – source URL + confidence required
 
 ### Truth Comes From
 
