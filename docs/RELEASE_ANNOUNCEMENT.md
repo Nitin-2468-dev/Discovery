@@ -1,3 +1,11 @@
+# Release v0.5 Announcement Drafts
+
+Short (Slack/GitHub):
+
+- Probe v0.5 baseline snapshot (2026-01-18): packaging and CI resilience improvements, packaging smoke job, wheel-install retry and test diagnostic uploads. See `CHANGELOG.md` and the packaging smoke job artifacts in CI for details.
+
+---
+
 # Release v0.4.1 Announcement Drafts
 
 Short (Slack/GitHub):
