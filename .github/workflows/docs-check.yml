@@ -23,8 +23,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run codespell on docs
-        uses: cschleiden/codespell-action@v2.1.1
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          check_path: 'README.md docs/'
-          ignore-words-list: 'teh,recieve'
+          python-version: '3.x'
+      - name: Install codespell
+        run: python -m pip install --upgrade pip && python -m pip install codespell
+      - name: Run codespell on docs
+        run: codespell --ignore-words-list='teh,recieve' README.md docs/
