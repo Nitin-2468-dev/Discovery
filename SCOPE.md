@@ -84,6 +84,8 @@
 - [ ] Map ingest (add findings to graph)
 - [ ] CLI: `probe investigate <query>`
 
+**v0.5 Add-on — Link Signals (Context-Aware Crawling):** See `docs/LINK_SIGNALS.md` for the conservative v0.5 contract for local context extraction and link-context signals (signal-only, no edges, no entities, no embeddings).
+
 **Success Criteria:** Can run full investigation, map accumulates knowledge
 
 > **Note — Educational Openness:** Add support for an **"Educational Openness"** mode (e.g., `Mode.educational_open`) that relaxes some gating for research and educational use-cases to enable broader exploration and transparency. This mode must include clear disclaimers, logging, and opt-in administrative enablement, and **is not intended** as the default for production deployments.
@@ -92,13 +94,13 @@
 
 ## v0.6 — Embeddings (Optional for v1)
 
-**Goal:** Semantic similarity
+**Goal:** Semantic similarity (see `SEMANTIC_SEARCH.md` for the integration contract)
 
-- [ ] Generate embeddings for entities/documents
-- [ ] Semantic search in map
-- [ ] Similarity-based seed generation
+- [ ] Generate embeddings for entities/documents (bucketed, isolated)
+- [ ] Semantic search in map (hybrid retrieval: FTS + embeddings)
+- [ ] Similarity-based seed generation (verification required)
 
-**Success Criteria:** Queries like "engines similar to PT6A-52" work
+**Success Criteria:** Queries like "engines similar to PT6A-52" work; embeddings are navigation aids only and must follow rules in `SEMANTIC_SEARCH.md` (Design locked v1).
 
 ---
 
