@@ -26,37 +26,47 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const runId = parseInt(core.getInput('run_id'));
-            const pr = parseInt(core.getInput('pr_number'));
-            if (!runId || !pr) {
-              core.setFailed('run_id and pr_number are required');
-              return;
+            try {
+              const core = require('@actions/core');
+              const runIdRaw = core.getInput('run_id') || process.env.INPUT_RUN_ID || '';
+              const prRaw = core.getInput('pr_number') || process.env.INPUT_PR_NUMBER || '';
+              const runId = Number(runIdRaw);
+              const pr = Number(prRaw);
+
+              if (Number.isNaN(runId) || Number.isNaN(pr)) {
+                core.setFailed('run_id and pr_number are required and must be numeric');
+                return;
+              }
+
+              // List artifacts for the run and find build-log
+              const artResp = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId,
+              });
+
+              const artifacts = (artResp.data && artResp.data.artifacts) || [];
+              const buildArtifact = artifacts.find(a => a && a.name && a.name.includes('build-log'));
+
+              if (!buildArtifact) {
+                const body = `No build-log artifact found for run ${runId}.\n\nMaintainer note: if you expected a build-log, ensure the packaging job uploaded 'build_logs/build.out' and that the run corresponds to the build you inspected.`;
+                await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr, body });
+                core.info('No build-log artifact found for run ' + runId);
+                return;
+              }
+
+              // Try to include a convenient link and guidance. The archive_download_url requires authentication
+              // when accessed via browser; include the artifact name and a pointer to the Actions UI.
+              let body = `Packaging build log for run ${runId} is available as artifact **${buildArtifact.name}**.`;
+              body += `\n\n**Maintainer note:** download the artifact from the run's Artifacts page (Actions → <run> → Artifacts) and inspect the file ` +
+                      '`build_logs/build.out` inside the downloaded archive.';
+
+              // If archive_download_url is present, include it (it may require auth to download)
+              if (buildArtifact.archive_download_url) {
+                body += `\n\nArtifact archive url: ${buildArtifact.archive_download_url}`;
+              }
+
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr, body });
+            } catch (err) {
+              try { core.setFailed(`Packaging annotation failed: ${err && err.message ? err.message : err}`); } catch (e) { console.error('Failed to set action failure:', e); }
             }
-
-            // List artifacts for the run and find build-log
-            const artResp = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-            });
-
-            const artifacts = (artResp.data && artResp.data.artifacts) || [];
-            const buildArtifact = artifacts.find(a => a && a.name && a.name.includes('build-log'));
-            if (!buildArtifact) {
-              core.info('No build-log artifact found for run ' + runId);
-              return;
-            }
-
-            // Download the artifact archive URL and extract the logfile content
-            const downloadUrl = buildArtifact.archive_download_url;
-            // Use the REST API to fetch the archive and then read the file (we keep this simple by requesting the URL)
-            const resp = await github.request({ url: downloadUrl, headers: { Accept: 'application/vnd.github.v3+json' } });
-            // We cannot easily extract zipped content here; instead, post a comment pointing to the artifact download URL
-            const body = `Packaging build log for run ${runId} is available as an artifact: ${downloadUrl} \n\n(maintainer note: download artifact archive and inspect build_logs/build.out inside)`;
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr,
-              body,
-            });
