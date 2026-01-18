@@ -1,4 +1,4 @@
-name: Packager: annotate packaging
+name: "Packager: annotate packaging"
 
 on:
   workflow_dispatch:
