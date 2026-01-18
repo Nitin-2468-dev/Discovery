@@ -319,19 +319,25 @@ class Orchestrator:
         Returns a dict with keys: `seeds`, `suggested_domains`, and `crawl_result`.
         """
         if gap_detector is None or seed_generator is None:
-            raise ValueError("gap_detector and seed_generator are required for orchestration")
+            raise ValueError(
+                "gap_detector and seed_generator are required for orchestration"
+            )
 
         # Analyze gaps to produce suggested domains
         try:
             gd = gap_detector.analyze_entity_gaps(entity_name, desired_doc_types)
-            suggested_domains = gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+            suggested_domains = (
+                gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+            )
         except Exception:
             suggested_domains = []
 
         # Fallback: try to use map to get high-yield domains
         if not suggested_domains and self.map:
             try:
-                suggested_domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=5)]
+                suggested_domains = [
+                    d.domain_name for d in self.map.get_high_yield_domains(limit=5)
+                ]
             except Exception:
                 suggested_domains = []
 
@@ -339,10 +345,19 @@ class Orchestrator:
         seeds = []
         try:
             if suggested_domains:
-                seeds = seed_generator.generate_seeds(suggested_domains, desired_doc_types, per_domain=3, max_seeds=max_seeds)
+                seeds = seed_generator.generate_seeds(
+                    suggested_domains,
+                    desired_doc_types,
+                    per_domain=3,
+                    max_seeds=max_seeds,
+                )
             else:
                 # If seed generator supports legacy entity API, attempt that
-                seeds = seed_generator.generate_seeds(entity_name, desired_doc_types[0] if desired_doc_types else "", max_seeds=max_seeds)
+                seeds = seed_generator.generate_seeds(
+                    entity_name,
+                    desired_doc_types[0] if desired_doc_types else "",
+                    max_seeds=max_seeds,
+                )
         except Exception:
             seeds = []
 
