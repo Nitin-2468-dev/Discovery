@@ -9,6 +9,7 @@ This module provides a small, dependency-free implementation suitable for v0.5:
 Design notes: v0.5 is signal-only. This code deliberately avoids ML/embeddings and
 is deterministic for reproducible tests.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,6 +19,7 @@ from dataclasses import dataclass
 from typing import Iterable, List, Optional, Sequence, Tuple
 
 TOKEN_RE = re.compile(r"[a-z0-9\-]+")
+
 
 @dataclass
 class LinkContext:
@@ -29,7 +31,9 @@ class LinkContext:
     relevance_score: float
 
 
-def extract_context_text(lines: Sequence[str], anchor_index: int, mode: str = "lines", radius: int = 5) -> Tuple[str, Optional[str]]:
+def extract_context_text(
+    lines: Sequence[str], anchor_index: int, mode: str = "lines", radius: int = 5
+) -> Tuple[str, Optional[str]]:
     """Extract local text context around an anchor presented as a list of text lines.
 
     Modes:
@@ -42,7 +46,9 @@ def extract_context_text(lines: Sequence[str], anchor_index: int, mode: str = "l
     if mode == "heading":
         # scan backwards for a heading-like line (starts with '# ' or h1-h4 markup)
         for i in range(anchor_index, -1, -1):
-            if re.match(r"^#{1,4}\s+", lines[i]) or re.match(r"^\s*[A-Z][\w ]{3,}\s*$", lines[i]):
+            if re.match(r"^#{1,4}\s+", lines[i]) or re.match(
+                r"^\s*[A-Z][\w ]{3,}\s*$", lines[i]
+            ):
                 start = i
                 end = min(n, i + radius)
                 chunk = "\n".join(lines[start:end])
@@ -148,7 +154,9 @@ class LinkContextStore:
         return cur.lastrowid
 
     def list_recent(self, limit: int = 100) -> List[LinkContext]:
-        cur = self._conn.execute("SELECT * FROM link_context ORDER BY id DESC LIMIT ?", (limit,))
+        cur = self._conn.execute(
+            "SELECT * FROM link_context ORDER BY id DESC LIMIT ?", (limit,)
+        )
         rows = cur.fetchall()
         out = []
         for r in rows:
@@ -166,9 +174,23 @@ class LinkContextStore:
 
 
 # lightweight helper for typical flow
-def analyze_link_from_lines(from_page: str, to_url: str, lines: Sequence[str], anchor_idx: int, **kwargs) -> LinkContext:
-    ctx_text, heading = extract_context_text(lines, anchor_idx, mode=kwargs.get("mode", "lines"), radius=kwargs.get("radius", 5))
+def analyze_link_from_lines(
+    from_page: str, to_url: str, lines: Sequence[str], anchor_idx: int, **kwargs
+) -> LinkContext:
+    ctx_text, heading = extract_context_text(
+        lines,
+        anchor_idx,
+        mode=kwargs.get("mode", "lines"),
+        radius=kwargs.get("radius", 5),
+    )
     tokens = extract_tokens(ctx_text)
     score = score_tokens(tokens, heuristics=kwargs.get("heuristics"))
     matched = tokens[:10]
-    return LinkContext(from_page=from_page, to_url=to_url, context_text=ctx_text, matched_tokens=matched, section_heading=heading, relevance_score=score)
+    return LinkContext(
+        from_page=from_page,
+        to_url=to_url,
+        context_text=ctx_text,
+        matched_tokens=matched,
+        section_heading=heading,
+        relevance_score=score,
+    )

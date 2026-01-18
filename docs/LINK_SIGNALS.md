@@ -1,6 +1,6 @@
 # Link Signals (v0.5)
 
-**Status:** v0.5 (Design Locked)  
+**Status:** v0.5 (Design Locked)
 **Purpose:** Define the exact, conservative behavior for extracting and using *local context around links* for crawl prioritization and explainability. This is a signal-only feature: it must not create entities, edges, or feed AI upstream of verification.
 
 ---

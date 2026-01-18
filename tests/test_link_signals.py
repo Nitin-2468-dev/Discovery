@@ -1,11 +1,9 @@
 import sqlite3
-from probe.crawl.link_signals import (
-    extract_context_text,
-    extract_tokens,
-    score_tokens,
-    analyze_link_from_lines,
-    LinkContextStore,
-)
+
+from probe.crawl.link_signals import (LinkContextStore,
+                                      analyze_link_from_lines,
+                                      extract_context_text, extract_tokens,
+                                      score_tokens)
 
 
 def test_extract_context_lines_mode():
@@ -39,15 +37,18 @@ def test_extract_tokens_and_score():
     tokens = extract_tokens(text)
     assert "linux" in tokens
     assert "rtl8111" in tokens
-    score = score_tokens(tokens, heuristics={
-        "keyword_weight": 0.3,
-        "entity_weight": 0.4,
-        "section_weight": 0.2,
-        "file_hint_weight": 0.1,
-        "keywords": {"driver": 0.3},
-        "entities": {"rtl8111"},
-        "file_hints": {},
-    })
+    score = score_tokens(
+        tokens,
+        heuristics={
+            "keyword_weight": 0.3,
+            "entity_weight": 0.4,
+            "section_weight": 0.2,
+            "file_hint_weight": 0.1,
+            "keywords": {"driver": 0.3},
+            "entities": {"rtl8111"},
+            "file_hints": {},
+        },
+    )
     assert score > 0
 
 
@@ -59,7 +60,9 @@ def test_analyze_and_store(tmp_path):
         "Link anchor here",
         "RTL8111 Gigabit Ethernet Controller",
     ]
-    ctx = analyze_link_from_lines("/page.html", "https://example.com/rtl8111", lines, 3, mode="lines", radius=2)
+    ctx = analyze_link_from_lines(
+        "/page.html", "https://example.com/rtl8111", lines, 3, mode="lines", radius=2
+    )
     assert ctx.relevance_score >= 0
     store = LinkContextStore(str(tmp_path / "lc.db"))
     rid = store.insert(ctx)
