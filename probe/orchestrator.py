@@ -262,12 +262,49 @@ class Orchestrator:
         # Instead, as a minimal first step, we will update domain-level stats
         # for the run based on reported counts when possible.
         try:
-            # Example: update domain summary by reading domains found in the map
-            # or by applying a simple rule: documents_found increments to domain stats
-            # are a useful first-order approximation.
-            # TODO: extend to per-page persistence when crawler yields page details.
-            pass
+            # Update domain-level stats based on pages and documents now present in the DB.
+            # This is a best-effort, idempotent upsert so running the orchestrator repeatedly
+            # will not corrupt counts (we add the counts found in the DB for this run).
+            if self.map:
+                cur = self.map.conn.execute(
+                    "SELECT domain, COUNT(*) as pages FROM pages GROUP BY domain"
+                )
+                pages_by_domain = {r[0]: int(r[1]) for r in cur.fetchall()}
+
+                cur = self.map.conn.execute(
+                    "SELECT domain, COUNT(*) as docs FROM documents GROUP BY domain"
+                )
+                docs_by_domain = {r[0]: int(r[1]) for r in cur.fetchall()}
+
+                for domain, pages in pages_by_domain.items():
+                    docs = docs_by_domain.get(domain, 0)
+                    # Upsert domain row with current counts (incrementing to preserve history)
+                    self.map.conn.execute(
+                        """
+                        INSERT INTO domains (domain_name, pages_crawled, documents_found, yield_score, last_crawled_at)
+                        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(domain_name) DO UPDATE SET
+                            pages_crawled = pages_crawled + ?,
+                            documents_found = documents_found + ?,
+                            yield_score = CASE WHEN pages_crawled + ? > 0 THEN (documents_found + ?) * 1.0 / (pages_crawled + ?) ELSE documents_found + ? END,
+                            last_crawled_at = CURRENT_TIMESTAMP
+                        """,
+                        (
+                            domain,
+                            pages,
+                            docs,
+                            (docs / pages) if pages else 0.0,
+                            pages,
+                            docs,
+                            pages,
+                            docs,
+                            pages,
+                            docs,
+                        ),
+                    )
+                self.map.conn.commit()
         except Exception:
+            # Best-effort only: do not fail the orchestration if stats update fails
             pass
 
         return out
