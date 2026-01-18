@@ -17,7 +17,7 @@ jobs:
         uses: lycheeverse/lychee-action@v1
         with:
           # Scan markdown files in docs and README
-          patterns: 'README.md,docs/**/*.md'
+          args: --verbose --no-progress 'README.md' 'docs/**/*.md'
   codespell:
     name: Spell check (codespell)
     runs-on: ubuntu-latest
