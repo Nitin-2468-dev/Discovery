@@ -92,13 +92,13 @@
 
 ## v0.6 — Embeddings (Optional for v1)
 
-**Goal:** Semantic similarity
+**Goal:** Semantic similarity (see `SEMANTIC_SEARCH.md` for the integration contract)
 
-- [ ] Generate embeddings for entities/documents
-- [ ] Semantic search in map
-- [ ] Similarity-based seed generation
+- [ ] Generate embeddings for entities/documents (bucketed, isolated)
+- [ ] Semantic search in map (hybrid retrieval: FTS + embeddings)
+- [ ] Similarity-based seed generation (verification required)
 
-**Success Criteria:** Queries like "engines similar to PT6A-52" work
+**Success Criteria:** Queries like "engines similar to PT6A-52" work; embeddings are navigation aids only and must follow rules in `SEMANTIC_SEARCH.md` (Design locked v1).
 
 ---
 
