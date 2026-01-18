@@ -1,0 +1,30 @@
+name: Docs: linkcheck & spellcheck
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - 'work/*'
+
+jobs:
+  linkcheck:
+    name: Link check (lychee)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lychee link checker
+        uses: lycheeverse/lychee-action@v1
+        with:
+          # Scan markdown files in docs and README
+          patterns: 'README.md,docs/**/*.md'
+  codespell:
+    name: Spell check (codespell)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run codespell on docs
+        uses: cschleiden/codespell-action@v2.1.1
+        with:
+          check_path: 'README.md docs/'
+          ignore-words-list: 'teh,recieve'

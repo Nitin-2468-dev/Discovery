@@ -72,7 +72,9 @@
 
 ---
 
-## v0.5 — Investigation Loop
+## v0.5 — Investigation Loop (Baseline tagged v0.5)
+
+**Baseline:** Tag `v0.5` created on 2026-01-18; branch `work/from-v0.5` seeded from this tag for follow-up work.
 
 **Goal:** End-to-end query → answer
 

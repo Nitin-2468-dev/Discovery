@@ -56,6 +56,11 @@ pip install -e .[ocr]
 - The workflow uses `actions/cache` to cache pip downloads across runs (keyed on Python version + requirements file hashes) to speed up dependency installs.
 - Packaging artifacts (sdist/wheel) are also uploaded as workflow artifacts from the `packaging` job to simplify debugging of wheel/sdist builds.
 
+## Docs tooling & checks
+
+- We now run a documentation *link checker* and a *spell check* on PRs (see `.github/workflows/docs-check.yml`) to catch broken links and common spelling errors early. If your PR modifies docs (files under `docs/` or `README.md`) these checks will run automatically and post results on the PR.
+- If a linkcheck or spellcheck fails, fix the reported issues in the PR and push a new commit; these checks help prevent regressions in documentation and reduce manual triage time.
+
 ## Autofix formatting workflow
 
 We run an Autofix workflow on pull requests that executes `pre-commit` (Black, isort, ruff) to keep runner formatting consistent with local developer tooling. Notes:

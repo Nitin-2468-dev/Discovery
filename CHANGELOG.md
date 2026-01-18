@@ -2,9 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
-## [Unreleased] - TBD
+## [v0.5] - 2026-01-18
 
-### Fixed (unreleased)
+Baseline snapshot: packaging resilience, CI smoke job, wheel-install retry, tests diagnostics, and multiple bug fixes.
+
+### Fixed (v0.5)
 
 - Remove leftover `tmp_ci_check` gitlink from repository index to avoid post-checkout submodule errors in GitHub Actions; added `tmp_ci_check` to `.gitignore` and cleaned index. (2026-01-15)
 - Make autofix workflow tolerant of push failures (e.g., read-only GITHUB_TOKEN for forked PRs) — the runner will attempt to push formatting fixes but will continue the job if push is disallowed; documented in `docs/CI.md`. (2026-01-15)
@@ -13,12 +15,12 @@ All notable changes to this project are documented in this file.
 - Ensure `Map.get_domains_with_doc_type` is attached to `Map` at import time for runtimes that may have loaded an older `Map` class (avoids missing-method runtime failures).
 - Make `GapDetector.analyze_entity_gaps` robust: if domain-specific lookup returns no candidates, fall back to `get_high_yield_domains` so suggested domains are always returned.
 
-### Changed (unreleased)
+### Changed (v0.5)
 
 - `GapDetector`: `count` used for domain scoring now reflects the actual number of documents per domain for each missing type (document-frequency), rather than a binary presence-per-type. This makes suggestions favor domains with more relevant documents and improves seed-suggestion quality.
 - `GapDetector`: added configurable normalization options for document counts: `none`, `per_page`, `log`, and `per_page_log`. These enable density- and log-based count scaling to reduce skew and prioritize high-density sources when appropriate.
 
-### Added (unreleased)
+### Added (v0.5)
 
 - Tests: added explicit tests verifying the fallback behavior and ordering (see `tests/test_gap_detector_fallback.py` and `tests/test_gap_detector_fallback_ordering.py`).
 - Static analysis: added TYPE_CHECKING hints and safe optional imports for `pydot`, `kaleido`, and `tqdm` to reduce false-positive missing-import warnings while keeping runtime fallbacks intact.

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions) [![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions) [![Release](https://img.shields.io/github/v/release/Nitin-2468-dev/Discovery?label=release)](https://github.com/Nitin-2468-dev/Discovery/releases) [![License](https://img.shields.io/github/license/Nitin-2468-dev/Discovery?label=license)](https://github.com/Nitin-2468-dev/Discovery/blob/master/LICENSE)
 
-> CI: Packaging preflight test trigger (non-functional README touch)
+> Baseline: v0.5 — packaging resilience & CI improvements (2026-01-18)
 
 ## What This Is
 
@@ -78,7 +78,7 @@ Policy decisions return lightweight decision payloads (e.g., `{"mode":"public_gu
 
 ## Current Status
 
-**Phase:** Foundation (v0.1)
+**Phase:** Investigation Loop (v0.5)
 
 - [x] Schema design
 - [x] Map interface
@@ -87,7 +87,7 @@ Policy decisions return lightweight decision payloads (e.g., `{"mode":"public_gu
 - [ ] Relevance scorer
 - [ ] Investigation loop
 
-**Release:** v0.1.1 (2026-01-11) — Adds an opt-in real-network integration workflow and a small `FetcherAdapter` to make validating real-network crawling behavior easier. See `CHANGELOG.md` for details and release notes.
+**Baseline:** v0.5 (2026-01-18) — Baseline snapshot including packaging/CI stability and documentation updates. See `CHANGELOG.md` for details and release notes.
 
 ### Fetcher (v0.2) — implemented ✅
 
@@ -100,7 +100,7 @@ The fetcher is a synchronous, test-first implementation that:
 - The HTML cleaner now returns richer metadata (including `description`, `link_count`, `pdf_link_count`, and `boilerplate_ratio`) and marks PDF links with `is_pdf` for easier downstream decisions
 - The ingest helper `probe.crawl.ingest.ingest_fetch_result(map, result)` now computes page `content_hash` from cleaned text (falling back to raw bytes), differentiates internal vs external links, creates edges only for internal links, and stores `outgoing_links`/`external_links` in page metadata for follow-up
 
-Tests: full test suite currently passes locally (52 tests).
+Tests: full test suite currently passes locally (165 tests as of 2026-01-18).
 
 ### Seed runner & politeness
 
