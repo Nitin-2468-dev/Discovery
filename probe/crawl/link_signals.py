@@ -44,13 +44,12 @@ def extract_context_text(
     """
     n = len(lines)
     if mode == "heading":
-        # scan backwards for a heading-like line (starts with '# ' or h1-h4 markup)
+        # scan backwards for a markdown-style heading line (starts with '# ')
         for i in range(anchor_index, -1, -1):
-            if re.match(r"^#{1,4}\s+", lines[i]) or re.match(
-                r"^\s*[A-Z][\w ]{3,}\s*$", lines[i]
-            ):
+            if re.match(r"^#{1,4}\s+", lines[i]):
                 start = i
-                end = min(n, i + radius)
+                # include up to `radius` lines after the heading (inclusive)
+                end = min(n, i + radius + 1)
                 chunk = "\n".join(lines[start:end])
                 heading = lines[i].strip()
                 return chunk, heading
