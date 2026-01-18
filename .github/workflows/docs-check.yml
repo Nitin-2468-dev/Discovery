@@ -1,4 +1,4 @@
-name: Docs: linkcheck & spellcheck
+name: "Docs: linkcheck & spellcheck"
 
 on:
   pull_request:
