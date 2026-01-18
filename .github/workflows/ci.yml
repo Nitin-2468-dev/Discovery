@@ -179,11 +179,28 @@ jobs:
         with:
           name: build-log-${{ matrix.python-version }}
           path: build_logs/build.out
-      - name: Install wheel and runtime deps
+      - name: Install wheel and runtime deps (with retry)
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          python -m pip install dist/*.whl
+          # Retry wheel install up to 2 times on transient failures
+          set -e
+          attempts=0
+          max_attempts=2
+          until [ "$attempts" -ge "$max_attempts" ]; do
+            python -m pip install dist/*.whl && break
+            attempts=$((attempts+1))
+            echo "Wheel install failed; attempt $attempts/$max_attempts"
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              echo "Wheel install failed after $attempts attempts; dumping build log (if present)"
+              if [ -f build_logs/build.out ]; then
+                echo "### Build log (first 500 lines):"
+                head -n 500 build_logs/build.out || true
+              fi
+              exit 1
+            fi
+            sleep 1
+          done
       - name: Run packaging smoke tests
         env:
           CI: true
