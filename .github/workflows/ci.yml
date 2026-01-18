@@ -349,15 +349,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check for semantic-search contract tests
         run: |
-          python - <<'PY'
-          import sys
-          from pathlib import Path
-          p = Path('tests/test_semantic_search_contract.py')
-          if not p.exists():
-              print('ERROR: tests/test_semantic_search_contract.py not present')
-              sys.exit(2)
-          print('Found contract test scaffold: tests/test_semantic_search_contract.py')
-          PY
+          if [ -f tests/test_semantic_search_contract.py ]; then
+            echo "Found contract test scaffold: tests/test_semantic_search_contract.py"
+          else
+            echo "ERROR: tests/test_semantic_search_contract.py not present"
+            exit 2
+          fi
 
 
   test-ocr-scheduled:
