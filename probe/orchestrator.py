@@ -32,6 +32,9 @@ class BreadthFirstCrawler:
         fetch_fn: Optional[Callable] = None,
         scorer_fn: Optional[Callable] = None,
         policy_engine: Optional[PolicyEngine] = None,
+        link_signals_enabled: bool = False,
+        link_signals_store: Optional[object] = None,
+        link_signals_threshold: float = 0.5,
     ) -> None:
         # Allow zero-arg construction for compatibility with different
         # packaging/import scenarios (CI historically ran stale imports).
@@ -41,6 +44,10 @@ class BreadthFirstCrawler:
         )
         self.score = scorer_fn or (lambda page: 0.0)
         self.policy = policy_engine
+        # Link signals (v0.5) - opt-in feature
+        self.link_signals_enabled = bool(link_signals_enabled)
+        self.link_signals_store = link_signals_store
+        self.link_signals_threshold = float(link_signals_threshold)
 
     def _domain_from_url(self, url: str) -> Optional[str]:
         try:
@@ -64,10 +71,55 @@ class BreadthFirstCrawler:
     ):
         if depth >= max_depth:
             return
+        # optional link-signals integration (v0.5)
+        use_link_signals = (
+            self.link_signals_enabled and self.link_signals_store is not None
+        )
         for link in res.get("links", []) or []:
             href = link if isinstance(link, str) else link.get("url")
-            if href and href not in visited:
-                q.append((href, depth + 1))
+            anchor_text = None if isinstance(link, str) else link.get("text")
+            if not href or href in visited:
+                continue
+
+            if use_link_signals:
+                try:
+                    # build a simple lines context from page text and find anchor index
+                    text = res.get("text") or ""
+                    lines = text.splitlines() or [text]
+                    anchor_idx = 0
+                    if anchor_text:
+                        for i, ln in enumerate(lines):
+                            if anchor_text in ln:
+                                anchor_idx = i
+                                break
+                    # import lazily to avoid circular imports at module load
+                    from probe.crawl.link_signals import (
+                        LinkContext, LinkContextStore, analyze_link_from_lines)
+
+                    ctx = analyze_link_from_lines(
+                        res.get("url") or "",
+                        href,
+                        lines,
+                        anchor_idx,
+                        mode="lines",
+                        radius=5,
+                    )
+                    # persist to store (best-effort)
+                    try:
+                        # link_signals_store may be e.g. LinkContextStore or a wrapper with insert(ctx)
+                        if hasattr(self.link_signals_store, "insert"):
+                            self.link_signals_store.insert(ctx)
+                    except Exception:
+                        pass
+                    # prioritize if score >= threshold
+                    if float(ctx.relevance_score) >= float(self.link_signals_threshold):
+                        q.appendleft((href, depth + 1))
+                        continue
+                except Exception:
+                    # on any failure in link-signals, fall back to normal enqueue
+                    pass
+
+            q.append((href, depth + 1))
 
     def _is_document(self, url: str, res: Dict) -> bool:
         ct = res.get("content_type") or ""

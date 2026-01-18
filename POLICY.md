@@ -70,6 +70,17 @@ Policy is checked at:
 - Result synthesis
 - Visualization output
 
+### Semantic Search & Embeddings Policy
+
+Semantic search and embedding usage are governed by the separate integration contract in `SEMANTIC_SEARCH.md` (Design locked v1). Key enforcement points:
+
+- **Embeddings are navigation aids only**: they may never create relationships or imply trust.
+- **Embedding containment**: vector data must be stored in bucket-scoped tables (e.g., `document_embeddings`) with no cross-table JOINs allowed.
+- **AI usage**: AI components receive verified facts only, with citations and confidence; AI must not be fed raw vector results.
+- **Verification**: any candidate surfaced by embeddings must be verified (evidence + explicit edge) before it can be treated as a relationship.
+
+Violations of these rules are considered critical and should be treated as policy breaches; they are logged to `policy_denials.jsonl` with a distinct tag `semantic_search` for auditing.
+
 ---
 
 ## Disclaimers
