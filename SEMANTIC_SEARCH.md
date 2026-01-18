@@ -83,39 +83,6 @@ This prevents semantic collisions (e.g. fish ≠ diamond).
 
 ---
 
-## Examples
-
-**Allowed (pseudocode):**
-
-```python
-# Search embeddings inside the single 'drivers' bucket (OK)
-results = embedding_search(bucket='drivers', query='rtl8111 driver', top_k=50)
-```
-
-**Disallowed (pseudocode):**
-
-```python
-# Cross-bucket similarity is PROHIBITED
-results = embedding_search(buckets=['drivers', 'documents'], query='rtl8111')  # ❌ do not do this
-```
-
----
-
-## Enforcement & CI checks
-
-To keep the contract enforceable, the repo requires automated checks and tests for any semantic-search code changes:
-
-- Unit tests: any new code that uses embeddings must include unit tests that assert the code operates with an explicit single `bucket` and rejects cross-bucket queries.
-- Integration tests: add a test that attempts a cross-bucket query and expects a raised exception or validation error.
-- CI gate: require that `tests/test_semantic_search_contract.py` exists/updates for any changes adding embeddings or new buckets.
-- PR checklist: all PRs touching search or embedding code must include:
-  - A unit test demonstrating bucket-isolation, and
-  - Documentation for the new bucket and its allowed scopes.
-
-Violations discovered by tests are **treated as critical** and must be reverted or fixed before merge.
-
----
-
 ## Embedding Containment Rule
 
 **Rule:**
@@ -290,19 +257,15 @@ You MAY NOT extend Probe by:
 
 ## Developer Checklist
 
-Before merging semantic-search-related code, ensure the following **mandatory** items are satisfied:
+Before merging semantic-search-related code:
 
-* [ ] Does this operate inside a single bucket only? (no cross-bucket queries)
-* [ ] Does it avoid creating relationships or mutating `edges` directly?
-* [ ] Are all claims backed by explicit edges and evidence where required?
-* [ ] Is evidence required and collected for verified flows?
-* [ ] Does AI only receive verified data (citations + confidence)?
-* [ ] Is there a unit test that asserts bucket isolation or raises on cross-bucket use?
-* [ ] Is there an integration test covering the verification step for the new flow?
-* [ ] Documentation updated: `SEMANTIC_SEARCH.md` and any bucket docs or schema changes
-* [ ] CI tests updated: add entries to `tests/test_semantic_search_contract.py` demonstrating isolation and evidence requirements
+* [ ] Does this operate inside one bucket only?
+* [ ] Does it avoid creating relationships?
+* [ ] Are all claims backed by explicit edges?
+* [ ] Is evidence required where appropriate?
+* [ ] Does AI only see verified data?
 
-If any answer is “no”, the PR must be blocked and the author should address the failure before merging.
+If any answer is “no”, do not merge.
 
 ---
 
