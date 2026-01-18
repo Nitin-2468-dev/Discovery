@@ -1,4 +1,4 @@
-from probe.orchestrator import Orchestrator, BreadthFirstCrawler
+from probe.orchestrator import Orchestrator
 
 
 class DummyGapDetector:
