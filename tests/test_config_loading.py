@@ -21,7 +21,7 @@ def test_load_yaml_config(tmp_path, monkeypatch):
     )
 
     try:
-        import yaml  # noqa: F401
+        import yaml  # type: ignore  # noqa: F401
 
         cfg = load_config(str(cfgp))
         assert cfg["concurrency"] == 4

@@ -137,7 +137,7 @@ class LinkContextStore:
         )
         self._conn.commit()
 
-    def insert(self, ctx: LinkContext) -> int:
+    def insert(self, ctx: LinkContext) -> Optional[int]:
         cur = self._conn.execute(
             "INSERT INTO link_context(from_page,to_url,context_text,matched_tokens,section_heading,relevance_score) VALUES (?,?,?,?,?,?)",
             (

@@ -25,7 +25,7 @@ def test_link_signals_prioritize_links(tmp_path):
 
     store = LinkContextStore(str(tmp_path / "lc.db"))
     crawler = BreadthFirstCrawler(fetch_fn=fake_fetch, scorer_fn=lambda r: 1.0, link_signals_enabled=True, link_signals_store=store, link_signals_threshold=0.2)
-    out = crawler.crawl(["http://start/"], max_depth=1, max_pages=10)
+    crawler.crawl(["http://start/"], max_depth=1, max_pages=10)
 
     # Order of fetches: start -> prioritized link (a) -> other link (b)
     assert calls[0] == "http://start/"
