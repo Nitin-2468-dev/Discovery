@@ -72,7 +72,9 @@ class BreadthFirstCrawler:
         if depth >= max_depth:
             return
         # optional link-signals integration (v0.5)
-        use_link_signals = self.link_signals_enabled and self.link_signals_store is not None
+        use_link_signals = (
+            self.link_signals_enabled and self.link_signals_store is not None
+        )
         for link in res.get("links", []) or []:
             href = link if isinstance(link, str) else link.get("url")
             anchor_text = None if isinstance(link, str) else link.get("text")
@@ -82,7 +84,7 @@ class BreadthFirstCrawler:
             if use_link_signals:
                 try:
                     # build a simple lines context from page text and find anchor index
-                    text = (res.get("text") or "")
+                    text = res.get("text") or ""
                     lines = text.splitlines() or [text]
                     anchor_idx = 0
                     if anchor_text:
@@ -91,9 +93,17 @@ class BreadthFirstCrawler:
                                 anchor_idx = i
                                 break
                     # import lazily to avoid circular imports at module load
-                    from probe.crawl.link_signals import analyze_link_from_lines, LinkContext, LinkContextStore
+                    from probe.crawl.link_signals import (
+                        LinkContext, LinkContextStore, analyze_link_from_lines)
 
-                    ctx = analyze_link_from_lines(res.get("url") or "", href, lines, anchor_idx, mode="lines", radius=5)
+                    ctx = analyze_link_from_lines(
+                        res.get("url") or "",
+                        href,
+                        lines,
+                        anchor_idx,
+                        mode="lines",
+                        radius=5,
+                    )
                     # persist to store (best-effort)
                     try:
                         # link_signals_store may be e.g. LinkContextStore or a wrapper with insert(ctx)

@@ -1,5 +1,5 @@
-from probe.orchestrator import BreadthFirstCrawler
 from probe.crawl.link_signals import LinkContextStore
+from probe.orchestrator import BreadthFirstCrawler
 
 
 def test_link_signals_prioritize_links(tmp_path):
@@ -15,16 +15,31 @@ def test_link_signals_prioritize_links(tmp_path):
                 "status_code": 200,
                 "text": text,
                 "links": [
-                    {"url": "http://example.com/a", "text": "Download driver for RTL8111"},
+                    {
+                        "url": "http://example.com/a",
+                        "text": "Download driver for RTL8111",
+                    },
                     {"url": "http://example.com/b", "text": "Other link"},
                 ],
                 "content_type": "text/html",
             }
         else:
-            return {"url": url, "status_code": 200, "text": "leaf", "links": [], "content_type": "text/html"}
+            return {
+                "url": url,
+                "status_code": 200,
+                "text": "leaf",
+                "links": [],
+                "content_type": "text/html",
+            }
 
     store = LinkContextStore(str(tmp_path / "lc.db"))
-    crawler = BreadthFirstCrawler(fetch_fn=fake_fetch, scorer_fn=lambda r: 1.0, link_signals_enabled=True, link_signals_store=store, link_signals_threshold=0.2)
+    crawler = BreadthFirstCrawler(
+        fetch_fn=fake_fetch,
+        scorer_fn=lambda r: 1.0,
+        link_signals_enabled=True,
+        link_signals_store=store,
+        link_signals_threshold=0.2,
+    )
     out = crawler.crawl(["http://start/"], max_depth=1, max_pages=10)
 
     # Order of fetches: start -> prioritized link (a) -> other link (b)
