@@ -343,7 +343,7 @@ jobs:
           pytest -q tests/test_packaging_validation.py tests/test_wheel_install.py tests/test_package_metadata.py -q --maxfail=1
 
   semantic-search-contract:
-    name: SemSearch: contract tests present
+    name: "SemSearch: contract tests present"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
