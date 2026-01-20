@@ -82,54 +82,44 @@ class BreadthFirstCrawler:
                 continue
 
             if use_link_signals:
-                # Try to handle the link using link-signals; if it returns True the link
-                # was prioritized and enqueued to the left.
-                if self._process_link_with_signals(href, anchor_text, res, q, depth):
-                    continue
+                try:
+                    # build a simple lines context from page text and find anchor index
+                    text = res.get("text") or ""
+                    lines = text.splitlines() or [text]
+                    anchor_idx = 0
+                    if anchor_text:
+                        for i, ln in enumerate(lines):
+                            if anchor_text in ln:
+                                anchor_idx = i
+                                break
+                    # import lazily to avoid circular imports at module load
+                    from probe.crawl.link_signals import (
+                        LinkContext, LinkContextStore, analyze_link_from_lines)
+
+                    ctx = analyze_link_from_lines(
+                        res.get("url") or "",
+                        href,
+                        lines,
+                        anchor_idx,
+                        mode="lines",
+                        radius=5,
+                    )
+                    # persist to store (best-effort)
+                    try:
+                        # link_signals_store may be e.g. LinkContextStore or a wrapper with insert(ctx)
+                        if hasattr(self.link_signals_store, "insert"):
+                            self.link_signals_store.insert(ctx)
+                    except Exception:
+                        pass
+                    # prioritize if score >= threshold
+                    if float(ctx.relevance_score) >= float(self.link_signals_threshold):
+                        q.appendleft((href, depth + 1))
+                        continue
+                except Exception:
+                    # on any failure in link-signals, fall back to normal enqueue
+                    pass
 
             q.append((href, depth + 1))
-
-    def _process_link_with_signals(
-        self, href: str, anchor_text: Optional[str], res: Dict, q: deque, depth: int
-    ) -> bool:
-        """Attempt to analyze the link using link-signals and prioritize it.
-
-        Returns True if the link was prioritized and enqueued to the left.
-        Any exception is swallowed to preserve crawl robustness.
-        """
-        try:
-            # build a simple lines context from page text and find anchor index
-            text = res.get("text") or ""
-            lines = text.splitlines() or [text]
-            anchor_idx = 0
-            if anchor_text:
-                for i, ln in enumerate(lines):
-                    if anchor_text in ln:
-                        anchor_idx = i
-                        break
-
-            # import lazily to avoid circular imports at module load
-            from probe.crawl.link_signals import analyze_link_from_lines
-
-            ctx = analyze_link_from_lines(
-                res.get("url") or "", href, lines, anchor_idx, mode="lines", radius=5
-            )
-            # persist to store (best-effort)
-            try:
-                # link_signals_store may be e.g. LinkContextStore or a wrapper with insert(ctx)
-                if hasattr(self.link_signals_store, "insert"):
-                    self.link_signals_store.insert(ctx)
-            except Exception:
-                pass
-
-            # prioritize if score >= threshold
-            if float(ctx.relevance_score) >= float(self.link_signals_threshold):
-                q.appendleft((href, depth + 1))
-                return True
-        except Exception:
-            # on any failure in link-signals, fall back to normal enqueue
-            pass
-        return False
 
     def _is_document(self, url: str, res: Dict) -> bool:
         ct = res.get("content_type") or ""
@@ -329,52 +319,45 @@ class Orchestrator:
         Returns a dict with keys: `seeds`, `suggested_domains`, and `crawl_result`.
         """
         if gap_detector is None or seed_generator is None:
-            raise ValueError("gap_detector and seed_generator are required for orchestration")
+            raise ValueError(
+                "gap_detector and seed_generator are required for orchestration"
+            )
 
         # Analyze gaps to produce suggested domains
         try:
             gd = gap_detector.analyze_entity_gaps(entity_name, desired_doc_types)
-            suggested_domains = gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+            suggested_domains = (
+                gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+            )
         except Exception:
             suggested_domains = []
 
         # Fallback: try to use map to get high-yield domains
         if not suggested_domains and self.map:
             try:
-                suggested_domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=5)]
+                suggested_domains = [
+                    d.domain_name for d in self.map.get_high_yield_domains(limit=5)
+                ]
             except Exception:
                 suggested_domains = []
-
-        # If still empty, fallback to domains that have documents of the desired type
-        if not suggested_domains and self.map and desired_doc_types:
-            try:
-                suggested_domains = [d.domain_name for d in self.map.get_domains_with_doc_type(desired_doc_types[0], limit=5)]
-            except Exception:
-                pass
-
-        # As a final fallback, directly inspect documents (covers cases where domains rows
-        # are not yet present but documents exist for a domain). This mirrors logic in
-        # GapDetector._gather_from_doc_type and helps discovery when only documents are present.
-        if not suggested_domains and self.map and desired_doc_types:
-            try:
-                cur = self.map.conn.execute(
-                    "SELECT domain, COUNT(*) as cnt FROM documents WHERE doc_type = ? GROUP BY domain ORDER BY cnt DESC LIMIT ?",
-                    (desired_doc_types[0], 5),
-                )
-                rows = cur.fetchall()
-                if rows:
-                    suggested_domains = [r[0] for r in rows]
-            except Exception:
-                pass
 
         # Generate seeds
         seeds = []
         try:
             if suggested_domains:
-                seeds = seed_generator.generate_seeds(suggested_domains, desired_doc_types, per_domain=3, max_seeds=max_seeds)
+                seeds = seed_generator.generate_seeds(
+                    suggested_domains,
+                    desired_doc_types,
+                    per_domain=3,
+                    max_seeds=max_seeds,
+                )
             else:
                 # If seed generator supports legacy entity API, attempt that
-                seeds = seed_generator.generate_seeds(entity_name, desired_doc_types[0] if desired_doc_types else "", max_seeds=max_seeds)
+                seeds = seed_generator.generate_seeds(
+                    entity_name,
+                    desired_doc_types[0] if desired_doc_types else "",
+                    max_seeds=max_seeds,
+                )
         except Exception:
             seeds = []
 

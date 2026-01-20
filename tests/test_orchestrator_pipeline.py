@@ -1,4 +1,4 @@
-from probe.orchestrator import Orchestrator
+from probe.orchestrator import BreadthFirstCrawler, Orchestrator
 
 
 class DummyGapDetector:
@@ -7,7 +7,9 @@ class DummyGapDetector:
 
 
 class DummySeedGenerator:
-    def generate_seeds(self, domains, doc_types, per_domain=3, max_seeds=None, **kwargs):
+    def generate_seeds(
+        self, domains, doc_types, per_domain=3, max_seeds=None, **kwargs
+    ):
         out = []
         for d in domains:
             out.append(f"https://{d}/")
@@ -16,7 +18,13 @@ class DummySeedGenerator:
 
 def fake_fetch(url):
     # simple fetcher that returns OK, no links
-    return {"url": url, "status_code": 200, "text": "page", "links": [], "content_type": "text/html"}
+    return {
+        "url": url,
+        "status_code": 200,
+        "text": "page",
+        "links": [],
+        "content_type": "text/html",
+    }
 
 
 def test_orchestrate_gap_seed_basic():

@@ -1,12 +1,18 @@
-from probe.orchestrator import Orchestrator
 from probe.analysis.gaps import GapDetector
 from probe.analysis.seed_generator import SeedGenerator
-from probe.core.map import Map, Document
+from probe.core.map import Document, Map
+from probe.orchestrator import Orchestrator
 
 
 def fake_fetch(url):
     # Return a simple HTML page; include no links so crawl is bounded
-    return {"url": url, "status_code": 200, "text": "page", "links": [], "content_type": "text/html"}
+    return {
+        "url": url,
+        "status_code": 200,
+        "text": "page",
+        "links": [],
+        "content_type": "text/html",
+    }
 
 
 def test_orchestrator_integration(tmp_path):
@@ -14,7 +20,14 @@ def test_orchestrator_integration(tmp_path):
     m = Map(db)
 
     # Seed the map with a document for drivers on drivers.example.com so GapDetector can suggest it
-    doc = Document(id=None, title="RTL8111 Datasheet", doc_type="driver", hash="h1", url="https://drivers.example.com/rtl8111.pdf", domain="drivers.example.com")
+    doc = Document(
+        id=None,
+        title="RTL8111 Datasheet",
+        doc_type="driver",
+        hash="h1",
+        url="https://drivers.example.com/rtl8111.pdf",
+        domain="drivers.example.com",
+    )
     m.add_document(doc)
 
     gd = GapDetector(m)
@@ -37,7 +50,9 @@ def test_orchestrator_integration(tmp_path):
     assert res["crawl_result"]["pages_fetched"] >= 1
 
     # Check pages present for suggested domain
-    pages = m.conn.execute("SELECT url FROM pages WHERE domain = ?", ("drivers.example.com",)).fetchall()
+    pages = m.conn.execute(
+        "SELECT url FROM pages WHERE domain = ?", ("drivers.example.com",)
+    ).fetchall()
     assert pages and len(pages) >= 1
 
     # Check domain stats updated
