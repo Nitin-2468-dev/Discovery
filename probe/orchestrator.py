@@ -66,7 +66,9 @@ class BreadthFirstCrawler:
         decision = self.policy.evaluate_query("fetch", context={"domain": domain})
         return bool(decision.get("allowed", True))
 
-    def _enqueue_links(self, q: deque, res: Dict, depth: int, max_depth: int, visited: Set[str]):
+    def _enqueue_links(
+        self, q: deque, res: Dict, depth: int, max_depth: int, visited: Set[str]
+    ):
         if depth >= max_depth:
             return
         use_link_signals = (
@@ -78,12 +80,16 @@ class BreadthFirstCrawler:
             if not href or href in visited:
                 continue
 
-            if use_link_signals and self._try_enqueue_with_link_signals(href, anchor_text, res, q, depth):
+            if use_link_signals and self._try_enqueue_with_link_signals(
+                href, anchor_text, res, q, depth
+            ):
                 continue
 
             q.append((href, depth + 1))
 
-    def _try_enqueue_with_link_signals(self, href: str, anchor_text: str | None, res: Dict, q: deque, depth: int) -> bool:
+    def _try_enqueue_with_link_signals(
+        self, href: str, anchor_text: str | None, res: Dict, q: deque, depth: int
+    ) -> bool:
         """Attempt to analyze a link using link_signals and enqueue it with priority.
 
         Returns True if link was prioritized and enqueued, False otherwise.

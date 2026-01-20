@@ -219,8 +219,6 @@ def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db
     """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
 
 
-
-
 @cli.group()
 def orchestrate():
     """Orchestration helpers: tie GapDetector + SeedGenerator + Crawler into a run."""
@@ -233,10 +231,20 @@ def orchestrate():
 @click.option("--max-depth", default=2, type=int, help="Max crawl depth")
 @click.option("--max-pages", default=50, type=int, help="Max pages to fetch")
 @click.option("--db", default="probe.db", help="Database file path")
-@click.option("--fetch-remote/--no-fetch-remote", default=False, help="Allow SeedGenerator remote discovery")
+@click.option(
+    "--fetch-remote/--no-fetch-remote",
+    default=False,
+    help="Allow SeedGenerator remote discovery",
+)
 @click.option("--quiet/--no-quiet", default=False)
-@click.option("--visualize/--no-visualize", default=False, help="Build an interactive visualization of the resulting graph")
-@click.option("--output", default="graph.html", help="Output HTML file for visualization")
+@click.option(
+    "--visualize/--no-visualize",
+    default=False,
+    help="Build an interactive visualization of the resulting graph",
+)
+@click.option(
+    "--output", default="graph.html", help="Output HTML file for visualization"
+)
 @click.option("--export-png", default=None, help="Export a PNG snapshot (path)")
 @click.option("--export-svg", default=None, help="Export an SVG snapshot (path)")
 @click.option(
@@ -299,11 +307,15 @@ def orchestrate_run(
     if not quiet:
         click.echo(f"Seeds: {len(res.get('seeds', []))}")
         click.echo(f"Suggested domains: {res.get('suggested_domains')}")
-        click.echo(f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}")
+        click.echo(
+            f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}"
+        )
 
     # Optional: build visualization of the entity graph (uses helper)
     if visualize:
-        _render_visualization(m, entity_name, max_depth, output, export_png, export_svg, open_in_browser)
+        _render_visualization(
+            m, entity_name, max_depth, output, export_png, export_svg, open_in_browser
+        )
 
     m.close()
     return
@@ -351,7 +363,15 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
     return "\n".join(lines)
 
 
-def _render_visualization(m: Map, entity_name: str, depth: int, output: str, export_png: str | None, export_svg: str | None, open_in_browser: bool):
+def _render_visualization(
+    m: Map,
+    entity_name: str,
+    depth: int,
+    output: str,
+    export_png: str | None,
+    export_svg: str | None,
+    open_in_browser: bool,
+):
     """Helper to build and optionally export a visualization from a Map object.
 
     Keeps `orchestrate_run` complexity low by moving plotting/exporting here.
