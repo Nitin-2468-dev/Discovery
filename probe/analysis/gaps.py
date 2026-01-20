@@ -63,16 +63,14 @@ class GapDetector:
         If `include_scores` is True, also returns `domain_scores` detailing component scores for each candidate domain.
         """
         entity = self.map.get_entity(entity_name)
-        if not entity:
-            return {
-                "entity": entity_name,
-                "exists": False,
-                "confidence": 0.0,
-                "missing_types": desired_doc_types,
-                "has_documents": 0,
-                "weak_confidence": True,
-                "suggested_domains": [],
-            }
+        entity_exists = bool(entity)
+        if not entity_exists:
+            # Entity not present in map: continue with gap analysis but mark as missing.
+            # This allows suggested domains to be produced based on existing documents in the DB
+            # even when the entity hasn't been explicitly added (useful for seed-based workflows).
+            entity_obj = None
+        else:
+            entity_obj = entity
 
         # Use a lightweight query to fetch only document types for efficiency if available.
         # If the lighter-weight method exists but raises, fall back to the full-document query.
@@ -109,20 +107,24 @@ class GapDetector:
         ]
 
         # support older Map versions without get_entity_document_count or get_entity_documents
-        if hasattr(self.map, "get_entity_document_count"):
-            doc_count = self.map.get_entity_document_count(entity_name)
-        elif hasattr(self.map, "get_entity_documents"):
-            doc_count = len(self.map.get_entity_documents(entity_name))
+        if entity_exists:
+            if hasattr(self.map, "get_entity_document_count"):
+                doc_count = self.map.get_entity_document_count(entity_name)
+            elif hasattr(self.map, "get_entity_documents"):
+                doc_count = len(self.map.get_entity_documents(entity_name))
+            else:
+                doc_count = 0
         else:
+            # No entity: we don't have documents for the entity, but we can still suggest domains
             doc_count = 0
 
         result = {
             "entity": entity_name,
-            "exists": True,
-            "confidence": getattr(entity, "confidence_score", 0.0),
+            "exists": bool(entity_exists),
+            "confidence": getattr(entity_obj, "confidence_score", 0.0) if entity_exists else 0.0,
             "missing_types": missing,
             "has_documents": doc_count,
-            "weak_confidence": getattr(entity, "confidence_score", 0.0) < 0.7,
+            "weak_confidence": (getattr(entity_obj, "confidence_score", 0.0) < 0.7) if entity_exists else True,
             "suggested_domains": [d.domain_name for d in suggested_domains_objs],
         }
 
