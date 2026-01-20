@@ -321,6 +321,44 @@ def orchestrate_run(
     return
 
 
+@cli.group()
+def orchestrate():
+    """Orchestration helpers: tie GapDetector + SeedGenerator + Crawler into a run."""
+
+
+@orchestrate.command("run")
+@click.argument("entity_name")
+@click.option("--types", default="driver", help="Comma-separated document types")
+@click.option("--max-seeds", default=20, type=int, help="Maximum seeds to generate")
+@click.option("--max-depth", default=2, type=int, help="Max crawl depth")
+@click.option("--max-pages", default=50, type=int, help="Max pages to fetch")
+@click.option("--db", default="probe.db", help="Database file path")
+@click.option("--fetch-remote/--no-fetch-remote", default=False, help="Allow SeedGenerator remote discovery")
+@click.option("--quiet/--no-quiet", default=False)
+def orchestrate_run(entity_name, types, max_seeds, max_depth, max_pages, db, fetch_remote, quiet):
+    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES."""
+    types_list = [t.strip() for t in types.split(",") if t.strip()]
+    m = Map(db)
+    from probe.analysis.gaps import GapDetector
+    from probe.analysis.seed_generator import SeedGenerator
+
+    gd = GapDetector(m)
+    sg = SeedGenerator(m, fetch_remote=fetch_remote)
+    from probe.orchestrator import Orchestrator as OrcClass
+
+    orc = OrcClass(map_obj=m, fetch_fn=lambda u: {"url": u, "status_code": 200, "text": "page", "links": [], "content_type": "text/html"}, scorer_fn=lambda r: 1.0)
+
+    res = orc.orchestrate_gap_seed(entity_name, types_list, gap_detector=gd, seed_generator=sg, max_seeds=max_seeds, max_depth=max_depth, max_pages=max_pages)
+
+    if not quiet:
+        click.echo(f"Seeds: {len(res.get('seeds', []))}")
+        click.echo(f"Suggested domains: {res.get('suggested_domains')}")
+        click.echo(f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}")
+
+    m.close()
+    return
+
+
 def _build_gap_weights(count, yld, trust, recent):
     """Construct weights dict for GapDetector from optional CLI flags."""
     out = {}
