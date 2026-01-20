@@ -1,7 +1,10 @@
-from probe.crawl.link_signals import (LinkContextStore,
-                                      analyze_link_from_lines,
-                                      extract_context_text, extract_tokens,
-                                      score_tokens)
+from probe.crawl.link_signals import (
+    LinkContextStore,
+    analyze_link_from_lines,
+    extract_context_text,
+    extract_tokens,
+    score_tokens,
+)
 
 
 def test_extract_context_lines_mode():
