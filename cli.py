@@ -25,7 +25,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from probe.core.map import Document, Edge, Entity, Map  # noqa: E402
 from probe.core.schema import initialize_schema, validate_schema  # noqa: E402
-
 # Expose GraphVisualizer at module-level for tests and simple patches
 from probe.visualization.graph_viz import GraphVisualizer  # noqa: E402
 
@@ -218,6 +217,13 @@ def summary(db):
 @click.option("--db", default="probe.db")
 def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
     """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
+    m = Map(db)
+    try:
+        _render_visualization(
+            m, entity, depth, output, export_png, export_svg, open_in_browser
+        )
+    finally:
+        m.close()
 
 
 @cli.group()
@@ -654,11 +660,8 @@ def score(
     if keywords:
         kws = [k.strip() for k in keywords.split(",") if k.strip()]
 
-    from probe.crawl.scorer import (
-        BoilerplateDetector,
-        KeywordDensityScorer,
-        RelevanceScorer,
-    )
+    from probe.crawl.scorer import (BoilerplateDetector, KeywordDensityScorer,
+                                    RelevanceScorer)
 
     components = [
         KeywordDensityScorer(keywords=kws, weight=1.0),
@@ -1074,13 +1077,9 @@ def _finalize_fetch(u, u_ret, res, row, opts, m, append_failure_log):
                 k.strip() for k in opts.get("score_keywords").split(",") if k.strip()
             ]
 
-        from probe.crawl.scorer import (
-            BoilerplateDetector,
-            EntityRegexScorer,
-            KeywordDensityScorer,
-            LinkDensityScorer,
-            RelevanceScorer,
-        )
+        from probe.crawl.scorer import (BoilerplateDetector, EntityRegexScorer,
+                                        KeywordDensityScorer,
+                                        LinkDensityScorer, RelevanceScorer)
 
         components = [
             KeywordDensityScorer(keywords=kws, weight=1.0),
