@@ -1,16 +1,17 @@
-import yaml
 import glob
 import sys
 
+import yaml
+
 ok = True
-files = glob.glob('.github/workflows/*.yml') + glob.glob('.github/workflows/*.yaml')
+files = glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml")
 for f in files:
     try:
-        with open(f, 'r', encoding='utf-8') as fh:
+        with open(f, "r", encoding="utf-8") as fh:
             yaml.safe_load(fh)
     except Exception as e:
-        print('ERROR parsing', f, ':', e)
+        print("ERROR parsing", f, ":", e)
         ok = False
 if not ok:
     sys.exit(1)
-print('All workflow YAMLs parse')
+print("All workflow YAMLs parse")
