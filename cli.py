@@ -336,8 +336,36 @@ def orchestrate():
 @click.option("--db", default="probe.db", help="Database file path")
 @click.option("--fetch-remote/--no-fetch-remote", default=False, help="Allow SeedGenerator remote discovery")
 @click.option("--quiet/--no-quiet", default=False)
-def orchestrate_run(entity_name, types, max_seeds, max_depth, max_pages, db, fetch_remote, quiet):
-    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES."""
+@click.option("--visualize/--no-visualize", default=False, help="Build an interactive visualization of the resulting graph")
+@click.option("--output", default="graph.html", help="Output HTML file for visualization")
+@click.option("--export-png", default=None, help="Export a PNG snapshot (path)")
+@click.option("--export-svg", default=None, help="Export an SVG snapshot (path)")
+@click.option(
+    "--open",
+    "open_in_browser",
+    is_flag=True,
+    default=False,
+    help="Open the generated HTML in the default web browser",
+)
+def orchestrate_run(
+    entity_name,
+    types,
+    max_seeds,
+    max_depth,
+    max_pages,
+    db,
+    fetch_remote,
+    quiet,
+    visualize,
+    output,
+    export_png,
+    export_svg,
+    open_in_browser,
+):
+    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES.
+
+    Optionally build an interactive visualization and export images.
+    """
     types_list = [t.strip() for t in types.split(",") if t.strip()]
     m = Map(db)
     from probe.analysis.gaps import GapDetector
@@ -347,14 +375,36 @@ def orchestrate_run(entity_name, types, max_seeds, max_depth, max_pages, db, fet
     sg = SeedGenerator(m, fetch_remote=fetch_remote)
     from probe.orchestrator import Orchestrator as OrcClass
 
-    orc = OrcClass(map_obj=m, fetch_fn=lambda u: {"url": u, "status_code": 200, "text": "page", "links": [], "content_type": "text/html"}, scorer_fn=lambda r: 1.0)
+    orc = OrcClass(
+        map_obj=m,
+        fetch_fn=lambda u: {
+            "url": u,
+            "status_code": 200,
+            "text": "page",
+            "links": [],
+            "content_type": "text/html",
+        },
+        scorer_fn=lambda r: 1.0,
+    )
 
-    res = orc.orchestrate_gap_seed(entity_name, types_list, gap_detector=gd, seed_generator=sg, max_seeds=max_seeds, max_depth=max_depth, max_pages=max_pages)
+    res = orc.orchestrate_gap_seed(
+        entity_name,
+        types_list,
+        gap_detector=gd,
+        seed_generator=sg,
+        max_seeds=max_seeds,
+        max_depth=max_depth,
+        max_pages=max_pages,
+    )
 
     if not quiet:
         click.echo(f"Seeds: {len(res.get('seeds', []))}")
         click.echo(f"Suggested domains: {res.get('suggested_domains')}")
         click.echo(f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}")
+
+    # Optional: build visualization of the entity graph (uses helper)
+    if visualize:
+        _render_visualization(m, entity_name, max_depth, output, export_png, export_svg, open_in_browser)
 
     m.close()
     return
@@ -400,6 +450,49 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
         lines.append("   â€¢ (none)")
 
     return "\n".join(lines)
+
+
+def _render_visualization(m: Map, entity_name: str, depth: int, output: str, export_png: str | None, export_svg: str | None, open_in_browser: bool):
+    """Helper to build and optionally export a visualization from a Map object.
+
+    Keeps `orchestrate_run` complexity low by moving plotting/exporting here.
+    """
+    try:
+        viz = GraphVisualizer(m)
+        if entity_name:
+            viz.build_graph(entity_name=entity_name, depth=depth)
+        else:
+            viz.build_graph()
+
+        output_file = viz.plot_interactive(output)
+        click.echo(f"âœ“ Visualization saved to: {output_file}")
+
+        if export_png:
+            try:
+                out_png = viz.export_image(export_png)
+                click.echo(f"âœ“ PNG exported to: {out_png}")
+            except Exception as exc:
+                logger.exception("PNG export failed for %s", export_png)
+                click.echo(f"âš ï¸ PNG export failed: {exc}")
+
+        if export_svg:
+            try:
+                out_svg = viz.export_image(export_svg)
+                click.echo(f"âœ“ SVG exported to: {out_svg}")
+            except Exception as exc:
+                logger.exception("SVG export failed for %s", export_svg)
+                click.echo(f"âš ï¸ SVG export failed: {exc}")
+
+        if open_in_browser:
+            try:
+                import webbrowser
+
+                webbrowser.open(output_file)
+                click.echo("Opened in default browser")
+            except Exception:
+                logger.exception("Failed to open browser for %s", output_file)
+    except Exception:
+        logger.exception("Visualization failed")
 
 
 @cli.command()
