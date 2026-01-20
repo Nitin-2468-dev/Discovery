@@ -25,48 +25,29 @@ jobs:
           pip install --upgrade pip
           pip install ruff mypy pre-commit black==25.12.0 isort==7.0.0 types-PyYAML
 
-      - name: Run formatters (black + isort)
+      - name: Check formatters (black + isort)
         run: |
-          # Run Black and isort with pinned versions to make runner match local formatting
-          black . || true
-          isort . || true
+          # Run Black and isort in check mode to avoid CI pushing changes
+          black --check . || (echo "Black found formatting issues; run 'black .' locally to fix them." && exit 1)
+          isort --check-only . || (echo "isort found import-order issues; run 'isort .' locally to fix them." && exit 1)
 
-      - name: Commit and push formatting changes (formatters)
-        if: ${{ github.event_name == 'pull_request' && always() }}
+      - name: Check for formatting diffs (no auto-commit)
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           if ! git diff --quiet --exit-code; then
-            git add -A
-            git commit -m "chore: apply Black/isort formatting (auto-commit from CI)"
-            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
+            echo "Formatting changes detected. Please run 'black .' and 'isort .' locally and push the fixes."
+            git --no-pager diff --name-only
+            exit 1
           else
             echo "No formatting changes"
           fi
 
-      - name: Run pre-commit
+      - name: Run pre-commit (check-only)
         id: precommit
-        continue-on-error: true
         run: |
-          # run pre-commit and allow it to modify files; don't let it fail the job
-          pre-commit run --all-files
-      - name: Commit and push formatting changes (if any)
-        if: ${{ github.event_name == 'pull_request' && always() }}
-        run: |
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Run pre-commit and fail with instructions instead of committing from CI
+          pre-commit run --all-files --show-diff-on-failure || (echo "pre-commit hooks detected problems; run 'pre-commit run --all-files' locally to fix." && exit 1)
 
-          # If pre-commit made changes, commit and push back to the PR branch
-          if ! git diff --quiet --exit-code; then
-            git add -A
-            git commit -m "chore: apply pre-commit formatting (auto-commit from CI)"
-            # Push to the source branch of the PR
-            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
-          else
-            echo "No formatting changes"
-          fi
       - name: Run ruff
         run: ruff check .
       - name: Run mypy
@@ -88,15 +69,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install pre-commit black==25.12.0 isort==7.0.0
-      - name: Run pre-commit and commit formatting (if any)
+      - name: Run pre-commit (check-only, no push)
         run: |
-          pre-commit run --all-files || true
-          if ! git diff --quiet --exit-code; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add -A
-            git commit -m "chore: apply pre-commit formatting (auto-commit from CI)"
-            git push origin "HEAD:refs/heads/${{ github.head_ref }}"
-          else
-            echo "No formatting changes"
-          fi
+          # Run pre-commit in check-only mode; do not attempt to commit/push from CI
+          pre-commit run --all-files --show-diff-on-failure || (echo "pre-commit hooks detected problems; run 'pre-commit run --all-files' locally to fix." && exit 1)
