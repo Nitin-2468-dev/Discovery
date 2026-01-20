@@ -90,7 +90,9 @@ class GapDetector:
         # If the entity is missing, do not suggest domains here; the Orchestrator
         # will fall back to map high-yield domains. Only gather candidates when the
         # entity exists to keep behavior deterministic for unit tests.
-        candidates = self._gather_candidates(missing) if missing and entity_exists else {}
+        candidates = (
+            self._gather_candidates(missing) if missing and entity_exists else {}
+        )
 
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
@@ -121,10 +123,16 @@ class GapDetector:
         result = {
             "entity": entity_name,
             "exists": bool(entity_exists),
-            "confidence": getattr(entity_obj, "confidence_score", 0.0) if entity_exists else 0.0,
+            "confidence": (
+                getattr(entity_obj, "confidence_score", 0.0) if entity_exists else 0.0
+            ),
             "missing_types": missing,
             "has_documents": doc_count,
-            "weak_confidence": (getattr(entity_obj, "confidence_score", 0.0) < 0.7) if entity_exists else True,
+            "weak_confidence": (
+                (getattr(entity_obj, "confidence_score", 0.0) < 0.7)
+                if entity_exists
+                else True
+            ),
             "suggested_domains": [d.domain_name for d in suggested_domains_objs],
         }
 

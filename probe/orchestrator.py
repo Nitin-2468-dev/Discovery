@@ -71,7 +71,6 @@ class BreadthFirstCrawler:
     ):
         if depth >= max_depth:
             return
-        # optional link-signals integration (v0.5)
         use_link_signals = (
             self.link_signals_enabled and self.link_signals_store is not None
         )
@@ -81,45 +80,52 @@ class BreadthFirstCrawler:
             if not href or href in visited:
                 continue
 
-            if use_link_signals:
-                try:
-                    # build a simple lines context from page text and find anchor index
-                    text = res.get("text") or ""
-                    lines = text.splitlines() or [text]
-                    anchor_idx = 0
-                    if anchor_text:
-                        for i, ln in enumerate(lines):
-                            if anchor_text in ln:
-                                anchor_idx = i
-                                break
-                    # import lazily to avoid circular imports at module load
-                    from probe.crawl.link_signals import (
-                        LinkContext, LinkContextStore, analyze_link_from_lines)
-
-                    ctx = analyze_link_from_lines(
-                        res.get("url") or "",
-                        href,
-                        lines,
-                        anchor_idx,
-                        mode="lines",
-                        radius=5,
-                    )
-                    # persist to store (best-effort)
-                    try:
-                        # link_signals_store may be e.g. LinkContextStore or a wrapper with insert(ctx)
-                        if hasattr(self.link_signals_store, "insert"):
-                            self.link_signals_store.insert(ctx)
-                    except Exception:
-                        pass
-                    # prioritize if score >= threshold
-                    if float(ctx.relevance_score) >= float(self.link_signals_threshold):
-                        q.appendleft((href, depth + 1))
-                        continue
-                except Exception:
-                    # on any failure in link-signals, fall back to normal enqueue
-                    pass
+            if use_link_signals and self._try_enqueue_with_link_signals(
+                href, anchor_text, res, q, depth
+            ):
+                continue
 
             q.append((href, depth + 1))
+
+    def _try_enqueue_with_link_signals(
+        self, href: str, anchor_text: str | None, res: Dict, q: deque, depth: int
+    ) -> bool:
+        """Attempt to analyze a link using link_signals and enqueue it with priority.
+
+        Returns True if link was prioritized and enqueued, False otherwise.
+        """
+        try:
+            text = res.get("text") or ""
+            lines = text.splitlines() or [text]
+            anchor_idx = 0
+            if anchor_text:
+                for i, ln in enumerate(lines):
+                    if anchor_text in ln:
+                        anchor_idx = i
+                        break
+            from probe.crawl.link_signals import analyze_link_from_lines
+
+            ctx = analyze_link_from_lines(
+                res.get("url") or "",
+                href,
+                lines,
+                anchor_idx,
+                mode="lines",
+                radius=5,
+            )
+            # persist to store (best-effort)
+            try:
+                if hasattr(self.link_signals_store, "insert"):
+                    self.link_signals_store.insert(ctx)
+            except Exception:
+                pass
+            if float(ctx.relevance_score) >= float(self.link_signals_threshold):
+                q.appendleft((href, depth + 1))
+                return True
+        except Exception:
+            # on any failure, fall back to normal enqueue behavior
+            pass
+        return False
 
     def _is_document(self, url: str, res: Dict) -> bool:
         ct = res.get("content_type") or ""

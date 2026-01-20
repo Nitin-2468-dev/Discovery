@@ -23,7 +23,7 @@ jobs:
       - name: Simple script
         run: |
           echo "Listing repo root:"; ls -la || dir || true
-          echo "Done." 
+          echo "Done."
       - name: Create small artifact
         run: |
           mkdir -p tmp

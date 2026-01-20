@@ -237,12 +237,47 @@ def orchestrate():
     help="Allow SeedGenerator remote discovery",
 )
 @click.option("--quiet/--no-quiet", default=False)
+@click.option(
+    "--visualize/--no-visualize",
+    default=False,
+    help="Build an interactive visualization of the resulting graph",
+)
+@click.option(
+    "--output", default="graph.html", help="Output HTML file for visualization"
+)
+@click.option("--export-png", default=None, help="Export a PNG snapshot (path)")
+@click.option("--export-svg", default=None, help="Export an SVG snapshot (path)")
+@click.option(
+    "--open",
+    "open_in_browser",
+    is_flag=True,
+    default=False,
+    help="Open the generated HTML in the default web browser",
+)
 def orchestrate_run(
-    entity_name, types, max_seeds, max_depth, max_pages, db, fetch_remote, quiet
+    entity_name,
+    types,
+    max_seeds,
+    max_depth,
+    max_pages,
+    db,
+    fetch_remote,
+    quiet,
+    visualize,
+    output,
+    export_png,
+    export_svg,
+    open_in_browser,
 ):
-    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES."""
+    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES.
+
+    Optionally build an interactive visualization and export images.
+    """
     types_list = [t.strip() for t in types.split(",") if t.strip()]
     m = Map(db)
+    from probe.analysis.gaps import GapDetector
+    from probe.analysis.seed_generator import SeedGenerator
+
     gd = GapDetector(m)
     sg = SeedGenerator(m, fetch_remote=fetch_remote)
     from probe.orchestrator import Orchestrator as OrcClass
@@ -276,50 +311,14 @@ def orchestrate_run(
             f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}"
         )
 
+    # Optional: build visualization of the entity graph (uses helper)
+    if visualize:
+        _render_visualization(
+            m, entity_name, max_depth, output, export_png, export_svg, open_in_browser
+        )
+
     m.close()
-
-    m = Map(db)
-    viz = GraphVisualizer(m)
-
-    if entity:
-        click.echo(f"Building graph around '{entity}' (depth={depth})...")
-        viz.build_graph(entity_name=entity, depth=depth)
-    else:
-        click.echo("Building full graph...")
-        viz.build_graph()
-
-    stats = viz.get_stats()
-    click.echo(f"Graph stats: {stats['nodes']} nodes, {stats['edges']} edges")
-
-    output_file = viz.plot_interactive(output)
-    click.echo(f"âœ“ Visualization saved to: {output_file}")
-
-    # optional image exports
-    if export_png:
-        try:
-            out_png = viz.export_image(export_png)
-            click.echo(f"âœ“ PNG exported to: {out_png}")
-        except Exception as exc:
-            logger.exception("PNG export failed for %s", export_png)
-            click.echo(f"âš ï¸ PNG export failed: {exc}")
-
-    if export_svg:
-        try:
-            out_svg = viz.export_image(export_svg)
-            click.echo(f"âœ“ SVG exported to: {out_svg}")
-        except Exception as exc:
-            logger.exception("SVG export failed for %s", export_svg)
-            click.echo(f"âš ï¸ SVG export failed: {exc}")
-
-    if open_in_browser:
-        try:
-            import webbrowser
-
-            webbrowser.open(output_file)
-            click.echo("Opened in default browser")
-        except Exception:
-            logger.exception("Failed to open browser for %s", output_file)
-    m.close()
+    return
 
 
 @cli.group()
@@ -400,6 +399,57 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
         lines.append("   â€¢ (none)")
 
     return "\n".join(lines)
+
+
+def _render_visualization(
+    m: Map,
+    entity_name: str,
+    depth: int,
+    output: str,
+    export_png: str | None,
+    export_svg: str | None,
+    open_in_browser: bool,
+):
+    """Helper to build and optionally export a visualization from a Map object.
+
+    Keeps `orchestrate_run` complexity low by moving plotting/exporting here.
+    """
+    try:
+        viz = GraphVisualizer(m)
+        if entity_name:
+            viz.build_graph(entity_name=entity_name, depth=depth)
+        else:
+            viz.build_graph()
+
+        output_file = viz.plot_interactive(output)
+        click.echo(f"âœ“ Visualization saved to: {output_file}")
+
+        if export_png:
+            try:
+                out_png = viz.export_image(export_png)
+                click.echo(f"âœ“ PNG exported to: {out_png}")
+            except Exception as exc:
+                logger.exception("PNG export failed for %s", export_png)
+                click.echo(f"âš ï¸ PNG export failed: {exc}")
+
+        if export_svg:
+            try:
+                out_svg = viz.export_image(export_svg)
+                click.echo(f"âœ“ SVG exported to: {out_svg}")
+            except Exception as exc:
+                logger.exception("SVG export failed for %s", export_svg)
+                click.echo(f"âš ï¸ SVG export failed: {exc}")
+
+        if open_in_browser:
+            try:
+                import webbrowser
+
+                webbrowser.open(output_file)
+                click.echo("Opened in default browser")
+            except Exception:
+                logger.exception("Failed to open browser for %s", output_file)
+    except Exception:
+        logger.exception("Visualization failed")
 
 
 @cli.command()
