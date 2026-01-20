@@ -1,5 +1,3 @@
-import sqlite3
-
 from probe.crawl.link_signals import (LinkContextStore,
                                       analyze_link_from_lines,
                                       extract_context_text, extract_tokens,
