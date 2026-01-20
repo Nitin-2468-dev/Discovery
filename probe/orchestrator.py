@@ -345,6 +345,28 @@ class Orchestrator:
             except Exception:
                 suggested_domains = []
 
+        # If still empty, fallback to domains that have documents of the desired type
+        if not suggested_domains and self.map and desired_doc_types:
+            try:
+                suggested_domains = [d.domain_name for d in self.map.get_domains_with_doc_type(desired_doc_types[0], limit=5)]
+            except Exception:
+                pass
+
+        # As a final fallback, directly inspect documents (covers cases where domains rows
+        # are not yet present but documents exist for a domain). This mirrors logic in
+        # GapDetector._gather_from_doc_type and helps discovery when only documents are present.
+        if not suggested_domains and self.map and desired_doc_types:
+            try:
+                cur = self.map.conn.execute(
+                    "SELECT domain, COUNT(*) as cnt FROM documents WHERE doc_type = ? GROUP BY domain ORDER BY cnt DESC LIMIT ?",
+                    (desired_doc_types[0], 5),
+                )
+                rows = cur.fetchall()
+                if rows:
+                    suggested_domains = [r[0] for r in rows]
+            except Exception:
+                pass
+
         # Generate seeds
         seeds = []
         try:

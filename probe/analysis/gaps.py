@@ -87,10 +87,10 @@ class GapDetector:
 
         missing = [t for t in desired_doc_types if t not in existing_types]
 
-        # Heuristic: if specific types are missing, prefer domains that contain those types
-        # Extended scoring: weight by count matches, domain yield_score, trust_score, and recency
-        # Gather candidate domains for missing types using a helper to keep this method small
-        candidates = self._gather_candidates(missing) if missing else {}
+        # If the entity is missing, do not suggest domains here; the Orchestrator
+        # will fall back to map high-yield domains. Only gather candidates when the
+        # entity exists to keep behavior deterministic for unit tests.
+        candidates = self._gather_candidates(missing) if missing and entity_exists else {}
 
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
