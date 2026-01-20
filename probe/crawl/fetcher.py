@@ -162,7 +162,8 @@ class Fetcher:
                                     # Then try HTTP-date formats (RFC-1123 etc.)
                                     try:
                                         from datetime import datetime, timezone
-                                        from email.utils import parsedate_to_datetime
+                                        from email.utils import \
+                                            parsedate_to_datetime
 
                                         dt = parsedate_to_datetime(ra)
                                         if dt.tzinfo is None:
