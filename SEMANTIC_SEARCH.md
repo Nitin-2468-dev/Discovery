@@ -29,7 +29,7 @@ If you change this file, you are changing Probe’s epistemology.
 
 Probe enforces this invariant structurally:
 
-```
+```text
 
 Hard boundaries (buckets)
 → Soft navigation (embeddings inside bucket)
@@ -156,7 +156,7 @@ All relationships must be:
 
 All user-facing search flows must follow this order:
 
-```
+```text
 
 Query
 ↓

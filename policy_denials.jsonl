@@ -18,3 +18,13 @@
 {"timestamp":"2026-01-18T07:16:05.953102Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
 {"timestamp":"2026-01-18T07:16:19.290402Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
 {"timestamp":"2026-01-18T07:16:19.292965Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T13:47:06.626206Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T13:47:24.891433Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T13:47:25.469890Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T13:47:53.927073Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T13:47:53.931246Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T14:13:55.683453Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T14:14:14.078679Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T14:14:14.686693Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T14:14:37.749775Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
+{"timestamp":"2026-01-20T14:14:37.754140Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}

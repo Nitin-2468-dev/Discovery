@@ -309,6 +309,54 @@ class Orchestrator:
 
         return out
 
+    def _discover_suggested_domains(
+        self,
+        entity_name: str,
+        desired_doc_types: List[str],
+        gap_detector: object | None = None,
+        limit: int = 5,
+    ) -> list:
+        """Discover suggested domains using GapDetector, map high-yield, domains by doc type, or documents table."""
+        suggested_domains = []
+        # Analyze gaps to produce suggested domains
+        try:
+            if gap_detector is not None:
+                gd = gap_detector.analyze_entity_gaps(entity_name, desired_doc_types)
+                suggested_domains = gd.get("suggested_domains", []) if isinstance(gd, dict) else []
+        except Exception:
+            suggested_domains = []
+
+        # Fallback: try to use map to get high-yield domains
+        if not suggested_domains and self.map:
+            try:
+                suggested_domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=limit)]
+            except Exception:
+                suggested_domains = []
+
+        # If still empty, fallback to domains that have documents of the desired type
+        if not suggested_domains and self.map and desired_doc_types:
+            try:
+                suggested_domains = [d.domain_name for d in self.map.get_domains_with_doc_type(desired_doc_types[0], limit=limit)]
+            except Exception:
+                suggested_domains = []
+
+        # As a final fallback, directly inspect documents (covers cases where domains rows
+        # are not yet present but documents exist for a domain). This mirrors logic in
+        # GapDetector._gather_from_doc_type and helps discovery when only documents are present.
+        if not suggested_domains and self.map and desired_doc_types:
+            try:
+                cur = self.map.conn.execute(
+                    "SELECT domain, COUNT(*) as cnt FROM documents WHERE doc_type = ? GROUP BY domain ORDER BY cnt DESC LIMIT ?",
+                    (desired_doc_types[0], limit),
+                )
+                rows = cur.fetchall()
+                if rows:
+                    suggested_domains = [r[0] for r in rows]
+            except Exception:
+                suggested_domains = []
+
+        return suggested_domains
+
     def orchestrate_gap_seed(
         self,
         entity_name: str,
@@ -331,41 +379,8 @@ class Orchestrator:
         if gap_detector is None or seed_generator is None:
             raise ValueError("gap_detector and seed_generator are required for orchestration")
 
-        # Analyze gaps to produce suggested domains
-        try:
-            gd = gap_detector.analyze_entity_gaps(entity_name, desired_doc_types)
-            suggested_domains = gd.get("suggested_domains", []) if isinstance(gd, dict) else []
-        except Exception:
-            suggested_domains = []
-
-        # Fallback: try to use map to get high-yield domains
-        if not suggested_domains and self.map:
-            try:
-                suggested_domains = [d.domain_name for d in self.map.get_high_yield_domains(limit=5)]
-            except Exception:
-                suggested_domains = []
-
-        # If still empty, fallback to domains that have documents of the desired type
-        if not suggested_domains and self.map and desired_doc_types:
-            try:
-                suggested_domains = [d.domain_name for d in self.map.get_domains_with_doc_type(desired_doc_types[0], limit=5)]
-            except Exception:
-                pass
-
-        # As a final fallback, directly inspect documents (covers cases where domains rows
-        # are not yet present but documents exist for a domain). This mirrors logic in
-        # GapDetector._gather_from_doc_type and helps discovery when only documents are present.
-        if not suggested_domains and self.map and desired_doc_types:
-            try:
-                cur = self.map.conn.execute(
-                    "SELECT domain, COUNT(*) as cnt FROM documents WHERE doc_type = ? GROUP BY domain ORDER BY cnt DESC LIMIT ?",
-                    (desired_doc_types[0], 5),
-                )
-                rows = cur.fetchall()
-                if rows:
-                    suggested_domains = [r[0] for r in rows]
-            except Exception:
-                pass
+        # Discover suggested domains
+        suggested_domains = self._discover_suggested_domains(entity_name, desired_doc_types, gap_detector)
 
         # Generate seeds
         seeds = []
