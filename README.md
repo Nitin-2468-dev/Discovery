@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions) [![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions) [![Release](https://img.shields.io/github/v/release/Nitin-2468-dev/Discovery?label=release)](https://github.com/Nitin-2468-dev/Discovery/releases) [![License](https://img.shields.io/github/license/Nitin-2468-dev/Discovery?label=license)](https://github.com/Nitin-2468-dev/Discovery/blob/master/LICENSE)
 
-> Baseline: v0.5 — packaging resilience & CI improvements (2026-01-18)
+> **Scope:** This repository implements a research/crawler pipeline for discovering public documents and linking them to tracked entities. See `SCOPE.md` for policy, data usage, and contribution guidance.
+
+> Baseline: v0.5 — packaging resilience & CI improvements (2026-01-21)
 
 ## What This Is
 

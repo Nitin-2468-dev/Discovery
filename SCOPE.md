@@ -1,5 +1,10 @@
 # Scope & Milestones
 
+## At a glance
+- Purpose: Define the project's goals, permitted data sources, and contribution restrictions.
+- Policy highlights: Embedding and semantic search contracts are enforced (see `SEMANTIC_SEARCH.md`); `Mode.educational_open` and admin opt-in govern broader exploration.
+- For contributors: Run linters and tests; follow CI gating and semantic contract checks.
+
 ## v0.1 — Foundation (Current)
 
 **Goal:** Persistent map + basic CLI
