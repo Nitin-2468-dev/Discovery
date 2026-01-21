@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg)](https://github.com/Nitin-2468-dev/Discovery/actions) [![OCR Scheduled CI](https://github.com/Nitin-2468-dev/Discovery/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/Nitin-2468-dev/Discovery/actions) [![Release](https://img.shields.io/github/v/release/Nitin-2468-dev/Discovery?label=release)](https://github.com/Nitin-2468-dev/Discovery/releases) [![License](https://img.shields.io/github/license/Nitin-2468-dev/Discovery?label=license)](https://github.com/Nitin-2468-dev/Discovery/blob/master/LICENSE)
 
-> CI: Packaging preflight test trigger (non-functional README touch)
+> Baseline: v0.5 — packaging resilience & CI improvements (2026-01-18)
 
 ## What This Is
 
@@ -45,9 +45,40 @@ Every query makes the system smarter. The map compounds over time.
 - **Memory over repetition**: Query the map before crawling the web
 - **Evidence over structure**: PDFs are first-class citizens
 
+## Modes & Policy
+
+Probe supports runtime **modes** that affect risk exposure and output detail. See `POLICY.md` for full policy semantics.
+
+- `public_guarded` — safe-by-default (restricts high-risk categories)
+- `educational_open` — broader visibility for research/learning (with warnings). Note: `educational_open` requires **admin opt-in** to be permissive.
+
+Initialize with:
+
+```bash
+probe init --mode public_guarded
+# or
+probe init --mode educational_open
+```
+
+Admin opt-in and CLI configuration
+
+- To enable the admin opt-in (allow `educational_open` to be permissive):
+
+```bash
+# Persist a config file enabling admin features
+probe config set-admin enable
+
+# Or override per-run with a CLI flag
+probe --admin-enabled seeds run seeds.txt --limit 10
+```
+
+Policy decisions and logs
+
+Policy decisions return lightweight decision payloads (e.g., `{"mode":"public_guarded","allowed":false,"reason":"domain 'x' disallowed","tags":["domain"]}`) and denied decisions are logged at WARNING level for auditing.
+
 ## Current Status
 
-**Phase:** Foundation (v0.1)
+**Phase:** Investigation Loop (v0.5)
 
 - [x] Schema design
 - [x] Map interface
@@ -56,7 +87,7 @@ Every query makes the system smarter. The map compounds over time.
 - [ ] Relevance scorer
 - [ ] Investigation loop
 
-**Release:** v0.1.1 (2026-01-11) — Adds an opt-in real-network integration workflow and a small `FetcherAdapter` to make validating real-network crawling behavior easier. See `CHANGELOG.md` for details and release notes.
+**Baseline:** v0.5 (2026-01-18) — Baseline snapshot including packaging/CI stability and documentation updates. See `CHANGELOG.md` for details and release notes.
 
 ### Fetcher (v0.2) — implemented ✅
 
@@ -69,7 +100,7 @@ The fetcher is a synchronous, test-first implementation that:
 - The HTML cleaner now returns richer metadata (including `description`, `link_count`, `pdf_link_count`, and `boilerplate_ratio`) and marks PDF links with `is_pdf` for easier downstream decisions
 - The ingest helper `probe.crawl.ingest.ingest_fetch_result(map, result)` now computes page `content_hash` from cleaned text (falling back to raw bytes), differentiates internal vs external links, creates edges only for internal links, and stores `outgoing_links`/`external_links` in page metadata for follow-up
 
-Tests: full test suite currently passes locally (52 tests).
+Tests: full test suite currently passes locally (165 tests as of 2026-01-18).
 
 ### Seed runner & politeness
 
@@ -151,6 +182,23 @@ pip install -e .[ocr]
 ```
 
 CI note: the repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that runs tests across Python versions and includes an `ocr` matrix (installs OCR extras when `ocr=true`). The CI now installs the package in editable mode (`pip install -e .`) so optional extras are available while running tests.
+
+Contributing & formatting
+
+- We use `pre-commit` (Black, isort, ruff) to keep formatting consistent across contributors and CI. Run locally before committing:
+
+```bash
+pip install pre-commit mypy
+pre-commit install  # set up Git hooks (recommended)
+pre-commit run --all-files
+mypy --config-file mypy.ini
+```
+
+- The repository includes an Autofix workflow (`.github/workflows/autofix.yml`) that runs on pull requests and attempts to apply formatting fixes on the runner and push them back to the PR branch. Note:
+  - The runner will attempt to push commits using the repository token (`GITHUB_TOKEN`) when allowed. The workflow is now tolerant of push failures (common for forked PRs where the token is read-only), so a failed push will no longer fail the job.
+  - If CI reports a submodule-related post-checkout error (e.g., "No url found for submodule path 'tmp_ci_check' in .gitmodules"), follow the steps in `docs/CI.md` to remove the lingering gitlink and add it to `.gitignore`.
+
+- To avoid autofix churn: run `pre-commit run --all-files` and `mypy --config-file mypy.ini` locally; address any failures before opening the PR.
 
 Unit and integration tests cover HTML cleaning, PDF extraction (mocked), max-size aborts, and retry/429 behavior.
 

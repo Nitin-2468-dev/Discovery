@@ -7,6 +7,19 @@ Query → Map Query → Gap Detection → Seed Generation → Crawler → Map Up
 Answer ←────────────────── Synthesize ←──────────────────────────┘
 ```
 
+**Policy Engine (new):** a global gatekeeper that evaluates queries and seeds
+before they reach the Orchestrator. It enforces the active mode (`public_guarded`
+or `educational_open`) and annotates or restricts actions when necessary.
+
+**High-level flow with Policy:**
+```
+User / Chat / MCP
+        ↓
+   Policy Engine
+        ↓
+Orchestrator / Investigator
+```
+
 ## Components
 
 ### 1. The Map (Knowledge Graph)

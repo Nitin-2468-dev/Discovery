@@ -30,9 +30,17 @@ from probe.visualization.graph_viz import GraphVisualizer  # noqa: E402
 
 
 @click.group()
-def cli():
+@click.option(
+    "--admin-enabled/--no-admin-enabled",
+    default=None,
+    help="Globally enable admin opt-in features (overrides config when set)",
+)
+@click.pass_context
+def cli(ctx, admin_enabled):
     """Probe: A deep research engine for discovering buried information."""
-    pass
+    # Attach admin flag to context so subcommands can access it; None means use config
+    ctx.ensure_object(dict)
+    ctx.obj["admin_enabled_flag"] = admin_enabled
 
 
 @cli.command()
@@ -210,48 +218,171 @@ def summary(db):
 def visualize(entity, depth, output, export_png, export_svg, open_in_browser, db):
     """Visualize the knowledge graph (NetworkX + Plotly HTML)."""
 
+
+@cli.group()
+def orchestrate():
+    """Orchestration helpers: tie GapDetector + SeedGenerator + Crawler into a run."""
+
+
+@orchestrate.command("run")
+@click.argument("entity_name")
+@click.option("--types", default="driver", help="Comma-separated document types")
+@click.option("--max-seeds", default=20, type=int, help="Maximum seeds to generate")
+@click.option("--max-depth", default=2, type=int, help="Max crawl depth")
+@click.option("--max-pages", default=50, type=int, help="Max pages to fetch")
+@click.option("--db", default="probe.db", help="Database file path")
+@click.option(
+    "--fetch-remote/--no-fetch-remote",
+    default=False,
+    help="Allow SeedGenerator remote discovery",
+)
+@click.option("--quiet/--no-quiet", default=False)
+@click.option(
+    "--visualize/--no-visualize",
+    default=False,
+    help="Build an interactive visualization of the resulting graph",
+)
+@click.option(
+    "--output", default="graph.html", help="Output HTML file for visualization"
+)
+@click.option("--export-png", default=None, help="Export a PNG snapshot (path)")
+@click.option("--export-svg", default=None, help="Export an SVG snapshot (path)")
+@click.option(
+    "--open",
+    "open_in_browser",
+    is_flag=True,
+    default=False,
+    help="Open the generated HTML in the default web browser",
+)
+def orchestrate_run(
+    entity_name,
+    types,
+    max_seeds,
+    max_depth,
+    max_pages,
+    db,
+    fetch_remote,
+    quiet,
+    visualize,
+    output,
+    export_png,
+    export_svg,
+    open_in_browser,
+):
+    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES.
+
+    Optionally build an interactive visualization and export images.
+    """
+    types_list = [t.strip() for t in types.split(",") if t.strip()]
     m = Map(db)
-    viz = GraphVisualizer(m)
+    from probe.analysis.gaps import GapDetector
+    from probe.analysis.seed_generator import SeedGenerator
 
-    if entity:
-        click.echo(f"Building graph around '{entity}' (depth={depth})...")
-        viz.build_graph(entity_name=entity, depth=depth)
-    else:
-        click.echo("Building full graph...")
-        viz.build_graph()
+    gd = GapDetector(m)
+    sg = SeedGenerator(m, fetch_remote=fetch_remote)
+    from probe.orchestrator import Orchestrator as OrcClass
 
-    stats = viz.get_stats()
-    click.echo(f"Graph stats: {stats['nodes']} nodes, {stats['edges']} edges")
+    orc = OrcClass(
+        map_obj=m,
+        fetch_fn=lambda u: {
+            "url": u,
+            "status_code": 200,
+            "text": "page",
+            "links": [],
+            "content_type": "text/html",
+        },
+        scorer_fn=lambda r: 1.0,
+    )
 
-    output_file = viz.plot_interactive(output)
-    click.echo(f"âœ“ Visualization saved to: {output_file}")
+    res = orc.orchestrate_gap_seed(
+        entity_name,
+        types_list,
+        gap_detector=gd,
+        seed_generator=sg,
+        max_seeds=max_seeds,
+        max_depth=max_depth,
+        max_pages=max_pages,
+    )
 
-    # optional image exports
-    if export_png:
-        try:
-            out_png = viz.export_image(export_png)
-            click.echo(f"âœ“ PNG exported to: {out_png}")
-        except Exception as exc:
-            logger.exception("PNG export failed for %s", export_png)
-            click.echo(f"âš ï¸ PNG export failed: {exc}")
+    if not quiet:
+        click.echo(f"Seeds: {len(res.get('seeds', []))}")
+        click.echo(f"Suggested domains: {res.get('suggested_domains')}")
+        click.echo(
+            f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}"
+        )
 
-    if export_svg:
-        try:
-            out_svg = viz.export_image(export_svg)
-            click.echo(f"âœ“ SVG exported to: {out_svg}")
-        except Exception as exc:
-            logger.exception("SVG export failed for %s", export_svg)
-            click.echo(f"âš ï¸ SVG export failed: {exc}")
+    # Optional: build visualization of the entity graph (uses helper)
+    if visualize:
+        _render_visualization(
+            m, entity_name, max_depth, output, export_png, export_svg, open_in_browser
+        )
 
-    if open_in_browser:
-        try:
-            import webbrowser
-
-            webbrowser.open(output_file)
-            click.echo("Opened in default browser")
-        except Exception:
-            logger.exception("Failed to open browser for %s", output_file)
     m.close()
+    return
+
+
+@cli.group()
+def orchestrate():
+    """Orchestration helpers: tie GapDetector + SeedGenerator + Crawler into a run."""
+
+
+@orchestrate.command("run")
+@click.argument("entity_name")
+@click.option("--types", default="driver", help="Comma-separated document types")
+@click.option("--max-seeds", default=20, type=int, help="Maximum seeds to generate")
+@click.option("--max-depth", default=2, type=int, help="Max crawl depth")
+@click.option("--max-pages", default=50, type=int, help="Max pages to fetch")
+@click.option("--db", default="probe.db", help="Database file path")
+@click.option(
+    "--fetch-remote/--no-fetch-remote",
+    default=False,
+    help="Allow SeedGenerator remote discovery",
+)
+@click.option("--quiet/--no-quiet", default=False)
+def orchestrate_run(
+    entity_name, types, max_seeds, max_depth, max_pages, db, fetch_remote, quiet
+):
+    """Run a gap->seed->crawl orchestration for ENTITY_NAME and comma-separated TYPES."""
+    types_list = [t.strip() for t in types.split(",") if t.strip()]
+    m = Map(db)
+    from probe.analysis.gaps import GapDetector
+    from probe.analysis.seed_generator import SeedGenerator
+
+    gd = GapDetector(m)
+    sg = SeedGenerator(m, fetch_remote=fetch_remote)
+    from probe.orchestrator import Orchestrator as OrcClass
+
+    orc = OrcClass(
+        map_obj=m,
+        fetch_fn=lambda u: {
+            "url": u,
+            "status_code": 200,
+            "text": "page",
+            "links": [],
+            "content_type": "text/html",
+        },
+        scorer_fn=lambda r: 1.0,
+    )
+
+    res = orc.orchestrate_gap_seed(
+        entity_name,
+        types_list,
+        gap_detector=gd,
+        seed_generator=sg,
+        max_seeds=max_seeds,
+        max_depth=max_depth,
+        max_pages=max_pages,
+    )
+
+    if not quiet:
+        click.echo(f"Seeds: {len(res.get('seeds', []))}")
+        click.echo(f"Suggested domains: {res.get('suggested_domains')}")
+        click.echo(
+            f"Crawl pages fetched: {res.get('crawl_result', {}).get('pages_fetched')}"
+        )
+
+    m.close()
+    return
 
 
 def _build_gap_weights(count, yld, trust, recent):
@@ -294,6 +425,57 @@ def _format_gap_analysis(analysis: dict, entity_name: str) -> str:
         lines.append("   â€¢ (none)")
 
     return "\n".join(lines)
+
+
+def _render_visualization(
+    m: Map,
+    entity_name: str,
+    depth: int,
+    output: str,
+    export_png: str | None,
+    export_svg: str | None,
+    open_in_browser: bool,
+):
+    """Helper to build and optionally export a visualization from a Map object.
+
+    Keeps `orchestrate_run` complexity low by moving plotting/exporting here.
+    """
+    try:
+        viz = GraphVisualizer(m)
+        if entity_name:
+            viz.build_graph(entity_name=entity_name, depth=depth)
+        else:
+            viz.build_graph()
+
+        output_file = viz.plot_interactive(output)
+        click.echo(f"âœ“ Visualization saved to: {output_file}")
+
+        if export_png:
+            try:
+                out_png = viz.export_image(export_png)
+                click.echo(f"âœ“ PNG exported to: {out_png}")
+            except Exception as exc:
+                logger.exception("PNG export failed for %s", export_png)
+                click.echo(f"âš ï¸ PNG export failed: {exc}")
+
+        if export_svg:
+            try:
+                out_svg = viz.export_image(export_svg)
+                click.echo(f"âœ“ SVG exported to: {out_svg}")
+            except Exception as exc:
+                logger.exception("SVG export failed for %s", export_svg)
+                click.echo(f"âš ï¸ SVG export failed: {exc}")
+
+        if open_in_browser:
+            try:
+                import webbrowser
+
+                webbrowser.open(output_file)
+                click.echo("Opened in default browser")
+            except Exception:
+                logger.exception("Failed to open browser for %s", output_file)
+    except Exception:
+        logger.exception("Visualization failed")
 
 
 @cli.command()
@@ -629,6 +811,65 @@ def seeds():
     pass
 
 
+@cli.group()
+def config():
+    """View and modify Probe configuration (writes to probe.config.json)."""
+    pass
+
+
+@config.command("show")
+def config_show():
+    """Print the effective configuration (merges defaults and file)."""
+    from probe.config import load_config
+
+    cfg = load_config()
+    import json
+
+    click.echo(json.dumps(cfg, indent=2))
+
+
+@config.command("set-admin")
+@click.argument("value", type=click.Choice(["enable", "disable"]))
+def config_set_admin(value):
+    """Enable or disable `admin_enabled` and persist to `probe.config.json`."""
+    from probe.config import load_config
+
+    cfg = load_config()
+    new_val = True if value == "enable" else False
+    cfg["admin_enabled"] = new_val
+
+    import json
+
+    p = Path("probe.config.json")
+    try:
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(cfg, f, indent=2)
+        click.echo(f"Updated {p} with admin_enabled={new_val}")
+    except Exception as exc:
+        logger.exception("Failed to write config file: %s", exc)
+        raise click.ClickException(f"Failed to write config: {exc}")
+
+
+@cli.group()
+def policy():
+    """Policy-related utilities (telemetry/audit etc.)"""
+    pass
+
+
+@policy.command("upload-telemetry")
+@click.argument("bucket")
+@click.option("--key", default=None, help="S3 object key (defaults to filename)")
+@click.option("--profile", default=None, help="AWS profile name to use")
+def policy_upload_telemetry(bucket, key, profile):
+    """Upload the current policy telemetry file to S3 (requires boto3)."""
+    from probe.policy.telemetry import upload_to_s3
+
+    ok = upload_to_s3(bucket, key, profile)
+    if not ok:
+        raise click.ClickException("Upload failed; see logs for details")
+    click.echo("Telemetry uploaded")
+
+
 def _load_blocked_set(bd_flag, cfg):
     """Load blocked domains from CLI flag or config, returning a set."""
     bd_path = bd_flag if bd_flag != "" else None
@@ -648,6 +889,14 @@ def _load_blocked_set(bd_flag, cfg):
         logger.exception("Error loading blocked domains from %s", bd_path)
         return set()
     return out
+
+
+def _resolve_admin_enabled(ctx_obj, cfg):
+    """Resolve admin_enabled with precedence: CLI flag > config value > default False."""
+    cli_flag = ctx_obj.get("admin_enabled_flag") if ctx_obj else None
+    if cli_flag is not None:
+        return bool(cli_flag)
+    return bool(cfg.get("admin_enabled", False))
 
 
 def _normalize_concurrency_flag(concurrency, cfg):
@@ -1310,6 +1559,11 @@ def seeds_run(
 
     config = load_config()
 
+    # Resolve admin_enabled (CLI flag > config)
+    admin_enabled = _resolve_admin_enabled(
+        getattr(click.get_current_context(), "obj", None), config
+    )
+
     try:
         from tqdm import tqdm
 
@@ -1347,6 +1601,7 @@ def seeds_run(
         "summary_dir": summary_dir,
         "summary_csv": summary_csv,
         "no_log_failures": no_log_failures,
+        "admin_enabled": admin_enabled,
     }
 
     if concurrency <= 1:
@@ -1450,16 +1705,36 @@ def health_check(url, timeout, max_retries, backoff_factor):
     default=True,
     help="Perform a limited fetch pass for generated seeds",
 )
+@click.option(
+    "--mode",
+    default="public_guarded",
+    type=click.Choice(["public_guarded", "educational_open"]),
+    help="Policy mode to use for this investigation",
+)
 @click.option("--db", default="probe.db", help="Database file path")
 @click.option("--json", "as_json", is_flag=True, default=False, help="Output JSON")
-def investigate(entity_name, types, max_seeds, dry_run, db, as_json):
+def investigate(entity_name, types, max_seeds, dry_run, mode, db, as_json):
     """Run a short investigator: gap detection -> seed generation -> optional limited fetch."""
     import json as _json
 
     from probe.analysis.investigator import Investigator
+    from probe.config import load_config
+    from probe.policy import Mode, PolicyEngine
 
     m = Map(db)
-    inv = Investigator(m)
+
+    # Resolve admin_enabled and create a PolicyEngine for this run
+    config = load_config()
+    admin_enabled = _resolve_admin_enabled(
+        getattr(click.get_current_context(), "obj", None), config
+    )
+    pol_mode = (
+        Mode.EDUCATIONAL_OPEN if mode == "educational_open" else Mode.PUBLIC_GUARDED
+    )
+    pe = PolicyEngine(mode=pol_mode, admin_enabled=admin_enabled)
+
+    inv = Investigator(m, policy_engine=pe)
+
     desired = [t.strip() for t in types.split(",") if t.strip()]
     res = inv.investigate(entity_name, desired, max_seeds=max_seeds, dry_run=dry_run)
 

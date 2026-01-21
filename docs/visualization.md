@@ -46,3 +46,13 @@ python scripts/visualize_run.py --run results/testing-5 --top 3 --outdir results
 ```
 
 - The output file is a self-contained HTML that can be opened in a browser.
+
+## Risk-Aware Graphs
+
+When Policy is active the visualizer will (future implementation):
+
+- Color-code high-risk nodes (sensitive sources, restricted categories)
+- In `public_guarded` mode, suppress or summarize sensitive edges/nodes
+- In `educational_open` mode, include hidden edges with prominent warnings only when `admin_enabled` is True
+
+Visualizations will be annotated with metadata from the Policy Engine so reviewers can quickly identify risk areas. Denied policy decisions are logged at WARNING level; the visualizer will surface decision reasons and tags in hover/annotations to aid reviewers and auditors.

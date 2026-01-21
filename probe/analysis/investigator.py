@@ -2,6 +2,7 @@ from typing import Any, Dict, List
 
 from probe.analysis.seed_generator import SeedGenerator
 from probe.core.map import Map
+from probe.policy import PolicyEngine
 
 
 def _load_gap_detector_cls():
@@ -39,10 +40,18 @@ class Investigator:
     optionally perform a limited fetch pass for the generated seeds.
     """
 
-    def __init__(self, map_obj: Map, *, ingest_on_fetch: bool = False):
+    def __init__(
+        self,
+        map_obj: Map,
+        *,
+        ingest_on_fetch: bool = False,
+        policy_engine: PolicyEngine | None = None,
+    ):
         self.map = map_obj
         # When True, fetched seed pages will be ingested into the provided Map
         self.ingest_on_fetch = bool(ingest_on_fetch)
+        # Policy engine used to make allow/deny decisions; default is permissive stub
+        self.policy_engine = policy_engine or PolicyEngine()
 
     def _maybe_apply_ingest_feedback(
         self, seed_url: str, ingested: Dict[str, Any]
@@ -78,8 +87,35 @@ class Investigator:
         )
         seed_results: List[Dict[str, Any]] = []
         for s in seeds_sorted:
+            # Policy check: consult policy engine with domain context
             try:
-                r = fetch(s, timeout=fetch_timeout, max_retries=1, backoff_factor=0.0)
+                from urllib.parse import urlparse
+
+                domain = urlparse(s).netloc
+            except Exception:
+                domain = None
+
+            if domain:
+                decision = self.policy_engine.evaluate_query(
+                    "fetch", context={"domain": domain}
+                )
+                if not decision.get("allowed", True):
+                    seed_results.append(
+                        {
+                            "seed": s,
+                            "status_code": None,
+                            "error": "policy_denied",
+                            "reason": decision.get("reason"),
+                            "tags": decision.get("tags", []),
+                        }
+                    )
+                    # skip actual fetch
+                    continue
+
+            try:
+                r = fetch(
+                    s, timeout=int(fetch_timeout), max_retries=1, backoff_factor=0.0
+                )
             except Exception as e:
                 seed_results.append({"seed": s, "status_code": None, "error": str(e)})
                 continue

@@ -388,7 +388,8 @@ class Map:
         )
         edge_id = cursor.lastrowid
         self.conn.commit()
-        return edge_id if edge_id != 0 else None
+        # Normalize to integer return value (0 indicates no new row inserted)
+        return int(edge_id) if edge_id and edge_id != 0 else 0  # type: ignore[return-value]
 
     def get_edges_from(
         self, from_type: str, from_id: int, relation: Optional[str] = None
@@ -503,7 +504,7 @@ class Map:
             List[sqlite3.Row]
         """
         query = "SELECT * FROM scoring_reports"
-        conditions: list[str] = []
+        conditions = []
         params: list[object] = []
         if url:
             conditions.append("url = ?")

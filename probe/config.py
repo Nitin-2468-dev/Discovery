@@ -18,6 +18,8 @@ DEFAULTS: Dict[str, Any] = {
     "min_delay": 0.0,
     "blocked_domains": "blocked_domains.txt",
     "tqdm": True,
+    # Admin opt-in flag for relaxed modes (e.g., EDUCATIONAL_OPEN). Default: False
+    "admin_enabled": False,
     "scorer_weights": {
         "keyword_density": 1.0,
         "boilerplate": 1.0,
@@ -29,7 +31,7 @@ DEFAULTS: Dict[str, Any] = {
 
 def _load_yaml(path: Path) -> Dict[str, Any]:
     try:
-        import yaml
+        import yaml  # type: ignore
     except Exception:
         raise RuntimeError("PyYAML not available to load YAML config")
     with open(path, "r", encoding="utf-8") as f:

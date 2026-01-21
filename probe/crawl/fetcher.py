@@ -19,7 +19,7 @@ from probe.observability import get_logger
 logger = get_logger("fetcher")
 
 # In-memory per-domain politeness tracker (monotonic timestamps)
-_last_fetch = {}
+_last_fetch: Dict[str, float] = {}
 _last_fetch_lock = threading.Lock()
 
 
@@ -201,9 +201,10 @@ class Fetcher:
                             # metrics: record retry/backoff wait
                             try:
                                 self.metrics.increment("fetch_retries")
-                                self.metrics.observe(
-                                    "fetch_backoff_seconds", float(delay)
-                                )
+                                if delay is not None:
+                                    self.metrics.observe(
+                                        "fetch_backoff_seconds", float(delay)
+                                    )
                             except Exception:
                                 pass
 
@@ -249,7 +250,8 @@ class Fetcher:
                         try:
                             result["user_agent"] = client.headers.get("User-Agent")
                         except Exception:
-                            result["user_agent"] = self.user_agent
+                            # Use selected UA as fallback
+                            result["user_agent"] = ua
 
                         # metrics: observe duration
                         try:
@@ -297,7 +299,8 @@ class Fetcher:
                         result["title"] = title
                         result["link_count"] = len(links)
                         result["has_pdf_links"] = any(
-                            link["url"].lower().endswith(".pdf") for link in links
+                            str(link.get("url", "")).lower().endswith(".pdf")
+                            for link in links
                         )
                         return result
 
@@ -324,6 +327,9 @@ class Fetcher:
             # Unexpected error during setup or client creation
             result["error"] = f"client_error: {exc}"
             return result
+
+        # Ensure we always return a result (mypy can't always prove loop returns)
+        return result
 
 
 def _ocr_pdf(pdf_bytes: bytes) -> str:
@@ -374,11 +380,11 @@ def fetch(
 
 def _clean_html_and_extract_links(
     html: str, base_url: str
-) -> Tuple[str, List[Dict[str, str]], str]:
+) -> Tuple[str, List[Dict[str, object]], str]:
     """Return (cleaned_text, links, title).
 
-    Links are normalized absolute HTTP(s) URLs with anchor text. Title is taken
-    from the `<title>` tag when present.
+    Links are normalized absolute HTTP(s) URLs with anchor text and metadata. Title
+    is taken from the `<title>` tag when present.
     """
     soup = BeautifulSoup(html, "lxml")
 
@@ -395,12 +401,14 @@ def _clean_html_and_extract_links(
         except Exception:
             pass
 
-    title_tag = soup.title.string.strip() if soup.title and soup.title.string else None
+    title_tag = (
+        str(soup.title.string).strip() if soup.title and soup.title.string else None
+    )
     text = soup.get_text(" ", strip=True)
 
-    links: List[Dict[str, str]] = []
+    links: List[Dict[str, object]] = []
     for a in soup.find_all("a", href=True):
-        raw = a["href"].strip()
+        raw = str(a["href"]).strip()
         if not raw:
             continue
         abs_url = urljoin(base_url, raw)
