@@ -87,12 +87,10 @@ class GapDetector:
 
         missing = [t for t in desired_doc_types if t not in existing_types]
 
-        # If the entity is missing, do not suggest domains here; the Orchestrator
-        # will fall back to map high-yield domains. Only gather candidates when the
-        # entity exists to keep behavior deterministic for unit tests.
-        candidates = (
-            self._gather_candidates(missing) if missing and entity_exists else {}
-        )
+        # Produce candidate domains when there's a genuine missing type to address.
+        candidates = {}
+        if missing and (entity_exists or self._has_documents_for_types(missing)):
+            candidates = self._gather_candidates(missing)
 
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
@@ -140,6 +138,20 @@ class GapDetector:
             result["domain_scores"] = domain_scores
 
         return result
+
+    def _has_documents_for_types(self, types_list: list) -> bool:
+        """Return True if the DB contains at least one document for any doc type."""
+        try:
+            for t in types_list:
+                cur = self.map.conn.execute(
+                    "SELECT 1 FROM documents WHERE doc_type = ? LIMIT 1",
+                    (t,),
+                )
+                if cur.fetchone():
+                    return True
+        except Exception:
+            return False
+        return False
 
     def _compute_domain_scores(
         self, candidates: dict, now: types.SimpleNamespace, include_scores: bool
