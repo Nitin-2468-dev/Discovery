@@ -13,18 +13,18 @@ Note: This is intentionally dependency-free (uses Python stdlib + project code).
 
 import argparse
 import json
+import re
+import tempfile
 import threading
-from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+import time
 from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
-import re
-import tempfile
-import time
 
-from probe.core.schema import initialize_schema
 from probe.core.map import Map
+from probe.core.schema import initialize_schema
 from probe.orchestrator import Orchestrator
 
 
@@ -32,8 +32,14 @@ def make_site(site_dir: Path):
     site_dir.mkdir(parents=True, exist_ok=True)
     p1 = site_dir / "page1.html"
     p2 = site_dir / "page2.html"
-    p1.write_text('<html><body><h1>Page 1</h1><a href="page2.html">link</a></body></html>', encoding="utf-8")
-    p2.write_text('<html><body><h1>Manual</h1><p>driver manual content</p></body></html>', encoding="utf-8")
+    p1.write_text(
+        '<html><body><h1>Page 1</h1><a href="page2.html">link</a></body></html>',
+        encoding="utf-8",
+    )
+    p2.write_text(
+        "<html><body><h1>Manual</h1><p>driver manual content</p></body></html>",
+        encoding="utf-8",
+    )
 
 
 def fetch_fn(url: str):
@@ -118,30 +124,36 @@ def run_demo(output_dir: Path):
 
         # domains
         for d in m.get_high_yield_domains(limit=50, min_pages=1):
-            artifact["domains"].append({
-                "domain_name": d.domain_name,
-                "pages_crawled": d.pages_crawled,
-                "documents_found": d.documents_found,
-                "yield_score": d.yield_score,
-            })
+            artifact["domains"].append(
+                {
+                    "domain_name": d.domain_name,
+                    "pages_crawled": d.pages_crawled,
+                    "documents_found": d.documents_found,
+                    "yield_score": d.yield_score,
+                }
+            )
 
         # pages and documents via direct SQL
         cur = m.conn.execute("SELECT * FROM pages ORDER BY id DESC")
         for r in cur.fetchall():
-            artifact["pages"].append({
-                "url": r["url"],
-                "domain": r["domain"],
-                "relevance_score": r["relevance_score"],
-                "last_crawled_at": r["last_crawled_at"],
-            })
+            artifact["pages"].append(
+                {
+                    "url": r["url"],
+                    "domain": r["domain"],
+                    "relevance_score": r["relevance_score"],
+                    "last_crawled_at": r["last_crawled_at"],
+                }
+            )
 
         cur = m.conn.execute("SELECT * FROM documents ORDER BY id DESC")
         for r in cur.fetchall():
-            artifact["documents"].append({
-                "url": r["url"],
-                "doc_type": r["doc_type"],
-                "domain": r["domain"],
-            })
+            artifact["documents"].append(
+                {
+                    "url": r["url"],
+                    "doc_type": r["doc_type"],
+                    "domain": r["domain"],
+                }
+            )
 
         # Write JSON artifact
         out_json = output_dir / "demo_results.json"
@@ -152,11 +164,17 @@ def run_demo(output_dir: Path):
         out_html = output_dir / "demo_summary.html"
         with out_html.open("w", encoding="utf-8") as f:
             f.write("<html><body><h1>Probe Demo Results</h1>\n")
-            f.write(f"<h2>Seeds</h2><pre>{json.dumps(artifact['seeds'], indent=2)}</pre>\n")
-            f.write(f"<h2>Crawl Result</h2><pre>{json.dumps(artifact['crawl_result'], indent=2)}</pre>\n")
+            f.write(
+                f"<h2>Seeds</h2><pre>{json.dumps(artifact['seeds'], indent=2)}</pre>\n"
+            )
+            f.write(
+                f"<h2>Crawl Result</h2><pre>{json.dumps(artifact['crawl_result'], indent=2)}</pre>\n"
+            )
             f.write("<h2>Domains</h2><ul>\n")
             for d in artifact["domains"]:
-                f.write(f"<li>{d['domain_name']}: pages={d['pages_crawled']} docs={d['documents_found']} yield={d['yield_score']}</li>\n")
+                f.write(
+                    f"<li>{d['domain_name']}: pages={d['pages_crawled']} docs={d['documents_found']} yield={d['yield_score']}</li>\n"
+                )
             f.write("</ul>\n")
             f.write("<h2>Pages</h2><ul>\n")
             for p in artifact["pages"]:
@@ -176,6 +194,8 @@ def run_demo(output_dir: Path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output-dir", default="./demo-out", help="Directory to write artifacts")
+    parser.add_argument(
+        "--output-dir", default="./demo-out", help="Directory to write artifacts"
+    )
     args = parser.parse_args()
     run_demo(Path(args.output_dir))

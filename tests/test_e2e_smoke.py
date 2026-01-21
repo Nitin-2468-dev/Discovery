@@ -1,18 +1,18 @@
 import os
-import threading
 import re
-from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-from functools import partial
-from pathlib import Path
 import tempfile
+import threading
+import time
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
-import time
 
 import pytest
 
-from probe.core.schema import initialize_schema
 from probe.core.map import Map
+from probe.core.schema import initialize_schema
 from probe.orchestrator import Orchestrator
 
 
@@ -35,9 +35,15 @@ def test_orchestrator_e2e_smoke(tmp_path):
 
     page1 = site_dir / "page1.html"
     page2 = site_dir / "page2.html"
-    page1.write_text('<html><body><h1>Page 1</h1><a href="page2.html">link</a></body></html>', encoding="utf-8")
+    page1.write_text(
+        '<html><body><h1>Page 1</h1><a href="page2.html">link</a></body></html>',
+        encoding="utf-8",
+    )
     # page2 contains a keyword "driver" so our simple scorer can treat it as relevant
-    page2.write_text('<html><body><h1>Manual</h1><p>driver manual content</p></body></html>', encoding="utf-8")
+    page2.write_text(
+        "<html><body><h1>Manual</h1><p>driver manual content</p></body></html>",
+        encoding="utf-8",
+    )
 
     # Start HTTP server on an ephemeral port
     handler = partial(SimpleHTTPRequestHandler, directory=str(site_dir))
@@ -101,7 +107,9 @@ def test_orchestrator_e2e_smoke(tmp_path):
         # Assertions: seeds generated and crawl result fetched pages
         assert isinstance(res, dict)
         assert res.get("seeds")
-        assert res.get("crawl_result") and res["crawl_result"].get("pages_fetched", 0) > 0
+        assert (
+            res.get("crawl_result") and res["crawl_result"].get("pages_fetched", 0) > 0
+        )
 
         # Map should have updated domain stats for the test domain
         domains = m.get_high_yield_domains(limit=10, min_pages=1)
