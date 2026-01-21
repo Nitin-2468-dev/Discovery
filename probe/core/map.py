@@ -503,8 +503,8 @@ class Map:
             List[sqlite3.Row]
         """
         query = "SELECT * FROM scoring_reports"
-        conditions = []
-        params = []
+        conditions: list[str] = []
+        params: list[object] = []
         if url:
             conditions.append("url = ?")
             params.append(url)
