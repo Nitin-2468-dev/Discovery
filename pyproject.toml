@@ -46,4 +46,5 @@ exclude = "(^build/|/build/)"
 
 [tool.isort]
 profile = "black"
-skip = ["tmp_ci_check"]
+skip = ["tmp_ci_check", ".venv", "build"]
+skip_glob = ["**/build/**", "**/.venv/**"]
