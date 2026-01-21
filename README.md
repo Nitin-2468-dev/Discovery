@@ -104,6 +104,20 @@ The fetcher is a synchronous, test-first implementation that:
 
 Tests: full test suite currently passes locally (165 tests as of 2026-01-18).
 
+## Demo & Review Artifacts ✅
+
+We provide a deterministic, local demo and a GitHub Actions job that runs it and uploads artifacts for reviewers.
+
+- Run locally (no network required beyond localhost):
+
+```bash
+python scripts/demo_e2e.py --output-dir ./demo-out
+```
+
+This creates `demo-out/demo_results.json` and `demo-out/demo_summary.html` showing seeds, crawl results, domains, pages, and documents for an isolated test site.
+
+- Run in CI (manual or scheduled): There's a workflow `Demo: e2e demo` that can be run from the Actions tab (or runs weekly). It uploads `demo_results.json` and `demo_summary.html` as artifacts for reviewers.
+
 ### Seed runner & politeness
 
 The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV summary and optional failure log. Important flags:
