@@ -13,3 +13,13 @@ Before merging a PR (especially feature and tooling changes), please verify:
 
 Optional for maintainers:
 - Run the `Demo: e2e demo` workflow from the Actions tab (manual) and inspect uploaded artifacts for the run.
+
+Artifact access tips:
+- UI: Actions → select demo run → Artifacts → download `probe-demo-artifacts` and open `demo_summary.html`.
+- CLI: use GitHub CLI to download artifacts for a run:
+  ```bash
+  gh run list --workflow demo.yml
+  gh run download <run-id> -n probe-demo-artifacts -D ./demo-artifacts
+  open ./demo-artifacts/demo_summary.html  # macOS/Linux
+  start ./demo-artifacts/demo_summary.html # Windows
+  ```

@@ -118,6 +118,24 @@ This creates `demo-out/demo_results.json` and `demo-out/demo_summary.html` showi
 
 - Run in CI (manual or scheduled): There's a workflow `Demo: e2e demo` that can be run from the Actions tab (or runs weekly). It uploads `demo_results.json` and `demo_summary.html` as artifacts for reviewers.
 
+How to access demo artifacts
+
+- UI: Go to the repository **Actions** → choose the **Demo: e2e demo** run → open **Artifacts** and download `probe-demo-artifacts`; then open `demo_summary.html` in your browser.
+- CLI: use GitHub CLI to download artifacts and open the summary (replace <run-id> with the run ID from `gh run list`):
+
+```bash
+# Find a recent demo run id
+gh run list --workflow demo.yml
+
+# Download the artifacts for a run (artifact name: probe-demo-artifacts)
+gh run download <run-id> -n probe-demo-artifacts -D ./demo-artifacts
+
+# Open the HTML summary (macOS/Linux)
+open ./demo-artifacts/demo_summary.html
+# or (Windows)
+start ./demo-artifacts/demo_summary.html
+```
+
 ### Seed runner & politeness
 
 The CLI `seeds run <file>` command runs a list of seed URLs and writes a CSV summary and optional failure log. Important flags:
