@@ -1,5 +1,4 @@
-﻿from probe.crawl.scorer import (EntityRegexScorer, KeywordDensityScorer,
-                                RelevanceScorer)
+﻿from probe.crawl.scorer import EntityRegexScorer, KeywordDensityScorer, RelevanceScorer
 
 
 def test_entity_regex_single_pattern():
