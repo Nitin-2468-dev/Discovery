@@ -1,0 +1,261 @@
+lint	Set up job	﻿2026-01-21T11:47:47.5126235Z Current runner version: '2.331.0'
+lint	Set up job	2026-01-21T11:47:47.5152941Z ##[group]Runner Image Provisioner
+lint	Set up job	2026-01-21T11:47:47.5153978Z Hosted Compute Agent
+lint	Set up job	2026-01-21T11:47:47.5154499Z Version: 20251211.462
+lint	Set up job	2026-01-21T11:47:47.5155075Z Commit: 6cbad8c2bb55d58165063d031ccabf57e2d2db61
+lint	Set up job	2026-01-21T11:47:47.5155801Z Build Date: 2025-12-11T16:28:49Z
+lint	Set up job	2026-01-21T11:47:47.5156439Z Worker ID: {6e99f610-41a4-42d3-b4f3-c3d030428925}
+lint	Set up job	2026-01-21T11:47:47.5157100Z ##[endgroup]
+lint	Set up job	2026-01-21T11:47:47.5157669Z ##[group]Operating System
+lint	Set up job	2026-01-21T11:47:47.5158603Z Ubuntu
+lint	Set up job	2026-01-21T11:47:47.5159080Z 24.04.3
+lint	Set up job	2026-01-21T11:47:47.5159600Z LTS
+lint	Set up job	2026-01-21T11:47:47.5160011Z ##[endgroup]
+lint	Set up job	2026-01-21T11:47:47.5160529Z ##[group]Runner Image
+lint	Set up job	2026-01-21T11:47:47.5161070Z Image: ubuntu-24.04
+lint	Set up job	2026-01-21T11:47:47.5161589Z Version: 20260111.209.1
+lint	Set up job	2026-01-21T11:47:47.5162539Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260111.209/images/ubuntu/Ubuntu2404-Readme.md
+lint	Set up job	2026-01-21T11:47:47.5163920Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260111.209
+lint	Set up job	2026-01-21T11:47:47.5165255Z ##[endgroup]
+lint	Set up job	2026-01-21T11:47:47.5166444Z ##[group]GITHUB_TOKEN Permissions
+lint	Set up job	2026-01-21T11:47:47.5168998Z Contents: read
+lint	Set up job	2026-01-21T11:47:47.5169505Z Metadata: read
+lint	Set up job	2026-01-21T11:47:47.5170108Z Packages: read
+lint	Set up job	2026-01-21T11:47:47.5170557Z ##[endgroup]
+lint	Set up job	2026-01-21T11:47:47.5172530Z Secret source: Actions
+lint	Set up job	2026-01-21T11:47:47.5173380Z Prepare workflow directory
+lint	Set up job	2026-01-21T11:47:47.5501658Z Prepare all required actions
+lint	Set up job	2026-01-21T11:47:47.5539171Z Getting action download info
+lint	Set up job	2026-01-21T11:47:47.8774343Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+lint	Set up job	2026-01-21T11:47:47.9708851Z Download action repository 'actions/setup-python@v4' (SHA:7f4fc3e22c37d6ff65e88745f38bd3157c663f7c)
+lint	Set up job	2026-01-21T11:47:48.1590310Z Complete job name: lint
+lint	Run actions/checkout@v4	﻿2026-01-21T11:47:48.2293390Z ##[group]Run actions/checkout@v4
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2294226Z with:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2294613Z   fetch-depth: 0
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2295038Z   persist-credentials: true
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2295515Z   repository: Nitin-2468-dev/Discovery
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2296167Z   token: ***
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2296540Z   ssh-strict: true
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2296920Z   ssh-user: git
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2297278Z   clean: true
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2297665Z   sparse-checkout-cone-mode: true
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2298346Z   fetch-tags: false
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2298756Z   show-progress: true
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2299143Z   lfs: false
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2299504Z   submodules: false
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2299907Z   set-safe-directory: true
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.2300575Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3368888Z Syncing repository: Nitin-2468-dev/Discovery
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3370602Z ##[group]Getting Git version info
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3371281Z Working directory is '/home/runner/work/Discovery/Discovery'
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3372285Z [command]/usr/bin/git version
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3464311Z git version 2.52.0
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3490481Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3510895Z Temporarily overriding HOME='/home/runner/work/_temp/7f5e7bf2-98fd-4353-9266-afc123562377' before making global git config changes
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3512212Z Adding repository directory to the temporary git global config as a safe directory
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3516023Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Discovery/Discovery
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3557291Z Deleting the contents of '/home/runner/work/Discovery/Discovery'
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3561443Z ##[group]Initializing the repository
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3566108Z [command]/usr/bin/git init /home/runner/work/Discovery/Discovery
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3694679Z hint: Using 'master' as the name for the initial branch. This default branch name
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3696259Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3697210Z hint: to use in all of your new repositories, which will suppress this warning,
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3698521Z hint: call:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3699405Z hint:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3700040Z hint: 	git config --global init.defaultBranch <name>
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3701091Z hint:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3702121Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3703807Z hint: 'development'. The just-created branch can be renamed via this command:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3705145Z hint:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3705859Z hint: 	git branch -m <name>
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3706732Z hint:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3707806Z hint: Disable this message with "git config set advice.defaultBranchName false"
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3709790Z Initialized empty Git repository in /home/runner/work/Discovery/Discovery/.git/
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3712780Z [command]/usr/bin/git remote add origin https://github.com/Nitin-2468-dev/Discovery
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3746608Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3747802Z ##[group]Disabling automatic garbage collection
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3751826Z [command]/usr/bin/git config --local gc.auto 0
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3780449Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3781642Z ##[group]Setting up auth
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3787883Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.3818791Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4200710Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4230828Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4446264Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4478407Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4695741Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4729035Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4729885Z ##[group]Fetching the repository
+lint	Run actions/checkout@v4	2026-01-21T11:47:48.4738759Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0248707Z From https://github.com/Nitin-2468-dev/Discovery
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0251024Z  * [new branch]      chore/fix-lint-tests-2026-01-11 -> origin/chore/fix-lint-tests-2026-01-11
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0253585Z  * [new branch]      ci/allow-precommit-auto-commit -> origin/ci/allow-precommit-auto-commit
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0256190Z  * [new branch]      ci/parallel-tests-snapshot-20260117 -> origin/ci/parallel-tests-snapshot-20260117
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0258665Z  * [new branch]      ci/preflight-lint-fixes -> origin/ci/preflight-lint-fixes
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0260448Z  * [new branch]      ci/type-fixes           -> origin/ci/type-fixes
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0262110Z  * [new branch]      docs/update-scope-orchestrator -> origin/docs/update-scope-orchestrator
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0264023Z  * [new branch]      feat/domain-helper-fallback -> origin/feat/domain-helper-fallback
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0265740Z  * [new branch]      feat/investigate-cli    -> origin/feat/investigate-cli
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0267569Z  * [new branch]      feature/gap-detection/run-seed-trial -> origin/feature/gap-detection/run-seed-trial
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0270147Z  * [new branch]      feature/gap-detection/weight-sweep -> origin/feature/gap-detection/weight-sweep
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0272444Z  * [new branch]      fix/gap-recency-clamp   -> origin/fix/gap-recency-clamp
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0274772Z  * [new branch]      fix/orchestrator-gap-suggest-domains -> origin/fix/orchestrator-gap-suggest-domains
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0277005Z  * [new branch]      master                  -> origin/master
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0279330Z  * [new branch]      policy/add-threaded-crawler -> origin/policy/add-threaded-crawler
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0281432Z  * [new branch]      refactor/seeds-run      -> origin/refactor/seeds-run
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0282923Z  * [new tag]         v0.1.1                  -> v0.1.1
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0284070Z  * [new tag]         v0.3                    -> v0.3
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0285238Z  * [new tag]         v0.4.0                  -> v0.4.0
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0286388Z  * [new tag]         v0.4.1                  -> v0.4.1
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0287506Z  * [new tag]         v0.4.2                  -> v0.4.2
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0288825Z  * [new tag]         v0.5                    -> v0.5
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0329809Z [command]/usr/bin/git branch --list --remote origin/master
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0356878Z   origin/master
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0366726Z [command]/usr/bin/git rev-parse refs/remotes/origin/master
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0387204Z 58fc863fb3b5016109c8674311c64766c7f3bf07
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0393687Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0395066Z ##[group]Determining the checkout info
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0396545Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0399442Z [command]/usr/bin/git sparse-checkout disable
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0440254Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0466499Z ##[group]Checking out the ref
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.0471547Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.1002223Z Reset branch 'master'
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.1003461Z branch 'master' set up to track 'origin/master'.
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.1015782Z ##[endgroup]
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.1054975Z [command]/usr/bin/git log -1 --format=%H
+lint	Run actions/checkout@v4	2026-01-21T11:47:49.1077464Z 58fc863fb3b5016109c8674311c64766c7f3bf07
+lint	Set up Python	﻿2026-01-21T11:47:49.1354767Z ##[group]Run actions/setup-python@v4
+lint	Set up Python	2026-01-21T11:47:49.1355531Z with:
+lint	Set up Python	2026-01-21T11:47:49.1355972Z   python-version: 3.11
+lint	Set up Python	2026-01-21T11:47:49.1356580Z   check-latest: false
+lint	Set up Python	2026-01-21T11:47:49.1357405Z   token: ***
+lint	Set up Python	2026-01-21T11:47:49.1357875Z   update-environment: true
+lint	Set up Python	2026-01-21T11:47:49.1358850Z   allow-prereleases: false
+lint	Set up Python	2026-01-21T11:47:49.1359439Z ##[endgroup]
+lint	Set up Python	2026-01-21T11:47:49.3077408Z ##[group]Installed versions
+lint	Set up Python	2026-01-21T11:47:49.3200718Z Successfully set up CPython (3.11.14)
+lint	Set up Python	2026-01-21T11:47:49.3203234Z ##[endgroup]
+lint	Install tools	﻿2026-01-21T11:47:49.3351640Z ##[group]Run pip install --upgrade pip
+lint	Install tools	2026-01-21T11:47:49.3353065Z [36;1mpip install --upgrade pip[0m
+lint	Install tools	2026-01-21T11:47:49.3354718Z [36;1mpip install ruff mypy pre-commit black==25.12.0 isort==7.0.0 types-PyYAML[0m
+lint	Install tools	2026-01-21T11:47:49.3421388Z shell: /usr/bin/bash -e {0}
+lint	Install tools	2026-01-21T11:47:49.3422510Z env:
+lint	Install tools	2026-01-21T11:47:49.3423630Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Install tools	2026-01-21T11:47:49.3425375Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+lint	Install tools	2026-01-21T11:47:49.3427130Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Install tools	2026-01-21T11:47:49.3428918Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Install tools	2026-01-21T11:47:49.3430564Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Install tools	2026-01-21T11:47:49.3432132Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+lint	Install tools	2026-01-21T11:47:49.3433472Z ##[endgroup]
+lint	Install tools	2026-01-21T11:47:50.1215500Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/site-packages (25.3)
+lint	Install tools	2026-01-21T11:47:51.0974718Z Collecting ruff
+lint	Install tools	2026-01-21T11:47:51.1536069Z   Downloading ruff-0.14.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (26 kB)
+lint	Install tools	2026-01-21T11:47:51.2605836Z Collecting mypy
+lint	Install tools	2026-01-21T11:47:51.2646514Z   Downloading mypy-1.19.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.2 kB)
+lint	Install tools	2026-01-21T11:47:51.3048996Z Collecting pre-commit
+lint	Install tools	2026-01-21T11:47:51.3085242Z   Downloading pre_commit-4.5.1-py2.py3-none-any.whl.metadata (1.2 kB)
+lint	Install tools	2026-01-21T11:47:51.3722794Z Collecting black==25.12.0
+lint	Install tools	2026-01-21T11:47:51.3765579Z   Downloading black-25.12.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (86 kB)
+lint	Install tools	2026-01-21T11:47:51.4299122Z Collecting isort==7.0.0
+lint	Install tools	2026-01-21T11:47:51.4338347Z   Downloading isort-7.0.0-py3-none-any.whl.metadata (11 kB)
+lint	Install tools	2026-01-21T11:47:51.4523094Z Collecting types-PyYAML
+lint	Install tools	2026-01-21T11:47:51.4561814Z   Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl.metadata (1.7 kB)
+lint	Install tools	2026-01-21T11:47:51.4756460Z Collecting click>=8.0.0 (from black==25.12.0)
+lint	Install tools	2026-01-21T11:47:51.4791903Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+lint	Install tools	2026-01-21T11:47:51.4894393Z Collecting mypy-extensions>=0.4.3 (from black==25.12.0)
+lint	Install tools	2026-01-21T11:47:51.4929724Z   Downloading mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+lint	Install tools	2026-01-21T11:47:51.5103179Z Collecting packaging>=22.0 (from black==25.12.0)
+lint	Install tools	2026-01-21T11:47:51.5139130Z   Downloading packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+lint	Install tools	2026-01-21T11:47:51.5269415Z Collecting pathspec>=0.9.0 (from black==25.12.0)
+lint	Install tools	2026-01-21T11:47:51.5304000Z   Downloading pathspec-1.0.3-py3-none-any.whl.metadata (13 kB)
+lint	Install tools	2026-01-21T11:47:51.5506675Z Collecting platformdirs>=2 (from black==25.12.0)
+lint	Install tools	2026-01-21T11:47:51.5544914Z   Downloading platformdirs-4.5.1-py3-none-any.whl.metadata (12 kB)
+lint	Install tools	2026-01-21T11:47:51.5699348Z Collecting pytokens>=0.3.0 (from black==25.12.0)
+lint	Install tools	2026-01-21T11:47:51.5736422Z   Downloading pytokens-0.4.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (3.8 kB)
+lint	Install tools	2026-01-21T11:47:51.5926238Z Collecting typing_extensions>=4.6.0 (from mypy)
+lint	Install tools	2026-01-21T11:47:51.5961054Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+lint	Install tools	2026-01-21T11:47:51.6850854Z Collecting librt>=0.6.2 (from mypy)
+lint	Install tools	2026-01-21T11:47:51.6892792Z   Downloading librt-0.7.8-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.3 kB)
+lint	Install tools	2026-01-21T11:47:51.7049700Z Collecting cfgv>=2.0.0 (from pre-commit)
+lint	Install tools	2026-01-21T11:47:51.7085823Z   Downloading cfgv-3.5.0-py2.py3-none-any.whl.metadata (8.9 kB)
+lint	Install tools	2026-01-21T11:47:51.7526754Z Collecting identify>=1.0.0 (from pre-commit)
+lint	Install tools	2026-01-21T11:47:51.7564853Z   Downloading identify-2.6.16-py2.py3-none-any.whl.metadata (4.4 kB)
+lint	Install tools	2026-01-21T11:47:51.7718540Z Collecting nodeenv>=0.11.1 (from pre-commit)
+lint	Install tools	2026-01-21T11:47:51.7753656Z   Downloading nodeenv-1.10.0-py2.py3-none-any.whl.metadata (24 kB)
+lint	Install tools	2026-01-21T11:47:51.8129437Z Collecting pyyaml>=5.1 (from pre-commit)
+lint	Install tools	2026-01-21T11:47:51.8166405Z   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+lint	Install tools	2026-01-21T11:47:51.8592334Z Collecting virtualenv>=20.10.0 (from pre-commit)
+lint	Install tools	2026-01-21T11:47:51.8630075Z   Downloading virtualenv-20.36.1-py3-none-any.whl.metadata (4.7 kB)
+lint	Install tools	2026-01-21T11:47:51.8876193Z Collecting distlib<1,>=0.3.7 (from virtualenv>=20.10.0->pre-commit)
+lint	Install tools	2026-01-21T11:47:51.8916484Z   Downloading distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
+lint	Install tools	2026-01-21T11:47:51.9116363Z Collecting filelock<4,>=3.20.1 (from virtualenv>=20.10.0->pre-commit)
+lint	Install tools	2026-01-21T11:47:51.9150068Z   Downloading filelock-3.20.3-py3-none-any.whl.metadata (2.1 kB)
+lint	Install tools	2026-01-21T11:47:51.9305467Z Downloading black-25.12.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.8 MB)
+lint	Install tools	2026-01-21T11:47:51.9540732Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 94.5 MB/s  0:00:00
+lint	Install tools	2026-01-21T11:47:51.9576610Z Downloading isort-7.0.0-py3-none-any.whl (94 kB)
+lint	Install tools	2026-01-21T11:47:51.9637218Z Downloading ruff-0.14.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.9 MB)
+lint	Install tools	2026-01-21T11:47:52.0271231Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.9/13.9 MB 224.0 MB/s  0:00:00
+lint	Install tools	2026-01-21T11:47:52.0311634Z Downloading mypy-1.19.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (13.4 MB)
+lint	Install tools	2026-01-21T11:47:52.0868864Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.4/13.4 MB 247.5 MB/s  0:00:00
+lint	Install tools	2026-01-21T11:47:52.0905001Z Downloading pre_commit-4.5.1-py2.py3-none-any.whl (226 kB)
+lint	Install tools	2026-01-21T11:47:52.0971367Z Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl (20 kB)
+lint	Install tools	2026-01-21T11:47:52.1027908Z Downloading cfgv-3.5.0-py2.py3-none-any.whl (7.4 kB)
+lint	Install tools	2026-01-21T11:47:52.1086269Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+lint	Install tools	2026-01-21T11:47:52.1144368Z Downloading identify-2.6.16-py2.py3-none-any.whl (99 kB)
+lint	Install tools	2026-01-21T11:47:52.1201876Z Downloading librt-0.7.8-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (188 kB)
+lint	Install tools	2026-01-21T11:47:52.1274504Z Downloading mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+lint	Install tools	2026-01-21T11:47:52.1342528Z Downloading nodeenv-1.10.0-py2.py3-none-any.whl (23 kB)
+lint	Install tools	2026-01-21T11:47:52.1398051Z Downloading packaging-25.0-py3-none-any.whl (66 kB)
+lint	Install tools	2026-01-21T11:47:52.1453163Z Downloading pathspec-1.0.3-py3-none-any.whl (55 kB)
+lint	Install tools	2026-01-21T11:47:52.1510262Z Downloading platformdirs-4.5.1-py3-none-any.whl (18 kB)
+lint	Install tools	2026-01-21T11:47:52.1565959Z Downloading pytokens-0.4.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (259 kB)
+lint	Install tools	2026-01-21T11:47:52.1629578Z Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+lint	Install tools	2026-01-21T11:47:52.1729208Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 71.1 MB/s  0:00:00
+lint	Install tools	2026-01-21T11:47:52.1764175Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+lint	Install tools	2026-01-21T11:47:52.1844874Z Downloading virtualenv-20.36.1-py3-none-any.whl (6.0 MB)
+lint	Install tools	2026-01-21T11:47:52.2097086Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/6.0 MB 250.2 MB/s  0:00:00
+lint	Install tools	2026-01-21T11:47:52.2130985Z Downloading distlib-0.4.0-py2.py3-none-any.whl (469 kB)
+lint	Install tools	2026-01-21T11:47:52.2199595Z Downloading filelock-3.20.3-py3-none-any.whl (16 kB)
+lint	Install tools	2026-01-21T11:47:52.3114221Z Installing collected packages: distlib, typing_extensions, types-PyYAML, ruff, pyyaml, pytokens, platformdirs, pathspec, packaging, nodeenv, mypy-extensions, librt, isort, identify, filelock, click, cfgv, virtualenv, mypy, black, pre-commit
+lint	Install tools	2026-01-21T11:47:54.4606912Z 
+lint	Install tools	2026-01-21T11:47:54.4625569Z Successfully installed black-25.12.0 cfgv-3.5.0 click-8.3.1 distlib-0.4.0 filelock-3.20.3 identify-2.6.16 isort-7.0.0 librt-0.7.8 mypy-1.19.1 mypy-extensions-1.1.0 nodeenv-1.10.0 packaging-25.0 pathspec-1.0.3 platformdirs-4.5.1 pre-commit-4.5.1 pytokens-0.4.0 pyyaml-6.0.3 ruff-0.14.13 types-PyYAML-6.0.12.20250915 typing_extensions-4.15.0 virtualenv-20.36.1
+lint	Check formatters (black + isort)	﻿2026-01-21T11:47:54.5783540Z ##[group]Run # Run Black and isort in check mode to avoid CI pushing changes
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5784104Z [36;1m# Run Black and isort in check mode to avoid CI pushing changes[0m
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5784663Z [36;1mblack --check . || (echo "Black found formatting issues; run 'black .' locally to fix them." && exit 1)[0m
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5785389Z [36;1misort --check-only . || (echo "isort found import-order issues; run 'isort .' locally to fix them." && exit 1)[0m
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5819425Z shell: /usr/bin/bash -e {0}
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5819654Z env:
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5819896Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5820335Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5820763Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5821133Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5821490Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5821894Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+lint	Check formatters (black + isort)	2026-01-21T11:47:54.5822197Z ##[endgroup]
+lint	Check formatters (black + isort)	2026-01-21T11:47:55.0247860Z would reformat /home/runner/work/Discovery/Discovery/probe/core/__init__.py
+lint	Check formatters (black + isort)	2026-01-21T11:47:55.4424157Z would reformat /home/runner/work/Discovery/Discovery/probe/crawl/fetcher.py
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.0070764Z would reformat /home/runner/work/Discovery/Discovery/tests/test_link_signals.py
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.1342939Z would reformat /home/runner/work/Discovery/Discovery/tests/test_scorer_basic.py
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.1478929Z would reformat /home/runner/work/Discovery/Discovery/tests/test_scorer_entity_regex.py
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.4273367Z would reformat /home/runner/work/Discovery/Discovery/cli.py
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.4436525Z 
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.4437042Z Oh no! 💥 💔 💥
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.4438298Z 6 files would be reformatted, 159 files would be left unchanged.
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.4664596Z Black found formatting issues; run 'black .' locally to fix them.
+lint	Check formatters (black + isort)	2026-01-21T11:47:56.4679591Z ##[error]Process completed with exit code 1.
+lint	Post Run actions/checkout@v4	﻿2026-01-21T11:47:56.4805332Z Post job cleanup.
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5742914Z [command]/usr/bin/git version
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5780016Z git version 2.52.0
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5823549Z Temporarily overriding HOME='/home/runner/work/_temp/fedc7c88-c60d-4a86-a4de-7a955c664e2f' before making global git config changes
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5824949Z Adding repository directory to the temporary git global config as a safe directory
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5837615Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Discovery/Discovery
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5872316Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.5904305Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.6135067Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.6155450Z http.https://github.com/.extraheader
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.6168643Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.6199115Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.6421194Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	Post Run actions/checkout@v4	2026-01-21T11:47:56.6452007Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	Complete job	﻿2026-01-21T11:47:56.6781493Z Cleaning up orphan processes
