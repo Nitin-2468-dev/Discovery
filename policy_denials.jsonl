@@ -48,4 +48,3 @@
 {"timestamp":"2026-01-20T17:27:12.535907Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
 {"timestamp":"2026-01-20T17:27:26.742521Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
 {"timestamp":"2026-01-20T17:27:26.745682Z","mode":"public_guarded","reason":"domain 'malicious.example' disallowed in mode 'public_guarded'","tags":["domain"],"context":{"domain":"malicious.example"}}
-

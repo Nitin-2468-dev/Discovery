@@ -261,7 +261,6 @@ def orchestrate():
     default=False,
     help="Open the generated HTML in the default web browser",
 )
-
 def orchestrate_run(
     entity_name,
     types,

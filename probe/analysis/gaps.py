@@ -92,7 +92,6 @@ class GapDetector:
         if missing and (entity_exists or self._has_documents_for_types(missing)):
             candidates = self._gather_candidates(missing)
 
-
         now = types.SimpleNamespace()
         from datetime import datetime, timezone
 
