@@ -61,6 +61,8 @@ class BreadthFirstCrawler:
         self.link_signals_enabled = bool(link_signals_enabled)
         self.link_signals_store = link_signals_store
         self.link_signals_threshold = float(link_signals_threshold)
+        # Crawl run provenance identifier (optional)
+        self.run_id: Optional[str] = None
 
     def _domain_from_url(self, url: str) -> Optional[str]:
         try:
@@ -155,6 +157,8 @@ class BreadthFirstCrawler:
             from datetime import datetime
 
             domain = self._domain_from_url(url) or ""
+            # attach provenance metadata for traceability
+            meta = {"crawl_run_id": self.run_id} if hasattr(self, "run_id") and self.run_id else None
             page = Page(
                 id=None,
                 url=url,
@@ -162,7 +166,7 @@ class BreadthFirstCrawler:
                 title=None,
                 content_hash=None,
                 relevance_score=float(self.score(res)),
-                metadata=None,
+                metadata=meta,
                 last_crawled_at=datetime.utcnow().isoformat() + "Z",
             )
             try:
@@ -184,6 +188,7 @@ class BreadthFirstCrawler:
                     hash="",
                     url=url,
                     domain=domain,
+                    metadata=meta,
                 )
                 try:
                     self.map.add_document(document)
@@ -252,6 +257,11 @@ class Orchestrator:
         self.map = map_obj
         self.crawler = BreadthFirstCrawler(map_obj, fetch_fn, scorer_fn, policy_engine)
 
+    def _generate_run_id(self) -> str:
+        import uuid
+
+        return uuid.uuid4().hex
+
     def run(
         self, seeds: List[Any], max_depth: int = 2, max_pages: int = 50
     ) -> Dict[str, int]:
@@ -262,6 +272,12 @@ class Orchestrator:
         discovered documents are persisted using `Map.add_page` and
         `Map.add_document`, and updates domain statistics.
         """
+        # generate and attach a run identifier for provenance
+        run_id = self._generate_run_id()
+        try:
+            self.crawler.run_id = run_id
+        except Exception:
+            pass
         out = self.crawler.crawl(seeds, max_depth=max_depth, max_pages=max_pages)
 
         # Persist to map if crawler produced page-level results on `self.map`.

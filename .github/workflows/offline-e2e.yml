@@ -1,0 +1,24 @@
+name: 'Demo: offline e2e'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 1' # weekly on Mondays at 08:00 UTC
+
+jobs:
+  offline-e2e:
+    name: 'Offline E2E smoke'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Run offline e2e smoke test
+        run: |
+          python -m pytest -q tests/test_offline_e2e.py::test_offline_e2e_smoke -q
