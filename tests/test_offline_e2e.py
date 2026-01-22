@@ -236,7 +236,30 @@ def test_offline_e2e_link_signals(tmp_path: Path, demo_site):
     # write demo artifacts for reviewer inspection
     out_path = Path("tmp_demo_out")
     out_path.mkdir(exist_ok=True)
-    demo_results = {"crawler_out": res, "map_summary": m.get_map_summary()}
+
+    # extract a crawl_run_id (if any) from persisted pages for provenance
+    cur_c = m.conn.execute(
+        "SELECT metadata FROM pages WHERE metadata IS NOT NULL LIMIT 1"
+    )
+    row_c = cur_c.fetchone()
+    crawl_run_id = None
+    if row_c and row_c["metadata"]:
+        try:
+            _md = cast(Dict[str, Any], json.loads(row_c["metadata"]))
+            crawl_run_id = _md.get("crawl_run_id")
+        except Exception:
+            crawl_run_id = None
+
+    # include link-signals counts for quick inspection
+    link_context_count = len(contexts)
+
+    demo_results = {
+        "crawler_out": res,
+        "map_summary": m.get_map_summary(),
+        "crawl_run_id": crawl_run_id,
+        "link_context_count": link_context_count,
+    }
+
     (out_path / "demo_results.json").write_text(json.dumps(demo_results))
     (out_path / "demo_summary.html").write_text(
         """
