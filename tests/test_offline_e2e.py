@@ -3,7 +3,7 @@ import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Tuple, Iterator, cast, Dict, Any
+from typing import Any, Dict, Iterator, Tuple, cast
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
@@ -172,6 +172,7 @@ def test_offline_e2e_smoke(tmp_path: Path, demo_site):
 
     # validate crawl result
     from typing import Dict
+
     crawl = cast(Dict[str, int], out.get("crawl_result", {}))
     assert crawl.get("pages_fetched", 0) >= 1
     assert crawl.get("documents_found", 0) >= 1
