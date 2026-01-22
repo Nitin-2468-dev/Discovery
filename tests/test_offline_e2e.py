@@ -3,7 +3,7 @@ import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Iterator, cast, Dict, Any
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlopen
 
@@ -14,7 +14,7 @@ from probe.orchestrator import Orchestrator
 
 
 @pytest.fixture()
-def demo_site(tmp_path: Path) -> Tuple[str, Path]:
+def demo_site(tmp_path: Path) -> Iterator[Tuple[str, Path]]:
     """Create a small demo site and run a simple HTTP server to serve it."""
     site_dir = tmp_path / "demo_site"
     site_dir.mkdir()
@@ -55,7 +55,10 @@ def demo_site(tmp_path: Path) -> Tuple[str, Path]:
             pass
 
     server = ThreadingHTTPServer(("", 0), Handler)
-    host, port = server.server_address
+    addr = server.server_address
+    # server_address may be a 2- or 4-tuple depending on family; use indices
+    host = addr[0]
+    port = addr[1]
     # server binds to 0.0.0.0; use localhost for client connections
     base_url = f"http://127.0.0.1:{port}"
 
@@ -168,8 +171,10 @@ def test_offline_e2e_smoke(tmp_path: Path, demo_site):
     )
 
     # validate crawl result
-    assert out["crawl_result"]["pages_fetched"] >= 1
-    assert out["crawl_result"]["documents_found"] >= 1
+    from typing import Dict
+    crawl = cast(Dict[str, int], out.get("crawl_result", {}))
+    assert crawl.get("pages_fetched", 0) >= 1
+    assert crawl.get("documents_found", 0) >= 1
 
     # validate map now has documents and domain stats updated
     summary_after = m.get_map_summary()
@@ -184,13 +189,15 @@ def test_offline_e2e_smoke(tmp_path: Path, demo_site):
     )
     row = cur.fetchone()
     assert row is not None
-    metadata = json.loads(row[0]) if row and row[0] else {}
-    assert "crawl_run_id" in metadata and metadata["crawl_run_id"]
+    raw_meta = cast(Dict[str, Any], row).get("metadata")  # type: ignore[index]
+    metadata = cast(Dict[str, Any], json.loads(raw_meta)) if raw_meta else {}
+    assert metadata.get("crawl_run_id")
 
     cur2 = m.conn.execute(
         "SELECT metadata FROM documents WHERE domain = ? LIMIT 1", (domain,)
     )
     row2 = cur2.fetchone()
     assert row2 is not None
-    metadata2 = json.loads(row2[0]) if row2 and row2[0] else {}
-    assert "crawl_run_id" in metadata2 and metadata2["crawl_run_id"]
+    raw_meta2 = cast(Dict[str, Any], row2).get("metadata")  # type: ignore[index]
+    metadata2 = cast(Dict[str, Any], json.loads(raw_meta2)) if raw_meta2 else {}
+    assert metadata2.get("crawl_run_id")
