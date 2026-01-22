@@ -57,7 +57,6 @@ def demo_site(tmp_path: Path) -> Iterator[Tuple[str, Path]]:
     server = ThreadingHTTPServer(("", 0), Handler)
     addr = server.server_address
     # server_address may be a 2- or 4-tuple depending on family; use indices
-    host = addr[0]
     port = addr[1]
     # server binds to 0.0.0.0; use localhost for client connections
     base_url = f"http://127.0.0.1:{port}"
@@ -171,8 +170,6 @@ def test_offline_e2e_smoke(tmp_path: Path, demo_site):
     )
 
     # validate crawl result
-    from typing import Dict
-
     crawl = cast(Dict[str, int], out.get("crawl_result", {}))
     assert crawl.get("pages_fetched", 0) >= 1
     assert crawl.get("documents_found", 0) >= 1
