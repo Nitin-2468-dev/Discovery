@@ -158,7 +158,11 @@ class BreadthFirstCrawler:
 
             domain = self._domain_from_url(url) or ""
             # attach provenance metadata for traceability
-            meta = {"crawl_run_id": self.run_id} if hasattr(self, "run_id") and self.run_id else None
+            meta = (
+                {"crawl_run_id": self.run_id}
+                if hasattr(self, "run_id") and self.run_id
+                else None
+            )
             page = Page(
                 id=None,
                 url=url,
