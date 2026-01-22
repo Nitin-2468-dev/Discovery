@@ -10,7 +10,8 @@ from urllib.request import urlopen
 import pytest
 
 from probe.core.map import Map
-from probe.orchestrator import Orchestrator
+from probe.orchestrator import Orchestrator, BreadthFirstCrawler
+from probe.crawl.link_signals import LinkContextStore
 
 
 @pytest.fixture()
@@ -187,7 +188,7 @@ def test_offline_e2e_smoke(tmp_path: Path, demo_site):
     )
     row = cur.fetchone()
     assert row is not None
-    raw_meta = cast(Dict[str, Any], row).get("metadata")  # type: ignore[index]
+    raw_meta = row["metadata"] if row and row["metadata"] else None
     metadata = cast(Dict[str, Any], json.loads(raw_meta)) if raw_meta else {}
     assert metadata.get("crawl_run_id")
 
@@ -196,6 +197,52 @@ def test_offline_e2e_smoke(tmp_path: Path, demo_site):
     )
     row2 = cur2.fetchone()
     assert row2 is not None
-    raw_meta2 = cast(Dict[str, Any], row2).get("metadata")  # type: ignore[index]
+    raw_meta2 = row2["metadata"] if row2 and row2["metadata"] else None
     metadata2 = cast(Dict[str, Any], json.loads(raw_meta2)) if raw_meta2 else {}
     assert metadata2.get("crawl_run_id")
+
+
+def test_offline_e2e_link_signals(tmp_path: Path, demo_site):
+    """Validate link-signals store is used and that prioritized links are followed.
+
+    This test instantiates a BreadthFirstCrawler with a LinkContextStore and
+    a low threshold so relevant links are prioritized and persisted to the store.
+    """
+    base_url, site_dir = demo_site
+    domain = urlparse(base_url).netloc
+
+    db_path = tmp_path / "map_ls.db"
+    m = Map(str(db_path))
+
+    store = LinkContextStore(":memory:")
+    crawler = BreadthFirstCrawler(
+        map_obj=m,
+        fetch_fn=simple_fetch_fn,
+        scorer_fn=lambda res: 1.0,
+        link_signals_enabled=True,
+        link_signals_store=store,
+        link_signals_threshold=0.0,
+    )
+
+    seeds = [base_url + "/index.html"]
+    res = crawler.crawl(seeds, max_depth=2, max_pages=10)
+
+    # ensure the store recorded at least one link context
+    contexts = store.list_recent()
+    assert len(contexts) >= 1
+
+    # ensure crawler found documents (the prioritized links were followed)
+    assert res.get("documents_found", 0) >= 1
+
+    # write demo artifacts for reviewer inspection
+    out_path = Path("tmp_demo_out")
+    out_path.mkdir(exist_ok=True)
+    demo_results = {"crawler_out": res, "map_summary": m.get_map_summary()}
+    (out_path / "demo_results.json").write_text(json.dumps(demo_results))
+    (out_path / "demo_summary.html").write_text(
+        """
+        <html><body><h1>Offline E2E Demo Results</h1>
+        <pre>{}</pre>
+        </body></html>
+        """.format(json.dumps(demo_results, indent=2))
+    )
