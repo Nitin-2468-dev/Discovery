@@ -1,11 +1,8 @@
 import os
 import re
-import tempfile
 import threading
-import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
@@ -115,7 +112,7 @@ def test_orchestrator_e2e_smoke(tmp_path):
         domains = m.get_high_yield_domains(limit=10, min_pages=1)
         found = False
         for d in domains:
-            if d.domain_name == f"127.0.0.1:{port}" or d.domain_name == f"127.0.0.1":
+            if d.domain_name == f"127.0.0.1:{port}" or d.domain_name == "127.0.0.1":
                 found = True
                 assert d.pages_crawled >= 1
         assert found, "Expected to find the test domain in high-yield domains"

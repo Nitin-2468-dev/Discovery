@@ -10,10 +10,23 @@ concurrency, better politeness, and richer stop conditions.
 """
 
 from collections import deque
-from typing import Callable, Dict, Iterable, List, Optional, Set
+from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Set
 
 from probe.core.map import Document, Map, Page
 from probe.policy import PolicyEngine
+
+
+class GapDetectorProtocol(Protocol):
+    def analyze_entity_gaps(
+        self,
+        entity_name: str,
+        desired_doc_types: List[str],
+        include_scores: bool = False,
+    ) -> Dict[str, Any]: ...
+
+
+class SeedGeneratorProtocol(Protocol):
+    def generate_seeds(self, *args, **kwargs) -> List[Dict[str, Any]]: ...
 
 
 class BreadthFirstCrawler:
@@ -240,7 +253,7 @@ class Orchestrator:
         self.crawler = BreadthFirstCrawler(map_obj, fetch_fn, scorer_fn, policy_engine)
 
     def run(
-        self, seeds: List[str], max_depth: int = 2, max_pages: int = 50
+        self, seeds: List[Any], max_depth: int = 2, max_pages: int = 50
     ) -> Dict[str, int]:
         """Run a crawl and persist findings to the Map when available.
 
@@ -309,8 +322,8 @@ class Orchestrator:
         self,
         entity_name: str,
         desired_doc_types: List[str],
-        gap_detector: object | None = None,
-        seed_generator: object | None = None,
+        gap_detector: GapDetectorProtocol | None = None,
+        seed_generator: SeedGeneratorProtocol | None = None,
         max_seeds: int = 20,
         max_depth: int = 2,
         max_pages: int = 50,
