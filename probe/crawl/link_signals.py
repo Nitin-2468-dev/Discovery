@@ -150,7 +150,11 @@ class LinkContextStore:
             ),
         )
         self._conn.commit()
-        return cur.lastrowid
+        # sqlite3.Cursor.lastrowid can be Optional[int]; ensure we return an int
+        last = cur.lastrowid
+        if last is None:
+            return 0
+        return last
 
     def list_recent(self, limit: int = 100) -> List[LinkContext]:
         cur = self._conn.execute(
