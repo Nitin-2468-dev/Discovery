@@ -10,8 +10,8 @@ from urllib.request import urlopen
 import pytest
 
 from probe.core.map import Map
-from probe.orchestrator import Orchestrator, BreadthFirstCrawler
 from probe.crawl.link_signals import LinkContextStore
+from probe.orchestrator import BreadthFirstCrawler, Orchestrator
 
 
 @pytest.fixture()
@@ -209,7 +209,6 @@ def test_offline_e2e_link_signals(tmp_path: Path, demo_site):
     a low threshold so relevant links are prioritized and persisted to the store.
     """
     base_url, site_dir = demo_site
-    domain = urlparse(base_url).netloc
 
     db_path = tmp_path / "map_ls.db"
     m = Map(str(db_path))
@@ -244,5 +243,7 @@ def test_offline_e2e_link_signals(tmp_path: Path, demo_site):
         <html><body><h1>Offline E2E Demo Results</h1>
         <pre>{}</pre>
         </body></html>
-        """.format(json.dumps(demo_results, indent=2))
+        """.format(
+            json.dumps(demo_results, indent=2)
+        )
     )
