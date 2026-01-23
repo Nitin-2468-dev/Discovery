@@ -263,13 +263,35 @@ class Orchestrator:
 
     def __init__(
         self,
-        map_obj: Map,
-        fetch_fn: Callable,
-        scorer_fn: Callable,
+        map_obj: Optional[Map] = None,
+        fetch_fn: Optional[Callable] = None,
+        scorer_fn: Optional[Callable] = None,
         policy_engine: Optional[PolicyEngine] = None,
     ):
-        self.map = map_obj
-        self.crawler = BreadthFirstCrawler(map_obj, fetch_fn, scorer_fn, policy_engine)
+        # Accept either a Map or a MapAdapter; wrap Map into MapAdapter for
+        # consistent access to the underlying connection and helpers.
+        try:
+            import probe.core.map_adapter as _map_adapter_module
+        except Exception:
+            _map_adapter_module = None  # type: ignore
+
+        if map_obj is None:
+            self.map = None
+        else:
+            # If MapAdapter module is available and map_obj is not an adapter, wrap it
+            if _map_adapter_module is not None and not isinstance(
+                map_obj, getattr(_map_adapter_module, "MapAdapter")
+            ):
+                self.map = _map_adapter_module.MapAdapter(map_obj)
+            else:
+                self.map = map_obj
+
+        self.crawler = BreadthFirstCrawler(
+            self.map if self.map is not None else None,
+            fetch_fn,
+            scorer_fn,
+            policy_engine,
+        )
 
     def _generate_run_id(self) -> str:
         import uuid
