@@ -210,6 +210,16 @@ class BreadthFirstCrawler:
     def crawl(
         self, seeds: Iterable[str], max_depth: int = 2, max_pages: int = 50
     ) -> Dict[str, int]:
+        # Ensure a crawl run identifier exists for provenance (for direct crawler runs)
+        if not getattr(self, "run_id", None):
+            try:
+                import uuid
+
+                self.run_id = uuid.uuid4().hex
+            except Exception:
+                # best-effort: silently continue without run_id
+                self.run_id = None
+
         visited: Set[str] = set()
         q = deque([(s, 0) for s in seeds])
         pages_fetched = 0

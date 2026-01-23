@@ -270,3 +270,91 @@ def test_offline_e2e_link_signals(tmp_path: Path, demo_site):
             json.dumps(demo_results, indent=2)
         )
     )
+
+
+def test_breadthfirstcrawler_sets_run_id(tmp_path: Path, demo_site):
+    """When the crawler is invoked directly, it should generate and persist a run_id."""
+    base_url, _ = demo_site
+
+    db_path = tmp_path / "map_runid.db"
+    m = Map(str(db_path))
+
+    crawler = BreadthFirstCrawler(
+        map_obj=m,
+        fetch_fn=simple_fetch_fn,
+        scorer_fn=lambda res: 1.0,
+    )
+
+    seeds = [base_url + "/index.html"]
+    # execute the crawl (result not needed for this assertion)
+    crawler.crawl(seeds, max_depth=2, max_pages=10)
+
+    # crawler should have a run_id set
+    assert getattr(crawler, "run_id", None)
+
+    # persisted page metadata should include crawl_run_id matching crawler.run_id
+    cur = m.conn.execute(
+        "SELECT metadata FROM pages WHERE metadata IS NOT NULL LIMIT 1"
+    )
+    row = cur.fetchone()
+    assert row is not None
+    raw_meta = row["metadata"] if row and row["metadata"] else None
+    metadata = cast(Dict[str, Any], json.loads(raw_meta)) if raw_meta else {}
+    assert metadata.get("crawl_run_id") == crawler.run_id
+
+
+def test_link_signals_priority_effect(tmp_path: Path, demo_site):
+    """Verify link-signals produces prioritized enqueue decisions and persists contexts.
+
+    This test calls the crawler's internal prioritization helper in a deterministic
+    way with a crafted page result to assert the link is prioritized and the
+    LinkContextStore records the context.
+    """
+    base_url, _ = demo_site
+
+    m = Map(str(tmp_path / "map_ls_effect2.db"))
+    store = LinkContextStore(":memory:")
+    crawler = BreadthFirstCrawler(
+        map_obj=m,
+        fetch_fn=simple_fetch_fn,
+        scorer_fn=lambda res: 1.0,
+        link_signals_enabled=True,
+        link_signals_store=store,
+        link_signals_threshold=0.0,
+    )
+
+    # craft a page result whose text contains the anchor context we expect
+    page_url = base_url + "/index.html"
+    fetch_res = {
+        "status_code": 200,
+        "links": [base_url + "/doc.pdf"],
+        "content_type": "text/html",
+        "text": "\n".join(
+            [
+                "<html><body>",
+                "<p>Important: see the Download PDF link below</p>",
+                '<a href="/doc.pdf">Download PDF</a>',
+                "</body></html>",
+            ]
+        ),
+        "url": page_url,
+    }
+
+    from collections import deque
+
+    q = deque()
+    enqueued = crawler._try_enqueue_with_link_signals(
+        href=base_url + "/doc.pdf",
+        anchor_text="Download PDF",
+        res=fetch_res,
+        q=q,
+        depth=0,
+    )
+
+    # prioritized enqueue should have returned True and placed the link at the left
+    assert enqueued is True
+    assert q and q[0][0].endswith("/doc.pdf")
+
+    # store should have recorded at least one context
+    contexts = store.list_recent()
+    assert len(contexts) >= 1
