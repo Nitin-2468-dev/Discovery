@@ -341,8 +341,9 @@ def test_link_signals_priority_effect(tmp_path: Path, demo_site):
     }
 
     from collections import deque
+    from typing import Deque, Tuple
 
-    q = deque()
+    q: Deque[Tuple[str, int]] = deque()
     enqueued = crawler._try_enqueue_with_link_signals(
         href=base_url + "/doc.pdf",
         anchor_text="Download PDF",
