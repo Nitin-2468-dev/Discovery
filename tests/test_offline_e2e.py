@@ -358,3 +358,73 @@ def test_link_signals_priority_effect(tmp_path: Path, demo_site):
     # store should have recorded at least one context
     contexts = store.list_recent()
     assert len(contexts) >= 1
+
+
+def test_link_signals_integration_effect(tmp_path: Path, demo_site):
+    """Integration test: with limited max_pages, link-signals should prioritize a direct
+    document link on the index page so that a document is discovered, while without
+    link-signals the doc is missed due to enqueue ordering.
+    """
+    base_url, site_dir = demo_site
+
+    # Overwrite the demo site with a deterministic structure:
+    # index.html -> page1.html, page2.html, doc.pdf (doc link last)
+    (site_dir / "index.html").write_text(
+        """
+        <html><body>
+        <h1>Priority Test</h1>
+        <a href="/page1.html">Page 1</a>
+        <a href="/page2.html">Page 2</a>
+        <a href="/doc.pdf">Download PDF</a>
+        </body></html>
+        """
+    )
+
+    (site_dir / "page1.html").write_text("<html><body><h1>Page 1</h1></body></html>")
+    (site_dir / "page2.html").write_text("<html><body><h1>Page 2</h1></body></html>")
+    (site_dir / "doc.pdf").write_bytes(b"%PDF-1.4\n%deterministic\ncontent")
+
+    seeds = [base_url + "/index.html"]
+
+    # run without link-signals (small budget so order matters)
+    m1 = Map(str(tmp_path / "map_nols_integ.db"))
+    crawler1 = BreadthFirstCrawler(
+        map_obj=m1,
+        fetch_fn=simple_fetch_fn,
+        scorer_fn=lambda res: 1.0,
+        link_signals_enabled=False,
+    )
+    res1 = crawler1.crawl(seeds, max_depth=2, max_pages=2)
+    docs1 = res1.get("documents_found", 0)
+
+    # run with link-signals enabled and low threshold so the PDF link is prioritized
+    m2 = Map(str(tmp_path / "map_ls_integ.db"))
+    store = LinkContextStore(":memory:")
+    crawler2 = BreadthFirstCrawler(
+        map_obj=m2,
+        fetch_fn=simple_fetch_fn,
+        scorer_fn=lambda res: 1.0,
+        link_signals_enabled=True,
+        link_signals_store=store,
+        link_signals_threshold=0.0,
+    )
+    res2 = crawler2.crawl(seeds, max_depth=2, max_pages=2)
+    docs2 = res2.get("documents_found", 0)
+
+    # link-signals run should find at least as many documents, and in this crafted
+    # scenario it should find the PDF whereas the no-ls run will miss it due to order
+    assert docs2 >= docs1
+    assert docs2 > 0
+
+    # verify a context was persisted and crawl_run_id was recorded on persisted pages
+    contexts = store.list_recent()
+    assert len(contexts) >= 1
+
+    cur = m2.conn.execute(
+        "SELECT metadata FROM pages WHERE metadata IS NOT NULL LIMIT 1"
+    )
+    row = cur.fetchone()
+    assert row is not None
+    raw_meta = row["metadata"] if row and row["metadata"] else None
+    metadata = cast(Dict[str, Any], json.loads(raw_meta)) if raw_meta else {}
+    assert metadata.get("crawl_run_id")
