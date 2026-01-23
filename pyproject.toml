@@ -36,6 +36,8 @@ line-length = 88
 target-version = "py311"
 select = ["E", "F", "W", "C", "N"]
 ignore = ["E501", "D"]
+# Exclude temporary and virtualenv folders from linting to avoid noisy failures
+exclude = ["tmp_demo_out/", "tmp_demo_artifacts/", "tmp_ci_check/", ".venv/", "build/"]
 
 
 [tool.mypy]

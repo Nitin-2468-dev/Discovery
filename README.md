@@ -116,6 +116,32 @@ python scripts/demo_e2e.py --output-dir ./demo-out
 
 This creates `demo-out/demo_results.json` and `demo-out/demo_summary.html` showing seeds, crawl results, domains, pages, and documents for an isolated test site.
 
+## Developer commands 🔧
+
+To keep the repository consistent with CI, use the included Makefile helpers:
+
+- Format code (Black + isort):
+
+```bash
+make format
+```
+
+- Run CI-style checks locally (formatters in check mode + pre-commit + ruff + mypy):
+
+```bash
+make ci-checks
+```
+
+Recommended setup for contributors:
+
+```bash
+python -m pip install --upgrade pip
+pip install -r dev-requirements.txt
+pre-commit install
+```
+
+Run `make ci-checks` before creating a PR to catch formatting, lint, and typing issues locally.
+
 - Run in CI (manual or scheduled): There's a workflow `Demo: e2e demo` that can be run from the Actions tab (or runs weekly). It uploads `demo_results.json` and `demo_summary.html` as artifacts for reviewers.
 
 How to access demo artifacts
