@@ -47,6 +47,12 @@ Orchestrator / Investigator
 - `get_high_yield_domains()` → identify good sources
 - `has_documents_for_entity(name, type)` → detect gaps
 
+### MapAdapter (compatibility layer) 🔁
+
+To simplify migration and keep callers insulated from DB shape changes, we provide a small compatibility layer, `MapAdapter`, which wraps `Map` and exposes a stable, minimal surface (e.g., `add_page`, `add_document`, `get_map_summary`, `extract_metadata`). See `docs/map_adapter_guide.md` for usage examples and a short migration checklist. 
+
+This helps consumers (Orchestrator, tests, integration runners) evolve safely without coupling to raw DB details.
+
 ---
 
 ### 2. The Orchestrator (Decision Engine)

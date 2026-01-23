@@ -1,0 +1,304 @@
+lint	UNKNOWN STEP	﻿2026-01-21T14:53:40.4633613Z Current runner version: '2.331.0'
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4659000Z ##[group]Runner Image Provisioner
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4659891Z Hosted Compute Agent
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4660412Z Version: 20251211.462
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4661119Z Commit: 6cbad8c2bb55d58165063d031ccabf57e2d2db61
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4661827Z Build Date: 2025-12-11T16:28:49Z
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4662650Z Worker ID: {9122f46d-6f8a-4d68-939e-f9258102de17}
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4663467Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4663966Z ##[group]Operating System
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4664515Z Ubuntu
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4665034Z 24.04.3
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4665519Z LTS
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4665951Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4666537Z ##[group]Runner Image
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4667080Z Image: ubuntu-24.04
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4667572Z Version: 20260111.209.1
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4668637Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260111.209/images/ubuntu/Ubuntu2404-Readme.md
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4670131Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260111.209
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4671177Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4672392Z ##[group]GITHUB_TOKEN Permissions
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4674516Z Contents: read
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4675106Z Metadata: read
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4675573Z Packages: read
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4676118Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4678263Z Secret source: Actions
+lint	UNKNOWN STEP	2026-01-21T14:53:40.4678975Z Prepare workflow directory
+lint	UNKNOWN STEP	2026-01-21T14:53:40.5063746Z Prepare all required actions
+lint	UNKNOWN STEP	2026-01-21T14:53:40.5104195Z Getting action download info
+lint	UNKNOWN STEP	2026-01-21T14:53:40.9184015Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+lint	UNKNOWN STEP	2026-01-21T14:53:41.0454122Z Download action repository 'actions/setup-python@v4' (SHA:7f4fc3e22c37d6ff65e88745f38bd3157c663f7c)
+lint	UNKNOWN STEP	2026-01-21T14:53:41.2314192Z Complete job name: lint
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3040127Z ##[group]Run actions/checkout@v4
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3040961Z with:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3041358Z   fetch-depth: 0
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3041799Z   persist-credentials: true
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3042520Z   repository: Nitin-2468-dev/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3043258Z   token: ***
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3043661Z   ssh-strict: true
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3044066Z   ssh-user: git
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3044449Z   clean: true
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3044859Z   sparse-checkout-cone-mode: true
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3045347Z   fetch-tags: false
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3045753Z   show-progress: true
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3046154Z   lfs: false
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3046534Z   submodules: false
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3046938Z   set-safe-directory: true
+lint	UNKNOWN STEP	2026-01-21T14:53:41.3047641Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4127311Z Syncing repository: Nitin-2468-dev/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4129025Z ##[group]Getting Git version info
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4129785Z Working directory is '/home/runner/work/Discovery/Discovery'
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4130738Z [command]/usr/bin/git version
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4246796Z git version 2.52.0
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4272902Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4286640Z Temporarily overriding HOME='/home/runner/work/_temp/2a5b9c70-b5f4-410e-850c-af8190f72778' before making global git config changes
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4288004Z Adding repository directory to the temporary git global config as a safe directory
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4298700Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Discovery/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4340500Z Deleting the contents of '/home/runner/work/Discovery/Discovery'
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4345682Z ##[group]Initializing the repository
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4351289Z [command]/usr/bin/git init /home/runner/work/Discovery/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4491057Z hint: Using 'master' as the name for the initial branch. This default branch name
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4492802Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4493803Z hint: to use in all of your new repositories, which will suppress this warning,
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4494637Z hint: call:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4495288Z hint:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4495979Z hint: 	git config --global init.defaultBranch <name>
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4497035Z hint:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4497786Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4499121Z hint: 'development'. The just-created branch can be renamed via this command:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4500386Z hint:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4501097Z hint: 	git branch -m <name>
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4501887Z hint:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4503176Z hint: Disable this message with "git config set advice.defaultBranchName false"
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4504984Z Initialized empty Git repository in /home/runner/work/Discovery/Discovery/.git/
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4511518Z [command]/usr/bin/git remote add origin https://github.com/Nitin-2468-dev/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4548098Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4549311Z ##[group]Disabling automatic garbage collection
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4553139Z [command]/usr/bin/git config --local gc.auto 0
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4581737Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4583138Z ##[group]Setting up auth
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4589611Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4619862Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	UNKNOWN STEP	2026-01-21T14:53:41.4988082Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5018146Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5246662Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5288076Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5534376Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5570990Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5572515Z ##[group]Fetching the repository
+lint	UNKNOWN STEP	2026-01-21T14:53:41.5580423Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4695715Z From https://github.com/Nitin-2468-dev/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4698185Z  * [new branch]      chore/fix-lint-tests-2026-01-11 -> origin/chore/fix-lint-tests-2026-01-11
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4700928Z  * [new branch]      ci/allow-precommit-auto-commit -> origin/ci/allow-precommit-auto-commit
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4704180Z  * [new branch]      ci/parallel-tests-snapshot-20260117 -> origin/ci/parallel-tests-snapshot-20260117
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4706913Z  * [new branch]      ci/preflight-lint-fixes -> origin/ci/preflight-lint-fixes
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4709103Z  * [new branch]      ci/type-fixes           -> origin/ci/type-fixes
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4710762Z  * [new branch]      docs/update-scope-orchestrator -> origin/docs/update-scope-orchestrator
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4712904Z  * [new branch]      feat/domain-helper-fallback -> origin/feat/domain-helper-fallback
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4714636Z  * [new branch]      feat/investigate-cli    -> origin/feat/investigate-cli
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4716557Z  * [new branch]      feature/gap-detection/run-seed-trial -> origin/feature/gap-detection/run-seed-trial
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4718800Z  * [new branch]      feature/gap-detection/weight-sweep -> origin/feature/gap-detection/weight-sweep
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4720862Z  * [new branch]      fix/gap-recency-clamp   -> origin/fix/gap-recency-clamp
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4723278Z  * [new branch]      fix/orchestrator-gap-suggest-domains -> origin/fix/orchestrator-gap-suggest-domains
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4725376Z  * [new branch]      master                  -> origin/master
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4727411Z  * [new branch]      policy/add-threaded-crawler -> origin/policy/add-threaded-crawler
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4729534Z  * [new branch]      refactor/seeds-run      -> origin/refactor/seeds-run
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4731080Z  * [new tag]         v0.1.1                  -> v0.1.1
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4732523Z  * [new tag]         v0.3                    -> v0.3
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4733783Z  * [new tag]         v0.4.0                  -> v0.4.0
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4734997Z  * [new tag]         v0.4.1                  -> v0.4.1
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4736216Z  * [new tag]         v0.4.2                  -> v0.4.2
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4737408Z  * [new tag]         v0.5                    -> v0.5
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4764286Z [command]/usr/bin/git branch --list --remote origin/master
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4789721Z   origin/master
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4798487Z [command]/usr/bin/git rev-parse refs/remotes/origin/master
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4818238Z 3ff9617296602fc800f34d119fda2ef5b461cfeb
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4824057Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4825829Z ##[group]Determining the checkout info
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4828435Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4830063Z [command]/usr/bin/git sparse-checkout disable
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4869735Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4898964Z ##[group]Checking out the ref
+lint	UNKNOWN STEP	2026-01-21T14:53:42.4900887Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5418509Z Reset branch 'master'
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5420232Z branch 'master' set up to track 'origin/master'.
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5431402Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5467188Z [command]/usr/bin/git log -1 --format=%H
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5488829Z 3ff9617296602fc800f34d119fda2ef5b461cfeb
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5791030Z ##[group]Run actions/setup-python@v4
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5792163Z with:
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5793079Z   python-version: 3.11
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5793999Z   check-latest: false
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5795157Z   token: ***
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5795990Z   update-environment: true
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5796980Z   allow-prereleases: false
+lint	UNKNOWN STEP	2026-01-21T14:53:42.5798214Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7491344Z ##[group]Installed versions
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7631215Z Successfully set up CPython (3.11.14)
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7633874Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7778203Z ##[group]Run pip install --upgrade pip
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7779481Z [36;1mpip install --upgrade pip[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7781152Z [36;1mpip install ruff mypy pre-commit black==25.12.0 isort==7.0.0 types-PyYAML[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7833500Z shell: /usr/bin/bash -e {0}
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7834483Z env:
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7835476Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7837247Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7838993Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7840573Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7842430Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7844166Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+lint	UNKNOWN STEP	2026-01-21T14:53:42.7845508Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:43.6403619Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/site-packages (25.3)
+lint	UNKNOWN STEP	2026-01-21T14:53:44.7805002Z Collecting ruff
+lint	UNKNOWN STEP	2026-01-21T14:53:44.8668279Z   Downloading ruff-0.14.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (26 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:44.9970527Z Collecting mypy
+lint	UNKNOWN STEP	2026-01-21T14:53:45.0106101Z   Downloading mypy-1.19.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.2 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.0624308Z Collecting pre-commit
+lint	UNKNOWN STEP	2026-01-21T14:53:45.0758543Z   Downloading pre_commit-4.5.1-py2.py3-none-any.whl.metadata (1.2 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.1536491Z Collecting black==25.12.0
+lint	UNKNOWN STEP	2026-01-21T14:53:45.1679282Z   Downloading black-25.12.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (86 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.2260278Z Collecting isort==7.0.0
+lint	UNKNOWN STEP	2026-01-21T14:53:45.2392563Z   Downloading isort-7.0.0-py3-none-any.whl.metadata (11 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.2690140Z Collecting types-PyYAML
+lint	UNKNOWN STEP	2026-01-21T14:53:45.2823509Z   Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl.metadata (1.7 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.3118542Z Collecting click>=8.0.0 (from black==25.12.0)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.3249163Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.3467016Z Collecting mypy-extensions>=0.4.3 (from black==25.12.0)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.3600161Z   Downloading mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.3854066Z Collecting packaging>=22.0 (from black==25.12.0)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.3987377Z   Downloading packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.4210661Z Collecting pathspec>=0.9.0 (from black==25.12.0)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.4340873Z   Downloading pathspec-1.0.3-py3-none-any.whl.metadata (13 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.4642477Z Collecting platformdirs>=2 (from black==25.12.0)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.4774743Z   Downloading platformdirs-4.5.1-py3-none-any.whl.metadata (12 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.5040166Z Collecting pytokens>=0.3.0 (from black==25.12.0)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.5176364Z   Downloading pytokens-0.4.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (3.8 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.5483133Z Collecting typing_extensions>=4.6.0 (from mypy)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.5615839Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.6784362Z Collecting librt>=0.6.2 (from mypy)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.6921265Z   Downloading librt-0.7.8-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.3 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.7169442Z Collecting cfgv>=2.0.0 (from pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.7311330Z   Downloading cfgv-3.5.0-py2.py3-none-any.whl.metadata (8.9 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.7898064Z Collecting identify>=1.0.0 (from pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.8030490Z   Downloading identify-2.6.16-py2.py3-none-any.whl.metadata (4.4 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.8299883Z Collecting nodeenv>=0.11.1 (from pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.8431611Z   Downloading nodeenv-1.10.0-py2.py3-none-any.whl.metadata (24 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.8937929Z Collecting pyyaml>=5.1 (from pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.9070310Z   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.9643290Z Collecting virtualenv>=20.10.0 (from pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:45.9774380Z   Downloading virtualenv-20.36.1-py3-none-any.whl.metadata (4.7 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.0150354Z Collecting distlib<1,>=0.3.7 (from virtualenv>=20.10.0->pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.0282763Z   Downloading distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.0561055Z Collecting filelock<4,>=3.20.1 (from virtualenv>=20.10.0->pre-commit)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.0693026Z   Downloading filelock-3.20.3-py3-none-any.whl.metadata (2.1 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.0926965Z Downloading black-25.12.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.8 MB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.1371704Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 52.8 MB/s  0:00:00
+lint	UNKNOWN STEP	2026-01-21T14:53:46.1501016Z Downloading isort-7.0.0-py3-none-any.whl (94 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.1691827Z Downloading ruff-0.14.13-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.9 MB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.2344546Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.9/13.9 MB 217.1 MB/s  0:00:00
+lint	UNKNOWN STEP	2026-01-21T14:53:46.2485909Z Downloading mypy-1.19.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (13.4 MB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.3086725Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.4/13.4 MB 228.8 MB/s  0:00:00
+lint	UNKNOWN STEP	2026-01-21T14:53:46.3217016Z Downloading pre_commit-4.5.1-py2.py3-none-any.whl (226 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.3384577Z Downloading types_pyyaml-6.0.12.20250915-py3-none-any.whl (20 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.3535453Z Downloading cfgv-3.5.0-py2.py3-none-any.whl (7.4 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.3690739Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.3856445Z Downloading identify-2.6.16-py2.py3-none-any.whl (99 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.4033659Z Downloading librt-0.7.8-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (188 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.4196549Z Downloading mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.4349568Z Downloading nodeenv-1.10.0-py2.py3-none-any.whl (23 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.4506661Z Downloading packaging-25.0-py3-none-any.whl (66 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.4677056Z Downloading pathspec-1.0.3-py3-none-any.whl (55 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.4839494Z Downloading platformdirs-4.5.1-py3-none-any.whl (18 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5015841Z Downloading pytokens-0.4.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (259 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5196461Z Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5277975Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 99.1 MB/s  0:00:00
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5406303Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5567038Z Downloading virtualenv-20.36.1-py3-none-any.whl (6.0 MB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5857127Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/6.0 MB 214.4 MB/s  0:00:00
+lint	UNKNOWN STEP	2026-01-21T14:53:46.5987515Z Downloading distlib-0.4.0-py2.py3-none-any.whl (469 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.6206832Z Downloading filelock-3.20.3-py3-none-any.whl (16 kB)
+lint	UNKNOWN STEP	2026-01-21T14:53:46.7126665Z Installing collected packages: distlib, typing_extensions, types-PyYAML, ruff, pyyaml, pytokens, platformdirs, pathspec, packaging, nodeenv, mypy-extensions, librt, isort, identify, filelock, click, cfgv, virtualenv, mypy, black, pre-commit
+lint	UNKNOWN STEP	2026-01-21T14:53:48.8919540Z 
+lint	UNKNOWN STEP	2026-01-21T14:53:48.8938106Z Successfully installed black-25.12.0 cfgv-3.5.0 click-8.3.1 distlib-0.4.0 filelock-3.20.3 identify-2.6.16 isort-7.0.0 librt-0.7.8 mypy-1.19.1 mypy-extensions-1.1.0 nodeenv-1.10.0 packaging-25.0 pathspec-1.0.3 platformdirs-4.5.1 pre-commit-4.5.1 pytokens-0.4.0 pyyaml-6.0.3 ruff-0.14.13 types-PyYAML-6.0.12.20250915 typing_extensions-4.15.0 virtualenv-20.36.1
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0439670Z ##[group]Run # Run Black and isort in check mode to avoid CI pushing changes
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0440224Z [36;1m# Run Black and isort in check mode to avoid CI pushing changes[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0440793Z [36;1mblack --check . || (echo "Black found formatting issues; run 'black .' locally to fix them." && exit 1)[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0441516Z [36;1misort --check-only . || (echo "isort found import-order issues; run 'isort .' locally to fix them." && exit 1)[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0476252Z shell: /usr/bin/bash -e {0}
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0476483Z env:
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0476722Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0477143Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0477534Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0477883Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0478263Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0478632Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+lint	UNKNOWN STEP	2026-01-21T14:53:49.0478926Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:50.3984731Z All done! ✨ 🍰 ✨
+lint	UNKNOWN STEP	2026-01-21T14:53:50.3985523Z 165 files would be left unchanged.
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7102921Z ##[group]Run # Run pre-commit and fail with instructions instead of committing from CI
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7103513Z [36;1m# Run pre-commit and fail with instructions instead of committing from CI[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7104297Z [36;1mpre-commit run --all-files --show-diff-on-failure || (echo "pre-commit hooks detected problems; run 'pre-commit run --all-files' locally to fix." && exit 1)[0m
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7136722Z shell: /usr/bin/bash -e {0}
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7136943Z env:
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7137186Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7137602Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7137999Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7138351Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7138700Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7139093Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
+lint	UNKNOWN STEP	2026-01-21T14:53:50.7139380Z ##[endgroup]
+lint	UNKNOWN STEP	2026-01-21T14:53:50.8838557Z [INFO] Initializing environment for https://github.com/psf/black.
+lint	UNKNOWN STEP	2026-01-21T14:53:51.6364266Z [INFO] Initializing environment for https://github.com/charliermarsh/ruff-pre-commit.
+lint	UNKNOWN STEP	2026-01-21T14:53:52.1276516Z [INFO] Initializing environment for https://github.com/PyCQA/isort.
+lint	UNKNOWN STEP	2026-01-21T14:53:52.8257597Z [INFO] Initializing environment for https://github.com/pre-commit/pre-commit-hooks.
+lint	UNKNOWN STEP	2026-01-21T14:53:53.3329106Z [INFO] Installing environment for https://github.com/psf/black.
+lint	UNKNOWN STEP	2026-01-21T14:53:53.3329862Z [INFO] Once installed this environment will be reused.
+lint	UNKNOWN STEP	2026-01-21T14:53:53.3330398Z [INFO] This may take a few minutes...
+lint	UNKNOWN STEP	2026-01-21T14:53:57.6551851Z [INFO] Installing environment for https://github.com/charliermarsh/ruff-pre-commit.
+lint	UNKNOWN STEP	2026-01-21T14:53:57.6552645Z [INFO] Once installed this environment will be reused.
+lint	UNKNOWN STEP	2026-01-21T14:53:57.6552957Z [INFO] This may take a few minutes...
+lint	UNKNOWN STEP	2026-01-21T14:54:01.1116603Z [INFO] Installing environment for https://github.com/PyCQA/isort.
+lint	UNKNOWN STEP	2026-01-21T14:54:01.1117052Z [INFO] Once installed this environment will be reused.
+lint	UNKNOWN STEP	2026-01-21T14:54:01.1117364Z [INFO] This may take a few minutes...
+lint	UNKNOWN STEP	2026-01-21T14:54:03.7878091Z [INFO] Installing environment for https://github.com/pre-commit/pre-commit-hooks.
+lint	UNKNOWN STEP	2026-01-21T14:54:03.7878968Z [INFO] Once installed this environment will be reused.
+lint	UNKNOWN STEP	2026-01-21T14:54:03.7879330Z [INFO] This may take a few minutes...
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8033190Z black....................................................................Passed
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8604778Z ruff (legacy alias)......................................................Failed
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8605315Z - hook id: ruff
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8605541Z - exit code: 1
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8605655Z 
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8606219Z warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `pyproject.toml`:
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8606903Z   - 'ignore' -> 'lint.ignore'
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8607134Z   - 'select' -> 'lint.select'
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8607566Z F401 `.map_helpers` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8608040Z  --> probe/core/__init__.py:2:15
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8608244Z   |
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8608403Z 1 | # Core helpers
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8608698Z 2 | from . import map_helpers  # attach convenience Map helpers at import time
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8609048Z   |               ^^^^^^^^^^^
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8609232Z   |
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8609449Z help: Use an explicit re-export: `map_helpers as map_helpers`
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8609684Z 
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8609756Z Found 1 error.
+lint	UNKNOWN STEP	2026-01-21T14:54:08.8609856Z 
+lint	UNKNOWN STEP	2026-01-21T14:54:09.1806270Z isort....................................................................Passed
+lint	UNKNOWN STEP	2026-01-21T14:54:09.2648999Z fix end of files.........................................................Passed
+lint	UNKNOWN STEP	2026-01-21T14:54:09.3657236Z trim trailing whitespace.................................................Passed
+lint	UNKNOWN STEP	2026-01-21T14:54:09.3826559Z pre-commit hooks detected problems; run 'pre-commit run --all-files' locally to fix.
+lint	UNKNOWN STEP	2026-01-21T14:54:09.3840704Z ##[error]Process completed with exit code 1.
+lint	UNKNOWN STEP	2026-01-21T14:54:09.3953433Z Post job cleanup.
+lint	UNKNOWN STEP	2026-01-21T14:54:09.4900137Z [command]/usr/bin/git version
+lint	UNKNOWN STEP	2026-01-21T14:54:09.4936634Z git version 2.52.0
+lint	UNKNOWN STEP	2026-01-21T14:54:09.4980086Z Temporarily overriding HOME='/home/runner/work/_temp/9377b717-b2d8-4676-ac8b-2b4c4041888f' before making global git config changes
+lint	UNKNOWN STEP	2026-01-21T14:54:09.4981256Z Adding repository directory to the temporary git global config as a safe directory
+lint	UNKNOWN STEP	2026-01-21T14:54:09.4986072Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Discovery/Discovery
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5026804Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5059077Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5284199Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5305957Z http.https://github.com/.extraheader
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5318299Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5350883Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5576324Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5608520Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+lint	UNKNOWN STEP	2026-01-21T14:54:09.5953042Z Cleaning up orphan processes

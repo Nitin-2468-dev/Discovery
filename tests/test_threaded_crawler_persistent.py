@@ -52,6 +52,7 @@ def test_persistent_politeness_respects_state(tmp_path):
         t1 = calls[1][1]
         # Because last_crawled was 0.5s ago, the first call should be at time 0 and second at >= 1.0
         assert t0 >= 0.0
-        assert t1 - t0 >= 1.0
+        # Allow a tiny tolerance for floating-point rounding when comparing elapsed time
+        assert t1 - t0 >= 1.0 - 1e-6  # avoid flaky failures from floating-point arithmetic
     finally:
         os.chdir(cwd)
