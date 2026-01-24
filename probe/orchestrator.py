@@ -10,7 +10,7 @@ concurrency, better politeness, and richer stop conditions.
 """
 
 from collections import deque
-from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Set
+from typing import Any, Callable, Dict, Iterable, List, Optional, Protocol, Set, cast
 
 from probe.core.map import Document, Map, Page
 from probe.policy import PolicyEngine
@@ -29,6 +29,18 @@ class SeedGeneratorProtocol(Protocol):
     def generate_seeds(self, *args, **kwargs) -> List[Dict[str, Any]]: ...
 
 
+class MapLike(Protocol):
+    """Protocol for Map or MapAdapter objects used by the crawler/orchestrator."""
+
+    conn: Any
+
+    def add_page(self, page: Page) -> int: ...
+
+    def add_document(self, doc: Document) -> int: ...
+
+    def update_domain_stats(self, domain: str, found_document: bool) -> None: ...
+
+
 class BreadthFirstCrawler:
     """Simple synchronous breadth-first crawler.
 
@@ -41,7 +53,7 @@ class BreadthFirstCrawler:
 
     def __init__(
         self,
-        map_obj: Optional[Map] = None,
+        map_obj: Optional[MapLike] = None,
         fetch_fn: Optional[Callable] = None,
         scorer_fn: Optional[Callable] = None,
         policy_engine: Optional[PolicyEngine] = None,
@@ -292,7 +304,7 @@ class Orchestrator:
                 self.map = map_obj
 
         self.crawler = BreadthFirstCrawler(
-            self.map if self.map is not None else None,
+            cast(Optional[MapLike], self.map if self.map is not None else None),
             fetch_fn,
             scorer_fn,
             policy_engine,

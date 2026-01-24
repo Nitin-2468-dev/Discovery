@@ -20,8 +20,8 @@ def test_delegate_get_map_summary(tmp_path: Path):
         domain="a.local",
     )
 
-    pid = adapter.add_page(p)
-    did = adapter.add_document(d)
+    _pid = adapter.add_page(p)
+    _did = adapter.add_document(d)
 
     summary = adapter.get_map_summary()
     assert isinstance(summary, dict)
