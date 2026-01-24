@@ -52,9 +52,17 @@ def _read_pyproject():
 
 def _extract_metadata_from_wheel(wheel_path: Path) -> str:
     with zipfile.ZipFile(wheel_path, "r") as z:
-        meta_files = [n for n in z.namelist() if n.endswith("/METADATA")]
-        assert meta_files, "No METADATA file found in wheel"
-        # Prefer first metadata
+        # Be tolerant: some wheels (or some zip tools) may present entries with
+        # different path separators or casing. Match any entry that ends with
+        # 'METADATA' case-insensitively.
+        meta_files = [n for n in z.namelist() if n.lower().endswith("metadata")]
+        if not meta_files:
+            # Provide debugging information in the assertion to aid CI triage
+            names = z.namelist()
+            raise AssertionError(
+                "No METADATA file found in wheel; zip entries: " + ", ".join(names)
+            )
+        # Prefer the first metadata found
         data = z.read(meta_files[0])
         return data.decode("utf-8", errors="replace")
 
