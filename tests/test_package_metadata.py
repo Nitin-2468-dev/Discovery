@@ -1,6 +1,7 @@
 import re
 import subprocess
 import sys
+import time
 import zipfile
 from pathlib import Path
 
@@ -11,11 +12,28 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def _build_wheel(outdir: Path):
     cmd = [sys.executable, "-m", "build", "--wheel", "--outdir", str(outdir)]
-    completed = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"Wheel build failed: {completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
-        )
+    # Retry transient wheel build failures (some CI environments can fail intermittently)
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        completed = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
+        if completed.returncode == 0:
+            return
+        # On failure, wait a bit and retry (exponential backoff)
+        if attempt < attempts:
+            time.sleep(0.5 * attempt)
+        else:
+            # As a last resort, try building without isolation (some CI environments
+            # exhibit transient failures when building in isolated venvs). This is
+            # less strict than an isolated build but reduces flakes in CI.
+            no_iso_cmd = cmd + ["--no-isolation"]
+            completed_no_iso = subprocess.run(
+                no_iso_cmd, cwd=str(ROOT), capture_output=True, text=True
+            )
+            if completed_no_iso.returncode == 0:
+                return
+            raise RuntimeError(
+                f"Wheel build failed after {attempts} attempts (isolated) and one no-isolation attempt: {completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}\n\nno-isolation stdout:\n{completed_no_iso.stdout}\nno-isolation stderr:\n{completed_no_iso.stderr}"
+            )
 
 
 def _read_pyproject():
@@ -95,5 +113,9 @@ def test_wheel_metadata_matches_pyproject(tmp_path: Path):
     classifier_license = any("License ::" in line for line in metadata.splitlines())
     assert (
         lic_match or lic_expr_match or classifier_license
-    ), "No license information found in wheel METADATA (checked License, License-Expression, and classifiers)"
+    ), (
+        "No license information found in wheel METADATA (checked License, License-Expression, and classifiers). "
+        "If wheel build fails with 'error: [Errno 2] No such file or directory: 'cleaner.py'", 
+        "ensure package data includes all scripts and that MANIFEST.in or package_data is updated."
+    )
 
