@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 import venv
 from pathlib import Path
 
@@ -11,11 +12,26 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def _build_wheel(outdir: Path):
     cmd = [sys.executable, "-m", "build", "--wheel", "--outdir", str(outdir)]
-    completed = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
-    if completed.returncode != 0:
-        raise RuntimeError(
-            f"Wheel build failed: {completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
-        )
+    # Retry transient wheel build failures (isolated builds can fail intermittently in CI)
+    attempts = 3
+    for attempt in range(1, attempts + 1):
+        completed = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
+        if completed.returncode == 0:
+            return
+        if attempt < attempts:
+            # Exponential backoff a bit between attempts
+            time.sleep(0.5 * attempt)
+        else:
+            # Final fallback: try building without isolation once to reduce flakes
+            no_iso_cmd = cmd + ["--no-isolation"]
+            completed_no_iso = subprocess.run(
+                no_iso_cmd, cwd=str(ROOT), capture_output=True, text=True
+            )
+            if completed_no_iso.returncode == 0:
+                return
+            raise RuntimeError(
+                f"Wheel build failed after {attempts} isolated attempts and one no-isolation attempt: {completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}\n\nno-isolation stdout:\n{completed_no_iso.stdout}\nno-isolation stderr:\n{completed_no_iso.stderr}"
+            )
 
 
 def test_install_wheel_and_imports(tmp_path: Path):
