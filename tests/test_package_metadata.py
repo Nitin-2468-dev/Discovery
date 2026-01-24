@@ -48,11 +48,15 @@ def test_pyproject_metadata_has_required_fields():
     assert project.get("version"), "[project].version is missing"
     license_entry = project.get("license")
     assert license_entry, "[project].license is missing"
-    # Check classifiers include license classifier if present
+    # If classifiers are present, ensure at least one is a license classifier.
+    # Otherwise, prefer SPDX license expression in [project].license (checked above).
     classifiers = project.get("classifiers", [])
-    assert any(
-        "License ::" in c for c in classifiers
-    ), "No license classifier found in [project].classifiers"
+    if classifiers:
+        has_license_classifier = any("License ::" in c for c in classifiers)
+        # Accept either a license classifier or a SPDX license string in [project].license
+        assert has_license_classifier or isinstance(license_entry, str), (
+            "No license classifier found in [project].classifiers and [project].license is not a simple SPDX string"
+        )
 
 
 def test_wheel_metadata_matches_pyproject(tmp_path: Path):
@@ -87,7 +91,9 @@ def test_wheel_metadata_matches_pyproject(tmp_path: Path):
 
     # Check license info present in METADATA
     lic_match = re.search(r"^License: (.+)$", metadata, re.M)
+    lic_expr_match = re.search(r"^License-Expression: (.+)$", metadata, re.M)
     classifier_license = any("License ::" in line for line in metadata.splitlines())
     assert (
-        lic_match or classifier_license
-    ), "No license information found in wheel METADATA"
+        lic_match or lic_expr_match or classifier_license
+    ), "No license information found in wheel METADATA (checked License, License-Expression, and classifiers)"
+
