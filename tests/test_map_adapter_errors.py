@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 import json
+from typing import Any, Dict, NoReturn
 
 import pytest
 
@@ -8,8 +9,8 @@ from probe.core.map import Map
 from probe.core.map_adapter import MapAdapter
 
 
-def test_extract_metadata_malformed(tmp_path: Path):
-    db = tmp_path / "map_adapter_malformed.db"
+def test_extract_metadata_malformed(tmp_path: Path) -> None:
+    db: Path = tmp_path / "map_adapter_malformed.db"
     m = Map(str(db))
     adapter = MapAdapter(m)
 
@@ -20,16 +21,16 @@ def test_extract_metadata_malformed(tmp_path: Path):
     )
     adapter.conn.commit()
 
-    cur = adapter.conn.execute("SELECT metadata FROM pages WHERE url = ?", ("http://example.local/bad",))
+    cur: sqlite3.Cursor = adapter.conn.execute("SELECT metadata FROM pages WHERE url = ?", ("http://example.local/bad",))
     row = cur.fetchone()
     assert row is not None
 
-    md = adapter.extract_metadata(row)
+    md: Dict[str, Any] = adapter.extract_metadata(row)
     assert md == {}
 
 
-def test_extract_metadata_none(tmp_path: Path):
-    db = tmp_path / "map_adapter_none.db"
+def test_extract_metadata_none(tmp_path: Path) -> None:
+    db: Path = tmp_path / "map_adapter_none.db"
     m = Map(str(db))
     adapter = MapAdapter(m)
 
@@ -40,21 +41,21 @@ def test_extract_metadata_none(tmp_path: Path):
     )
     adapter.conn.commit()
 
-    cur = adapter.conn.execute("SELECT metadata FROM pages WHERE url = ?", ("http://example.local/none",))
+    cur: sqlite3.Cursor = adapter.conn.execute("SELECT metadata FROM pages WHERE url = ?", ("http://example.local/none",))
     row = cur.fetchone()
     assert row is not None
 
-    md = adapter.extract_metadata(row)
+    md: Dict[str, Any] = adapter.extract_metadata(row)
     assert md == {}
 
 
-def test_add_page_propagates_db_errors(tmp_path: Path):
-    db = tmp_path / "map_adapter_err.db"
+def test_add_page_propagates_db_errors(tmp_path: Path) -> None:
+    db: Path = tmp_path / "map_adapter_err.db"
     m = Map(str(db))
     adapter = MapAdapter(m)
 
     # Monkeypatch underlying map to raise an OperationalError when adding a page
-    def fail_add_page(page):
+    def fail_add_page(page) -> NoReturn:
         raise sqlite3.OperationalError("disk full")
 
     adapter._map.add_page = fail_add_page
