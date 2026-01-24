@@ -9,6 +9,7 @@ Steps:
 
 Writes timings to <run_dir>/timings.csv and prints summary.
 """
+
 from __future__ import annotations
 
 import argparse

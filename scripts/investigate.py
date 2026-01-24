@@ -4,6 +4,7 @@
 Usage:
   python scripts/investigate.py --entity "ACME-PT6A" --types datasheet --out seeds.csv
 """
+
 from __future__ import annotations
 
 import argparse

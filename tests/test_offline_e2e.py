@@ -21,26 +21,22 @@ def demo_site(tmp_path: Path) -> Iterator[Tuple[str, Path]]:
     site_dir.mkdir()
 
     # index page linking to a PDF and another page
-    (site_dir / "index.html").write_text(
-        """
+    (site_dir / "index.html").write_text("""
         <html><body>
         <h1>Demo Index</h1>
         <p>This is a demo page mentioning driver and manual.</p>
         <a href="/doc.pdf">Download PDF</a>
         <a href="/page2.html">Page 2</a>
         </body></html>
-        """
-    )
+        """)
 
-    (site_dir / "page2.html").write_text(
-        """
+    (site_dir / "page2.html").write_text("""
         <html><body>
         <h1>Page Two</h1>
         <p>Another page with useful content.</p>
         <a href="/doc2.pdf">PDF 2</a>
         </body></html>
-        """
-    )
+        """)
 
     # simple PDF bytes (not a real PDF, but content-type will be application/pdf)
     (site_dir / "doc.pdf").write_bytes(b"%PDF-1.4\n%demo\nThis is a fake pdf file")
@@ -261,15 +257,11 @@ def test_offline_e2e_link_signals(tmp_path: Path, demo_site):
     }
 
     (out_path / "demo_results.json").write_text(json.dumps(demo_results))
-    (out_path / "demo_summary.html").write_text(
-        """
+    (out_path / "demo_summary.html").write_text("""
         <html><body><h1>Offline E2E Demo Results</h1>
         <pre>{}</pre>
         </body></html>
-        """.format(
-            json.dumps(demo_results, indent=2)
-        )
-    )
+        """.format(json.dumps(demo_results, indent=2)))
 
 
 def test_breadthfirstcrawler_sets_run_id(tmp_path: Path, demo_site):
@@ -370,16 +362,14 @@ def test_link_signals_integration_effect(tmp_path: Path, demo_site):
 
     # Overwrite the demo site with a deterministic structure:
     # index.html -> page1.html, page2.html, doc.pdf (doc link last)
-    (site_dir / "index.html").write_text(
-        """
+    (site_dir / "index.html").write_text("""
         <html><body>
         <h1>Priority Test</h1>
         <a href="/page1.html">Page 1</a>
         <a href="/page2.html">Page 2</a>
         <a href="/doc.pdf">Download PDF</a>
         </body></html>
-        """
-    )
+        """)
 
     (site_dir / "page1.html").write_text("<html><body><h1>Page 1</h1></body></html>")
     (site_dir / "page2.html").write_text("<html><body><h1>Page 2</h1></body></html>")

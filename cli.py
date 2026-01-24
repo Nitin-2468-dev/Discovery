@@ -57,13 +57,11 @@ def init(db):
 
         # Show table count
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT name FROM sqlite_master
             WHERE type='table'
             ORDER BY name
-        """
-        )
+        """)
         tables = [row[0] for row in cursor.fetchall()]
         click.echo(f"âœ“ Created {len(tables)} tables: {', '.join(tables)}")
     else:

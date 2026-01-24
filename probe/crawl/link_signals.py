@@ -121,8 +121,7 @@ class LinkContextStore:
         self._ensure_table()
 
     def _ensure_table(self) -> None:
-        self._conn.execute(
-            """
+        self._conn.execute("""
             CREATE TABLE IF NOT EXISTS link_context (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 from_page TEXT NOT NULL,
@@ -133,8 +132,7 @@ class LinkContextStore:
                 relevance_score REAL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-            """
-        )
+            """)
         self._conn.commit()
 
     def insert(self, ctx: LinkContext) -> int:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Follow internal links for a domain found in a DB and ingest pages up to a given depth."""
+
 from __future__ import annotations
 
 import argparse

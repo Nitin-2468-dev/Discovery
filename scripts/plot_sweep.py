@@ -2,6 +2,7 @@
 """Simple plotting helper for flattened sweep CSV.
 Generates a scatter plot of composite_score vs weight_count for top domains.
 Requires matplotlib (optional)."""
+
 from __future__ import annotations
 
 import argparse

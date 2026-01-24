@@ -154,8 +154,7 @@ def create_seed_files():
 
     # Create README
     readme = seeds_dir / "README.md"
-    readme.write_text(
-        """# Seed URLs
+    readme.write_text("""# Seed URLs
 
 This directory contains seed URL lists for testing and investigation.
 
@@ -183,8 +182,7 @@ loader = SeedLoader()
 urls = loader.load_file("test_simple.txt")
 print(f"Loaded {len(urls)} URLs")
 ```
-"""
-    )
+""")
 
     print(f"✓ Created seed directory: {seeds_dir}")
     print(f"✓ Created README: {readme}")

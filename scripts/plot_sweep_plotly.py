@@ -3,6 +3,7 @@
 
 Produces an HTML file with an interactive heatmap for a selected domain.
 """
+
 from __future__ import annotations
 
 import argparse

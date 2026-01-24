@@ -5,6 +5,7 @@ Usage:
 
 python scripts/run_seed_trial.py --seeds seeds/seeds_testing.txt --count 5 --types manual --out results/testing-5
 """
+
 from __future__ import annotations
 
 import argparse

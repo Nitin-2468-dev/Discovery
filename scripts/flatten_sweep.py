@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Flatten sweep CSV (one row per domain per weight combo) for easier plotting."""
+
 from __future__ import annotations
 
 import argparse
