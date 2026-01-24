@@ -311,6 +311,96 @@ jobs:
           name: packaging-smoke-build-log-${{ matrix.python-version }}
           path: build_logs/build.out
 
+  packaging-verify:
+    name: Packaging verify (wheel metadata)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build wheel (retries & capture logs)
+        run: |
+          mkdir -p build_logs
+          attempts=0
+          max_attempts=3
+          until [ $attempts -ge $max_attempts ]; do
+            python -m build --wheel --outdir dist 2>&1 | tee build_logs/build.out && break
+            attempts=$((attempts+1))
+            echo "Wheel build attempt $attempts failed"
+            sleep 1
+          done
+          if [ $attempts -ge $max_attempts ]; then
+            echo "Wheel build failed after $attempts attempts"
+            cat build_logs/build.out || true
+            exit 1
+          fi
+      - name: Verify wheel METADATA matches pyproject
+        run: |
+          python - <<'PY'
+          import zipfile,sys,os,re
+          try:
+              import tomllib as toml
+          except Exception:
+              import tomli as toml
+          root = os.getcwd()
+          with open('pyproject.toml','rb') as f:
+              proj = toml.load(f).get('project',{})
+          name = proj.get('name')
+          version = proj.get('version')
+          license_entry = proj.get('license')
+          wheels = [p for p in os.listdir('dist') if p.endswith('.whl')]
+          if not wheels:
+              print('No wheels in dist:', os.listdir('dist'))
+              sys.exit(2)
+          w = os.path.join('dist', wheels[0])
+          with zipfile.ZipFile(w,'r') as z:
+              names = z.namelist()
+              meta = [n for n in names if n.lower().endswith('metadata')]
+              if not meta:
+                  print('No METADATA in wheel. entries:', names)
+                  sys.exit(3)
+              data = z.read(meta[0]).decode('utf-8',errors='replace')
+          name_match = re.search(r'^Name: (.+)$', data, re.M)
+          ver_match = re.search(r'^Version: (.+)$', data, re.M)
+          if not name_match or not ver_match:
+              print('Name/Version missing in METADATA')
+              print('\n'.join(data.splitlines()[:40]))
+              sys.exit(4)
+          if name_match.group(1).strip().lower()!=name.lower():
+              print(f'Name mismatch: pyproject {name} != METADATA {name_match.group(1)}')
+              sys.exit(5)
+          if ver_match.group(1).strip()!=version:
+              print(f'Version mismatch: pyproject {version} != METADATA {ver_match.group(1)}')
+              sys.exit(6)
+          lic = re.search(r'^License: (.+)$', data, re.M)
+          lic_expr = re.search(r'^License-Expression: (.+)$', data, re.M)
+          classifier_license = any('License ::' in l for l in data.splitlines())
+          if not (lic or lic_expr or classifier_license):
+              print('No license info in METADATA')
+              print('\n'.join(data.splitlines()[:40]))
+              sys.exit(7)
+          print('Wheel metadata verification passed for', w)
+          PY
+      - name: Upload dist & logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-verify-dist-${{ matrix.python-version }}
+          path: dist
+      - name: Upload build log artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaging-verify-build-log-${{ matrix.python-version }}
+          path: build_logs/build.out
+
   preflight:
     name: 'Preflight: Packaging validation'
     runs-on: ubuntu-latest
