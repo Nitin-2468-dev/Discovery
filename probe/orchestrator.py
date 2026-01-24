@@ -174,7 +174,9 @@ class BreadthFirstCrawler:
                 relevance_score=float(self.score(res)),
                 metadata=meta,
                 # Use timezone-aware UTC and normalize to trailing Z for compatibility
-                last_crawled_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                last_crawled_at=datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
             )
             try:
                 self.map.add_page(page)

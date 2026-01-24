@@ -6,6 +6,7 @@ from orchestrators and tests and makes it easier to replace/normalize Map
 implementations in one place.
 """
 
+from sqlite3 import Connection
 from typing import Any, Dict, List, Optional
 
 from probe.core.map import Document, Domain, Map, Page
@@ -17,11 +18,11 @@ class MapAdapter:
     Methods mirror the common Map API used across orchestrator and tests.
     """
 
-    def __init__(self, map_obj: Map):
-        self._map = map_obj
+    def __init__(self, map_obj: Map) -> None:
+        self._map: Map = map_obj
 
     @property
-    def conn(self):
+    def conn(self) -> Connection:
         return self._map.conn
 
     def add_page(self, page: Page) -> int:

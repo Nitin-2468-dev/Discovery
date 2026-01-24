@@ -1,6 +1,6 @@
+import json
 import sqlite3
 from pathlib import Path
-import json
 from typing import Any, Dict, NoReturn
 
 import pytest
@@ -21,7 +21,9 @@ def test_extract_metadata_malformed(tmp_path: Path) -> None:
     )
     adapter.conn.commit()
 
-    cur: sqlite3.Cursor = adapter.conn.execute("SELECT metadata FROM pages WHERE url = ?", ("http://example.local/bad",))
+    cur: sqlite3.Cursor = adapter.conn.execute(
+        "SELECT metadata FROM pages WHERE url = ?", ("http://example.local/bad",)
+    )
     row = cur.fetchone()
     assert row is not None
 
@@ -41,7 +43,9 @@ def test_extract_metadata_none(tmp_path: Path) -> None:
     )
     adapter.conn.commit()
 
-    cur: sqlite3.Cursor = adapter.conn.execute("SELECT metadata FROM pages WHERE url = ?", ("http://example.local/none",))
+    cur: sqlite3.Cursor = adapter.conn.execute(
+        "SELECT metadata FROM pages WHERE url = ?", ("http://example.local/none",)
+    )
     row = cur.fetchone()
     assert row is not None
 

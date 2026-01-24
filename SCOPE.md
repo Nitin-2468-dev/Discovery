@@ -83,17 +83,49 @@
 
 **Goal:** End-to-end query → answer
 
-- [ ] Orchestrator (ties components together)
+- [ ] Orchestrator (ties components together; must accept MapAdapter and attach run provenance)
 - [ ] Seed generator
-- [ ] Breadth-first crawler with scoring
-- [ ] Map ingest (add findings to graph)
-- [ ] CLI: `probe investigate <query>`
+- [ ] Breadth-first crawler with scoring (must persist per-page provenance: `crawl_run_id`)
+- [ ] Map ingest (add findings to graph; include per-run metadata)
+- [ ] CLI: `probe investigate <query>` (produce demo artifacts)
+- [ ] Deterministic offline e2e smoke test (local HTTP server fixture -> gap → seed → crawl → ingest -> assert Map changes)
 
-**v0.5 Add-on — Link Signals (Context-Aware Crawling):** See `docs/LINK_SIGNALS.md` for the conservative v0.5 contract for local context extraction and link-context signals (signal-only, no edges, no entities, no embeddings).
+**v0.5 Add-on — Link Signals (Context-Aware Crawling):** See `docs/LINK_SIGNALS.md` for the conservative v0.5 contract for local context extraction and link-context signals (signal-only, no edges, no entities, no embeddings). Also: add one deterministic integration test proving link-signals materially improves discovery under constrained budgets.
 
-**Success Criteria:** Can run full investigation, map accumulates knowledge
+**Success Criteria (updated):**
+- Deterministic offline e2e test exists and runs locally and in CI (scheduled job) ✅
+- Demo script outputs verifiable artifacts: `tmp_demo_out/demo_results.json` and `tmp_demo_out/demo_summary.html` ✅
+- Map stores per-page documents with `crawl_run_id` and timestamps; tests assert those exist post-run ✅
+- One integration test showing link-signals improves a measurable metric (documents-found-per-run) ✅
 
 > **Note — Educational Openness:** Add support for an **"Educational Openness"** mode (e.g., `Mode.educational_open`) that relaxes some gating for research and educational use-cases to enable broader exploration and transparency. This mode must include clear disclaimers, logging, and opt-in administrative enablement, and **is not intended** as the default for production deployments.
+
+---
+
+### Immediate priorities (must do before expanding features)
+1. Add deterministic offline e2e smoke test (highest priority): local HTTP server fixture, controlled HTML/PDF content and links, deterministic GapDetector + SeedGenerator for predictable seeds; assertions include Map counts and `crawl_run_id` metadata.
+2. Ensure BreadthFirstCrawler and Orchestrator set and propagate a `run_id` that Map writes include as `crawl_run_id` in persisted page/document metadata.
+3. Stabilize CI: lock formatter/linter versions, run format checks locally via `make format`, exclude tmp/venv dirs from linters, keep format checks in *check-only* mode for contributors.
+4. Add a scheduled (non-blocking) CI job that runs the deterministic offline e2e and uploads demo artifacts for inspection.
+5. Centralize Map compatibility via `probe/core/map_adapter.py` (adapter + tests) and migrate one consumer (Orchestrator) as a test-case.
+6. Freeze embedding/telemetry uploader work on `main` and move feature work to dedicated branches; add backlog tickets for follow-up.
+
+---
+
+### Blockers & risks
+- No deterministic e2e: highest risk — lack of end-to-end proof makes higher-level claims premature.
+- CI fragility: transient formatter/linter failures and tmp artifact noise block contributor flow.
+- Packaging: intermittent wheel/build failures must be investigated and resolved before v1.0.
+- Scattered Map compatibility checks increase complexity — consolidate into adapter ASAP.
+
+---
+
+### Acceptance criteria to justify v1.0
+- Deterministic offline e2e test exists and passes reliably on schedule.
+- Demo script produces verifiable artifacts and includes `crawl_run_id` provenance.
+- CI can build a reproducible wheel (no intermittent failures for 3 consecutive runs).
+- Link-signals demonstrated with an integration test that improves discovery in a measurable way.
+
 
 ---
 

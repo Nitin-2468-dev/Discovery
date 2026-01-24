@@ -13,7 +13,9 @@ def test_persistent_politeness_respects_state(tmp_path):
         # set last crawled to now - 0.5s (timezone-aware)
         from datetime import timezone
 
-        state.set_last_crawled(domain, datetime.now(timezone.utc) - timedelta(seconds=0.5))
+        state.set_last_crawled(
+            domain, datetime.now(timezone.utc) - timedelta(seconds=0.5)
+        )
 
         import time as _time
 
@@ -55,6 +57,8 @@ def test_persistent_politeness_respects_state(tmp_path):
         # Because last_crawled was 0.5s ago, the first call should be at time 0 and second at >= 1.0
         assert t0 >= 0.0
         # Allow a tiny tolerance for floating-point rounding when comparing elapsed time
-        assert t1 - t0 >= 1.0 - 1e-6  # avoid flaky failures from floating-point arithmetic
+        assert (
+            t1 - t0 >= 1.0 - 1e-6
+        )  # avoid flaky failures from floating-point arithmetic
     finally:
         os.chdir(cwd)

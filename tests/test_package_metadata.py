@@ -80,9 +80,9 @@ def test_pyproject_metadata_has_required_fields():
     if classifiers:
         has_license_classifier = any("License ::" in c for c in classifiers)
         # Accept either a license classifier or a SPDX license string in [project].license
-        assert has_license_classifier or isinstance(license_entry, str), (
-            "No license classifier found in [project].classifiers and [project].license is not a simple SPDX string"
-        )
+        assert has_license_classifier or isinstance(
+            license_entry, str
+        ), "No license classifier found in [project].classifiers and [project].license is not a simple SPDX string"
 
 
 def test_wheel_metadata_matches_pyproject(tmp_path: Path):
@@ -119,11 +119,8 @@ def test_wheel_metadata_matches_pyproject(tmp_path: Path):
     lic_match = re.search(r"^License: (.+)$", metadata, re.M)
     lic_expr_match = re.search(r"^License-Expression: (.+)$", metadata, re.M)
     classifier_license = any("License ::" in line for line in metadata.splitlines())
-    assert (
-        lic_match or lic_expr_match or classifier_license
-    ), (
+    assert lic_match or lic_expr_match or classifier_license, (
         "No license information found in wheel METADATA (checked License, License-Expression, and classifiers). "
-        "If wheel build fails with 'error: [Errno 2] No such file or directory: 'cleaner.py'", 
-        "ensure package data includes all scripts and that MANIFEST.in or package_data is updated."
+        "If wheel build fails with 'error: [Errno 2] No such file or directory: 'cleaner.py'",
+        "ensure package data includes all scripts and that MANIFEST.in or package_data is updated.",
     )
-

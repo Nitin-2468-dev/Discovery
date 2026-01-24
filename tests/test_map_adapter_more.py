@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from probe.core.map import Map, Page, Document
+from probe.core.map import Document, Map, Page
 from probe.core.map_adapter import MapAdapter
 
 
@@ -11,7 +11,14 @@ def test_delegate_get_map_summary(tmp_path: Path):
     adapter = MapAdapter(m)
 
     p = Page(id=None, url="http://a.local/p", domain="a.local")
-    d = Document(id=None, title="Doc", doc_type="pdf", hash="h1", url="http://a.local/d.pdf", domain="a.local")
+    d = Document(
+        id=None,
+        title="Doc",
+        doc_type="pdf",
+        hash="h1",
+        url="http://a.local/d.pdf",
+        domain="a.local",
+    )
 
     pid = adapter.add_page(p)
     did = adapter.add_document(d)
@@ -28,7 +35,15 @@ def test_document_metadata_stored_and_parseable(tmp_path: Path):
     adapter = MapAdapter(m)
 
     meta = {"crawl_run_id": "run-xyz", "note": "test"}
-    d = Document(id=None, title="Doc", doc_type="pdf", hash="h2", url="http://a.local/d2.pdf", domain="a.local", metadata=meta)
+    d = Document(
+        id=None,
+        title="Doc",
+        doc_type="pdf",
+        hash="h2",
+        url="http://a.local/d2.pdf",
+        domain="a.local",
+        metadata=meta,
+    )
 
     did = adapter.add_document(d)
 
