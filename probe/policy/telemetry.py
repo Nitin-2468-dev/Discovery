@@ -44,8 +44,11 @@ def record_denial(decision: Dict[str, Any]) -> None:
     The record includes an ISO timestamp and a sanitized copy of the decision.
     """
     try:
+        from datetime import timezone
+
         rec = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            # Use timezone-aware UTC and normalize to a trailing Z like before
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "mode": decision.get("mode"),
             "reason": decision.get("reason"),
             "tags": decision.get("tags", []),

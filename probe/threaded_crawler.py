@@ -95,11 +95,13 @@ class ThreadedCrawler:
 
             if self.persistent_politeness and domain:
                 try:
-                    from datetime import datetime
+                    from datetime import datetime, timezone
 
                     from probe.crawl.state import set_last_crawled
 
-                    set_last_crawled(domain, datetime.utcnow())
+                    # Use timezone-aware UTC to avoid DeprecationWarning and ensure
+                    # consistent timezone-aware datetimes in persistent state.
+                    set_last_crawled(domain, datetime.now(timezone.utc))
                 except Exception:
                     pass
 

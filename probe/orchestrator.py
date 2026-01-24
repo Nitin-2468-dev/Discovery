@@ -163,6 +163,8 @@ class BreadthFirstCrawler:
                 if hasattr(self, "run_id") and self.run_id
                 else None
             )
+            from datetime import timezone
+
             page = Page(
                 id=None,
                 url=url,
@@ -171,7 +173,8 @@ class BreadthFirstCrawler:
                 content_hash=None,
                 relevance_score=float(self.score(res)),
                 metadata=meta,
-                last_crawled_at=datetime.utcnow().isoformat() + "Z",
+                # Use timezone-aware UTC and normalize to trailing Z for compatibility
+                last_crawled_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             )
             try:
                 self.map.add_page(page)

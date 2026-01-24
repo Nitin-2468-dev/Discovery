@@ -10,8 +10,10 @@ def test_persistent_politeness_respects_state(tmp_path):
     try:
         os.chdir(tmp_path)
         domain = "same.example"
-        # set last crawled to now - 0.5s
-        state.set_last_crawled(domain, datetime.utcnow() - timedelta(seconds=0.5))
+        # set last crawled to now - 0.5s (timezone-aware)
+        from datetime import timezone
+
+        state.set_last_crawled(domain, datetime.now(timezone.utc) - timedelta(seconds=0.5))
 
         import time as _time
 
