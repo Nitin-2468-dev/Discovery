@@ -19,7 +19,14 @@ import csv
 import itertools
 import json
 import os
+import sys
+from pathlib import Path
 from typing import List
+
+# When scripts are executed as standalone files (e.g. `python scripts/weight_sweep.py`),
+# Python sets sys.path[0] to the scripts directory which prevents importing the top-level
+# package `probe`. Ensure the project root is on sys.path so `from probe...` works.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from probe.analysis.gaps import GapDetector
 from probe.core.map import Map
